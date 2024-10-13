@@ -38,6 +38,13 @@
                 "settings": {
                     "foreground": "#afa038"
                 }
+            },
+            // 効いていない
+            {
+                "scope": "string.quoted.double.astro",
+                "settings": {
+                    "foreground": "#d790e4ce" // ダブルクォーテーションの文字列の色
+                }
             }
         ]
     },
