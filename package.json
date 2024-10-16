@@ -8,7 +8,10 @@
         "start": "astro dev",
         "build": "astro check && astro build",
         "preview": "astro preview",
-        "astro": "astro"
+        "astro": "astro",
+        "biome": "biome",
+        "biome:check": "biome check",
+        "biome:fix": "biome fix"
     },
     "dependencies": {
         "@astrojs/check": "^0.9.4",
@@ -20,5 +23,8 @@
     },
     "keywords": [],
     "author": "",
-    "license": "ISC"
+    "license": "ISC",
+    "devDependencies": {
+        "@biomejs/biome": "1.9.3"
+    }
 }
