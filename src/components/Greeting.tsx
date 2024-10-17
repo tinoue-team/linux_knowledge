@@ -1,4 +1,5 @@
-import { useState } from "preact/hooks";
+import React from 'preact/compat';
+import { useState } from 'preact/hooks';
 
 export default function Greeting({ messages }) {
     const randomMessage = () =>
@@ -9,7 +10,7 @@ export default function Greeting({ messages }) {
     return (
         <div>
             <h3>{greeting}！ 訪問いただきありがとうございます！</h3>
-            <button onClick={() => setGreeting(randomMessage())}>
+            <button type='button' onClick={() => setGreeting(randomMessage())}>
                 新しい挨拶
             </button>
         </div>

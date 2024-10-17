@@ -15,6 +15,7 @@
         "lineEnding": "lf"
     },
     "javascript": {
+        "globals": ["Astro"],
         "parser": {
             "unsafeParameterDecoratorsEnabled": true // 安全でない/実験的なパラメーターデコレーターをサポートする
         },
@@ -83,7 +84,7 @@
                 "noUnreachable": "error", // 到達不可能なコードでエラー
                 "noInvalidConstructorSuper": "error", // extendsしてたらconstructorでsuperを強制
                 "noUnsafeOptionalChaining": "error", // 安全でないオプショナルチェーンでエラー
-                "noUnusedVariables": "warn", // 未使用の変数でエラー
+                // "noUnusedVariables": "warn", // 未使用の変数でエラー
                 "noVoidElementsWithChildren": "error", // childrenの無い要素に入れるとエラー
                 "noVoidTypeReturn": "error", // 返り値がvoid型の関数が、returnするとエラー
                 "useIsNan": "error", // NaNを比較するとエラー
@@ -156,4 +157,15 @@
             }
         }
     }
+    // // 以下にoverridesを追加
+    // "overrides": [
+    //     {
+    //         "files": ["**/*.astro"],
+    //         "linter": {
+    //             "rules": {
+    //                 "noUnusedVariables": "off" // .astroファイルでは未使用変数の警告を無効化
+    //             }
+    //         }
+    //     }
+    // ]
 }
