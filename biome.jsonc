@@ -1,4 +1,5 @@
 {
+    // https://biomejs.dev/ja/reference/configuration/
     "$schema": "https://biomejs.dev/schemas/1.9.3/schema.json", // Biomeのバージョンに合わせたスキーマを指定する
     "extends": [], // ローカルの設定ファイルを継承できる
     "files": { "ignoreUnknown": true }, // 処理できないファイルに遭遇した場合、検出するか

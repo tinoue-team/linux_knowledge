@@ -10,5 +10,13 @@
     ],
     "dictionaryDefinitions": [],
     "dictionaries": [],
-    "words": ["astro", "astrojs", "biomejs", "linuledge", "preact", "tsconfigs"]
+    "words": [
+        "astro",
+        "astrojs",
+        "biomejs",
+        "linuledge",
+        "preact",
+        "tsconfigs",
+        "turso"
+    ]
 }

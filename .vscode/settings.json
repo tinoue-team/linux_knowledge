@@ -49,8 +49,8 @@
         ]
     },
 
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
+    // "editor.defaultFormatter": "esbenp.prettier-vscode",
+    // "editor.formatOnSave": true,
 
     "[typescript][javascript][html][typescriptreact][javascriptreact][json][eslintrc]": {
         "editor.defaultFormatter": "biomejs.biome",

@@ -42,6 +42,63 @@ All commands are run from the root of the project, from a terminal:
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |
 
+### astro dev
+
+```bash
+astro dev [...flags]
+```
+
+|option| description|
+|:---|:---|
+| `--port` |  Specify which port to run on. Defaults to 4321.|
+| `--host` |  Listen on all addresses, including LAN and public addresses.|
+| `--host <custom-address>` |  Expose on a network IP address at `<custom-address>`|
+| `--open` |  Automatically open the app in the browser on server start|
+| `--force` |  Clear the content layer cache, forcing a full rebuild.|
+| `--help (-h)` |  See all available flags.|
+
 ## 👀 Want to learn more?
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+
+## 開発からデプロイまで
+
+### 開発
+
+プロジェクトの諸々の開発を行なったら、以下の手順でデプロイを行なっていく
+
+1. **ローカルでの開発**
+  リアルタイムでのコードの反映を確認しながらの開発を行なっていく(ホットリロード)
+
+    ```bash
+    pnpm run dev
+    ```
+
+1. **SSGページのビルドを確認**
+  静的ページレンダリングを確認する
+
+    ```bash
+    pnpm run build
+    ```
+
+### DB へのスキーマ実行
+
+.env ファイルに ASTRO_DB_REMOTE_URL と ASTRO_DB_APP_TOKEN を定義して turso (リモート DB) に反映させる
+
+```bash
+pnpm astro db push --remote
+```
+
+Astro DB では、ローカルとリモートの両方のデータベースに接続できます。 デフォルトでは、Astroは `dev` および `build` コマンドにローカルデータベースファイルを使用し、毎回テーブルを再作成して開発シードデータを挿入します。
+
+ホスティングされたリモートデータベースに接続するには、`--remote`フラグを使用します。このフラグにより、リモートデータベースへの読み取りと書き込みの両方が可能になり、本番環境でのユーザーデータの受け入れと永続化が可能になります。
+
+package.json ですでに `--remote` フラグ付きの実行コマンドを定義済みのため
+
+```bash
+pnpm run dev:remote
+
+pnpm run build:remote
+```
+
+を実行するとリモートのデータベースを参照するようになる。
