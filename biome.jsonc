@@ -3,7 +3,7 @@
     "extends": [], // ローカルの設定ファイルを継承できる
     "files": { "ignoreUnknown": true }, // 処理できないファイルに遭遇した場合、検出するか
     "organizeImports": {
-        "enabled": true // importのソートをする
+        "enabled": true // import 文のソートをする
     },
     "formatter": {
         "enabled": true,
@@ -11,7 +11,7 @@
         "ignore": [],
         "indentWidth": 4,
         "indentStyle": "space",
-        "lineWidth": 80,
+        "lineWidth": 200,
         "lineEnding": "lf"
     },
     "javascript": {
@@ -84,7 +84,8 @@
                 "noUnreachable": "error", // 到達不可能なコードでエラー
                 "noInvalidConstructorSuper": "error", // extendsしてたらconstructorでsuperを強制
                 "noUnsafeOptionalChaining": "error", // 安全でないオプショナルチェーンでエラー
-                // "noUnusedVariables": "warn", // 未使用の変数でエラー
+                "noUnusedVariables": "warn", // 未使用の変数でエラー
+                "noUnusedImports": "warn",
                 "noVoidElementsWithChildren": "error", // childrenの無い要素に入れるとエラー
                 "noVoidTypeReturn": "error", // 返り値がvoid型の関数が、returnするとエラー
                 "useIsNan": "error", // NaNを比較するとエラー
@@ -141,6 +142,7 @@
                 "useValidTypeof": "error" // typeofで比較する値が正しくないとエラー
             },
             "nursery": {
+                "useSortedClasses": "warn" // CSS クラスのソート
                 // "noDuplicateJsonKeys": "error", // JSONオブジェクトで同じkey使うとエラー
                 // "noEmptyCharacterClassInRegex": "error", // 正規化の[]の中が空だとエラー
                 // "noExcessiveComplexity": "warn", // 複雑なコード書くとエラー(階層が深くなる)
@@ -156,16 +158,23 @@
                 // "useShorthandAssign": "error" // 短い書き方を強制 a = a + 1 => a += 1
             }
         }
-    }
-    // // 以下にoverridesを追加
-    // "overrides": [
-    //     {
-    //         "files": ["**/*.astro"],
-    //         "linter": {
-    //             "rules": {
-    //                 "noUnusedVariables": "off" // .astroファイルでは未使用変数の警告を無効化
-    //             }
-    //         }
-    //     }
-    // ]
+    },
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "overrides": [
+        {
+            "include": ["**/*.astro"],
+            "linter": {
+                "rules": {
+                    "correctness": {
+                        "noUnusedVariables": "off",
+                        "noUnusedImports": "off"
+                    }
+                }
+            }
+        }
+    ]
 }
