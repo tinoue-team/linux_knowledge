@@ -1,9 +1,9 @@
 ---
-import {Command, Scenario, db } from "astro:db"
-import BaseLayout from "@layouts/BaseLayout.astro";
-import Greeting from "../components/Greeting";
+import { Command, Scenario, db } from 'astro:db';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Greeting from '../components/Greeting';
 
-const pageTitle = "Home Page";
+const pageTitle = 'Home Page';
 const commands = await db.select().from(Command);
 ---
 

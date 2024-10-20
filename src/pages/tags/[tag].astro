@@ -5,16 +5,11 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import type { MarkdownInstance } from 'astro';
 
 export async function getStaticPaths() {
-    const allPosts: MarkdownInstance<Frontmatter>[] =
-        await Astro.glob<Frontmatter>('../posts/*.md');
-    const uniqueTags = [
-        ...new Set(allPosts.flatMap(post => post.frontmatter.tags)),
-    ];
+    const allPosts: MarkdownInstance<Frontmatter>[] = await Astro.glob<Frontmatter>('../posts/*.md');
+    const uniqueTags = [...new Set(allPosts.flatMap(post => post.frontmatter.tags))];
 
     return uniqueTags.map(tag => {
-        const filteredPosts = allPosts.filter(post =>
-            post.frontmatter.tags.includes(tag),
-        );
+        const filteredPosts = allPosts.filter(post => post.frontmatter.tags.includes(tag));
 
         return {
             params: { tag },

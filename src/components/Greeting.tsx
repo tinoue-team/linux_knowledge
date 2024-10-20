@@ -1,9 +1,9 @@
+// biome-ignore lint/correctness/noUnusedImports: <explanation>
 import React from 'preact/compat';
 import { useState } from 'preact/hooks';
 
 export default function Greeting({ messages }) {
-    const randomMessage = () =>
-        messages[Math.floor(Math.random() * messages.length)];
+    const randomMessage = () => messages[Math.floor(Math.random() * messages.length)];
 
     const [greeting, setGreeting] = useState(messages[0]);
 

@@ -1,10 +1,9 @@
 ---
-import BaseLayout from "@layouts/BaseLayout.astro";
+import BaseLayout from '@layouts/BaseLayout.astro';
 
-const allPosts = await Astro.glob("../posts/*.md");
-const tags = [...new Set(allPosts.flatMap((post) => post.frontmatter.tags))];
-const pageTitle = "タグインデックス";
-
+const allPosts = await Astro.glob('../posts/*.md');
+const tags = [...new Set(allPosts.flatMap(post => post.frontmatter.tags))];
+const pageTitle = 'タグインデックス';
 ---
 
 <BaseLayout pageTitle={pageTitle}>
