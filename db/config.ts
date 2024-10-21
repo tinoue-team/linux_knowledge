@@ -6,18 +6,10 @@ const Command = defineTable({
         id: column.number({ primaryKey: true }),
         command: column.text({ unique: true }),
         description: column.text({ optional: true }),
-        // usage: column.text(),
-        // aliases: column.text({ array: true }),
     },
     indexes: {
         commandIndex: { on: ['command'] },
     },
-    // foreignKeys: [
-    //     {
-    //         columns: ['id'],
-    //         references: () => CommandScenario.columns.commandId,
-    //     },
-    // ],
 });
 
 const Scenario = defineTable({
@@ -25,14 +17,7 @@ const Scenario = defineTable({
         id: column.number({ primaryKey: true }),
         scenario: column.text(),
         description: column.text({ optional: true }),
-        // commands: column.text({ array: true }),
     },
-    // foreignKeys: [
-    //     {
-    //         columns: ['id'],
-    //         references: () => CommandScenario.columns.scenarioId,
-    //     },
-    // ],
 });
 
 const CommandScenario = defineTable({
@@ -46,6 +31,7 @@ const CommandScenario = defineTable({
     },
 });
 
+// <https://astro.build/db/config>
 export default defineDb({
     tables: { Command, Scenario, CommandScenario },
 });

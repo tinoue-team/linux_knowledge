@@ -74,6 +74,14 @@ Feel free to check [our documentation](https://docs.astro.build) or jump into ou
     pnpm run dev
     ```
 
+1. **リンターとフォーマッターの適用**
+
+    ```bash
+    pnpm check
+    pnpm fmt
+    pnpm lint
+    ```
+
 1. **SSGページのビルドを確認**
   静的ページレンダリングを確認する
 

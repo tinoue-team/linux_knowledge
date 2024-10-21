@@ -1,10 +1,11 @@
 ---
 import { Command, Scenario, db } from 'astro:db';
+import Greeting from '@components/Greeting';
 import BaseLayout from '@layouts/BaseLayout.astro';
-import Greeting from '../components/Greeting';
 
 const pageTitle = 'Home Page';
 const commands = await db.select().from(Command);
+const scenarios = await db.select().from(Scenario);
 ---
 
 <BaseLayout pageTitle={pageTitle}>
@@ -14,6 +15,12 @@ const commands = await db.select().from(Command);
     {
         commands.map(({command, description}) => (
             <p>{command}</p>
+            <p>{description}</p>
+        ))
+    }
+    {
+        scenarios.map(({scenario, description}) => (
+            <p>{scenario}</p>
             <p>{description}</p>
         ))
     }

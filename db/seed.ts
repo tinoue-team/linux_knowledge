@@ -1,5 +1,4 @@
 import { Command, Scenario, db } from 'astro:db';
-// import { Command, Scenario } from './config';
 
 // https://astro.build/db/seed
 export default async function seed() {
