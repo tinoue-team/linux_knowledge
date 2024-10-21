@@ -110,3 +110,7 @@ pnpm run build:remote
 ```
 
 を実行するとリモートのデータベースを参照するようになる。
+
+TODO:
+
+- vscode 拡張機能がない環境での開発を考慮して、[@astrojs/ts-plugin](https://www.npmjs.com/package/@astrojs/ts-plugin) をインストールする
