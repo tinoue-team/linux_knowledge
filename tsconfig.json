@@ -4,12 +4,27 @@
         "strict": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["src/*"]
+            "@/*": ["src/*"],
+            "@components/*": ["src/components/*"],
+            "@layouts/*": ["src/layouts/*"],
+            "@pages/*": ["src/pages/*"],
+            "@assets/*": ["src/assets/*"]
         },
         "types": ["astro/client"],
         "jsx": "react-jsx",
-        "jsxImportSource": "preact"
+        "jsxImportSource": "preact",
+        "verbatimModuleSyntax": true
     },
-    "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.astro"],
-    "exclude": ["node_modules"]
+    "include": [
+        "astro.config.mjs",
+        "src",
+        "db"
+        // "src/**/*.ts",
+        // "src/**/*.d.ts",
+        // "src/**/*.astro"
+    ],
+    "exclude": ["node_modules", "dist"]
 }
+
+// Reference:
+// https://github.com/withastro/astro/issues/10507
