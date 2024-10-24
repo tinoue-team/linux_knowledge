@@ -6,6 +6,10 @@ const Command = defineTable({
         id: column.number({ primaryKey: true }),
         command: column.text({ unique: true }),
         description: column.text({ optional: true }),
+        create_author: column.text(),
+        update_author: column.text(),
+        created_at: column.date({ default: new Date() }),
+        updated_at: column.date({ default: new Date() }),
     },
     indexes: {
         commandIndex: { on: ['command'] },
@@ -15,8 +19,13 @@ const Command = defineTable({
 const Scenario = defineTable({
     columns: {
         id: column.number({ primaryKey: true }),
-        scenario: column.text(),
+        title: column.text(),
         description: column.text({ optional: true }),
+        create_author: column.text(),
+        update_author: column.text(),
+        scenario: column.json(),
+        created_at: column.date({ default: new Date() }),
+        updated_at: column.date({ default: new Date() }),
     },
 });
 

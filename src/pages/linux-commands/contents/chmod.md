@@ -1,5 +1,5 @@
 ---
-layout: ../../layouts/MarkdownPostLayout.astro
+layout: ../../../layouts/MarkdownPostLayout.astro
 title: 'chmod'
 pubDate: 2022-07-01
 description: 'ディレクトリの一覧表示、ファイルの情報表示'

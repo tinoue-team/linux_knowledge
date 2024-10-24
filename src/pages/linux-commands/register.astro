@@ -1,0 +1,49 @@
+---
+import { Command, db } from 'astro:db';
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+if (Astro.request.method === 'POST') {
+    // Parse form data
+    console.log(Astro.request);
+
+    const formData = await Astro.request.formData();
+    const command = formData.get('command');
+    const description = formData.get('description');
+    const create_author = 'TinoueT';
+    const update_author = 'TinoueT';
+
+    if (typeof command === 'string' && typeof description === 'string' && typeof create_author === 'string' && typeof update_author === 'string') {
+        // Insert form data into the Command table
+        const created_at = new Date();
+        const updated_at = new Date();
+
+        await db.insert(Command).values({ command, description, create_author, update_author, created_at, updated_at });
+    }
+}
+
+const pageTitle = 'コマンド登録ページ';
+
+// Render the new list of commands on each request
+const commands = await db.select().from(Command);
+---
+
+<BaseLayout pageTitle={pageTitle}>
+    <form method="POST" style="display: grid">
+        <label for="command">Command</label>
+        <input id="command" name="command" />
+
+        <label for="description">Description</label>
+        <textarea id="description" name="description"></textarea>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <!-- Render `commands` -->
+    {
+        commands.map(({command}) => (
+            <p>{command}</p>
+        ))
+    }
+</BaseLayout>

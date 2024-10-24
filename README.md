@@ -86,8 +86,18 @@ Feel free to check [our documentation](https://docs.astro.build) or jump into ou
   静的ページレンダリングを確認する
 
     ```bash
+    # ASTRO_DATABASE_FILE 変数を定義することを求められたら、
+    export ASTRO_DATABASE_FILE=./.astro/content.db
     pnpm run build
     ```
+
+    ビルドのエラーが発生したら `--verbose`オプションで確認することもできる
+
+    ```bash
+    pnpm run build --verbose
+    ```
+
+## 本番用 DB (turso) を参照して開発
 
 ### DB へのスキーマ実行
 
@@ -99,18 +109,22 @@ pnpm astro db push --remote
 
 Astro DB では、ローカルとリモートの両方のデータベースに接続できます。 デフォルトでは、Astroは `dev` および `build` コマンドにローカルデータベースファイルを使用し、毎回テーブルを再作成して開発シードデータを挿入します。
 
+### 本番のデータを元にビルド、開発
+
 ホスティングされたリモートデータベースに接続するには、`--remote`フラグを使用します。このフラグにより、リモートデータベースへの読み取りと書き込みの両方が可能になり、本番環境でのユーザーデータの受け入れと永続化が可能になります。
 
 package.json ですでに `--remote` フラグ付きの実行コマンドを定義済みのため
 
 ```bash
-pnpm run dev:remote
-
 pnpm run build:remote
+
+pnpm run dev:remote
 ```
 
 を実行するとリモートのデータベースを参照するようになる。
 
-TODO:
+## その他
+
+### TODO
 
 - vscode 拡張機能がない環境での開発を考慮して、[@astrojs/ts-plugin](https://www.npmjs.com/package/@astrojs/ts-plugin) をインストールする
