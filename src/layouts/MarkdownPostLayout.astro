@@ -1,5 +1,6 @@
 ---
 import type { Frontmatter } from '@/type';
+import CustomTable from '@components/CustomTable.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
 export interface Props {
     frontmatter: Frontmatter;
@@ -27,6 +28,16 @@ const { frontmatter } = Astro.props;
     </div>
 
     <slot />
+    <CustomTable>
+    <Fragment slot="header"> <!-- テーブルのヘッダーを渡す -->
+        <tr><th>商品名</th><th>在庫</th></tr>
+    </Fragment>
+    <Fragment slot="body"> <!-- テーブルのボディを渡す -->
+        <tr><td>ビーチサンダル</td><td>64</td></tr>
+        <tr><td>ブーツ</td><td>32</td></tr>
+        <tr><td>スニーカー</td><td class="text-red-500">0</td></tr>
+    </Fragment>
+</CustomTable>
 </BaseLayout>
 <style>
     a {
