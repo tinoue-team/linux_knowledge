@@ -1,0 +1,36 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import type { GetStaticPathsOptions } from 'astro';
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+    const astronautPages = [
+        {
+            astronaut: 'ニール・アームストロング',
+        },
+        {
+            astronaut: 'バズ・オルドリン',
+        },
+        {
+            astronaut: 'サリー・ライド',
+        },
+        {
+            astronaut: 'ジョン・グレン',
+        },
+    ];
+    // 宇宙飛行士の配列から、1ページに2人づつ入るようにページを生成します
+    return paginate(astronautPages, { pageSize: 2 });
+}
+// ページネーションされたデータは、すべて"page"プロパティとして渡されます
+const { page } = Astro.props;
+---
+
+<BaseLayout>
+    <!--現在のページ番号を表示します。Astro.params.pageも使用可能です！-->
+    <h1>{page.currentPage}ページ</h1>
+    <ul>
+        <!--宇宙飛行士情報の配列を列挙します-->
+        {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+    </ul>
+    {page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
+    {page.url.next ? <a href={page.url.next}>Next</a> : null}
+</BaseLayout>
+
