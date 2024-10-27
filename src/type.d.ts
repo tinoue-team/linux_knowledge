@@ -12,6 +12,18 @@ export interface Frontmatter {
     image?: Image;
     tags: string[];
 }
+export interface CmdFrontmatter {
+    layout?: string;
+    title: string;
+    description: string;
+    image?: Image;
+    tags: string[];
+    featured: boolean;
+    draft: boolean;
+    author: string;
+    pubDatetime: Date;
+    modDatetime: Date;
+}
 
 export interface Post {
     frontmatter: Frontmatter;

@@ -1,9 +1,12 @@
 ---
-import type { Frontmatter } from '@/type';
+import CustomTable from '@components/CustomTable.astro';
+// import type { Frontmatter } from '@/type';
+// import CmdLayout from '@layouts/CmdLayout.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
-import type { MarkdownInstance } from 'astro';
+// import type { MarkdownInstance } from 'astro';
 
-import { type CollectionEntry, getCollection, getEntry } from 'astro:content';
+import { type CollectionEntry, getCollection } from 'astro:content';
+// import { type CollectionEntry, getCollection, getEntry } from 'astro:content';
 
 export async function getStaticPaths() {
     const posts = await getCollection('cmd');
@@ -15,30 +18,47 @@ export async function getStaticPaths() {
 
 // console.log(Astro.props);
 
-const { cmd } = Astro.params;
+// const { cmd } = Astro.params;
 const post = Astro.props;
+console.log(post);
 
 const { Content } = await post.render();
 
 // const { content } = Astro.props;
 ---
 
-<BaseLayout>
-<p>
-    {cmd}
-</p>
-<p>
-    <Content />
-</p>
+<!-- <CmdLayout {content} /> -->
 
-
-<!-- <BaseLayout pageTitle={tag}> -->
-    <!-- <p>{tag}のタグが付いた記事</p>
-    <ul>
+<BaseLayout pageTitle={post.data.title}>
+    <p>{post.data.pubDatetime.toString()}</p>
+    <p>{post.data.modDatetime.toString()}</p>
+    <p><em>{post.data.description}</em></p>
+    <p>著者: {post.data.author}</p>
+    <img
+        src={post.data.image?.url}
+        width="300"
+        alt={post.data.image?.alt}
+    />
+    <div class="tags">
         {
-            posts.map((post) => (
-                <BlogPost url={post.url} title={post.frontmatter.title} />
+            post.data.tags.map((tag: string) => (
+                <p class="tag">
+                    <a href={`/tags/${tag}`}>{tag}</a>
+                </p>
             ))
         }
-    </ul> -->
+    </div>
+    <Content />
+    <CustomTable>
+        <Fragment slot="header"> <!-- テーブルのヘッダーを渡す -->
+            <tr><th>商品名</th><th>在庫</th></tr>
+        </Fragment>
+        <Fragment slot="body"> <!-- テーブルのボディを渡す -->
+            <tr><td>ビーチサンダル</td><td>64</td></tr>
+            <tr><td>ブーツ</td><td>32</td></tr>
+            <tr><td>スニーカー</td><td class="text-red-500">0</td></tr>
+        </Fragment>
+    </CustomTable>
 </BaseLayout>
+
+<!-- </Cmd> -->
