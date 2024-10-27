@@ -1,0 +1,44 @@
+---
+import type { Frontmatter } from '@/type';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import type { MarkdownInstance } from 'astro';
+
+import { type CollectionEntry, getCollection, getEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+    const posts = await getCollection('cmd');
+    return posts.map((post: CollectionEntry<'cmd'>) => ({
+        params: { cmd: post.slug },
+        props: post,
+    }));
+}
+
+// console.log(Astro.props);
+
+const { cmd } = Astro.params;
+const post = Astro.props;
+
+const { Content } = await post.render();
+
+// const { content } = Astro.props;
+---
+
+<BaseLayout>
+<p>
+    {cmd}
+</p>
+<p>
+    <Content />
+</p>
+
+
+<!-- <BaseLayout pageTitle={tag}> -->
+    <!-- <p>{tag}のタグが付いた記事</p>
+    <ul>
+        {
+            posts.map((post) => (
+                <BlogPost url={post.url} title={post.frontmatter.title} />
+            ))
+        }
+    </ul> -->
+</BaseLayout>
