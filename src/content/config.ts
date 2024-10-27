@@ -6,16 +6,19 @@ const cmdCollection = defineCollection({
     type: 'content', // v2.5.0以降
     schema: z.object({
         title: z.string(),
-        pubDate: z.date(),
         description: z.string(),
-        author: z.string().default('Anonymous'),
         image: z
             .object({
-                url: z.string(),
-                alt: z.string(),
+                url: z.string().optional(),
+                alt: z.string().optional(),
             })
             .optional(),
         tags: z.array(z.string()),
+        featured: z.boolean().default(false),
+        draft: z.boolean().default(true),
+        author: z.string().default('Anonymous'),
+        pubDatetime: z.date(),
+        modDatetime: z.date(),
     }),
 });
 

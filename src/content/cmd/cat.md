@@ -1,13 +1,17 @@
 ---
 # layout: ../../../layouts/MarkdownPostLayout.astro
 title: 'cat'
-pubDate: 2024-10-27
 description: 'ファイル閲覧を目的に利用するが、ファイルのテキストを出力する働きで、オプションによって複数のテキストを結合して標準出力を行う'
-author: 'Astro学習者'
 image:
     url: 'https://docs.astro.build/assets/full-logo-light.png'
     alt: 'Astroのロゴ。'
-tags: ["ファイル・ディレクトリ管理"]
+tags:
+  - "ファイル・ディレクトリ管理"
+featured: false
+draft: true
+author: 'Astro学習者'
+pubDatetime: 2024-10-27T21:39:29.000+09:00
+modDatetime: 2024-10-27T21:39:29.000+09:00
 ---
 
 ## 基本

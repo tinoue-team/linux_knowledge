@@ -1,13 +1,18 @@
 ---
-layout: ../../../layouts/MarkdownPostLayout.astro
+# layout: ../../../layouts/MarkdownPostLayout.astro
 title: 'ls'
 pubDate: 2022-07-01
-description: 'ディレクトリの一覧表示、ファイルの情報表示'
-author: 'Astro学習者'
+description: 'netfilter を管理するインターフェースの提供'
 image:
     url: 'https://docs.astro.build/assets/full-logo-light.png'
     alt: 'Astroのロゴ。'
-tags: ["ファイル・ディレクトリ管理"]
+tags:
+  - "ネットワーク管理"
+featured: false
+draft: true
+author: 'Astro学習者'
+pubDatetime: 2024-10-27T21:39:29.000+09:00
+modDatetime: 2024-10-27T21:39:29.000+09:00
 ---
 
 ## 基本
