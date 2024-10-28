@@ -4,6 +4,7 @@ import type { CmdFrontmatter } from '@/type';
 import CustomTable from '@components/CustomTable.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import type { Page } from 'astro';
+import { Code } from 'astro/components';
 export interface Props {
     cmdFrontmatter: CmdFrontmatter;
 }
@@ -38,6 +39,17 @@ const { cmdFrontmatter } = Astro.props;
     </div>
 
     <slot />
+
+    <p>jjjjjj</p>
+
+    <Code code={`
+    function greet(name) {
+    console.log(\`Hello, \${name}!\`);
+    }
+    greet('Astro');
+    `} lang="js" />
+
+
     <CustomTable>
         <Fragment slot="header"> <!-- テーブルのヘッダーを渡す -->
             <tr><th>商品名</th><th>在庫</th></tr>

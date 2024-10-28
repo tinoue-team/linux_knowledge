@@ -3,6 +3,7 @@ import CustomTable from '@components/CustomTable.astro';
 // import type { Frontmatter } from '@/type';
 // import CmdLayout from '@layouts/CmdLayout.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { Code } from 'astro/components';
 // import type { MarkdownInstance } from 'astro';
 
 import { type CollectionEntry, getCollection } from 'astro:content';
@@ -49,6 +50,20 @@ const { Content } = await post.render();
         }
     </div>
     <Content />
+
+    <p>jjjjjj</p>
+
+    <Code code={`
+    function greet(name) {
+    console.log(\`Hello, \${name}!\`);
+    }
+    greet('Astro');
+    `}
+    lang="js"
+    theme="github-dark"
+    wrap={true}
+
+    />
     <CustomTable>
         <Fragment slot="header"> <!-- テーブルのヘッダーを渡す -->
             <tr><th>商品名</th><th>在庫</th></tr>
