@@ -23,6 +23,7 @@
         "@astrojs/netlify": "^5.5.4",
         "@astrojs/preact": "^3.5.3",
         "@astrojs/rss": "^4.0.9",
+        "@astrojs/starlight": "^0.28.3",
         "astro": "^4.16.7",
         "preact": "^10.24.3",
         "typescript": "^5.6.3"

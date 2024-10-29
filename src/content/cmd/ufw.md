@@ -23,7 +23,7 @@ modDatetime: 2024-10-27T21:39:29.000+09:00
 
 ### 構文
 
-```bash
+```sh frame="none"
 ufw [--dry-run] enable|disable|reload
 ufw [--dry-run] default allow|deny|reject [incoming|outgoing|routed]
 ufw [--dry-run] logging on|off|LEVEL
@@ -38,6 +38,12 @@ ufw [--dry-run] app list|info|default|update
 ```
 
 ## オプション
+
+```js
+if (x == 1) {
+    console.log("dddd")
+}
+```
 
 ### オプションリスト
 
@@ -70,7 +76,7 @@ ufw [--dry-run] app list|info|default|update
 
 例えば、以下のルールを追加すると：
 
-```bash
+```bash frame="none"
 ufw allow in on eth0 from 192.168.0.0/16
 ufw allow out on eth1 to 10.0.0.0/8
 ufw route allow in on eth0 out on eth1 to 10.0.0.0/8 from 192.168.0.0/16
@@ -79,7 +85,7 @@ ufw limit 2222/tcp comment 'SSH port'
 
 `ufw status` は以下のように出力します:
 
-```bash
+```bash frame="none"
 To                         Action      From
 --                         ------      ----
 Anywhere on eth0           ALLOW       192.168.0.0/16
@@ -109,51 +115,51 @@ Anywhere                   LIMIT       Anywhere                 # SSH port
 
 1. **ファイアウォールのバージョン確認**:
 
-    ```bash
+    ```bash frame="none"
     sudo ufw --version
     ```
 
 2. **ヘルプメッセージの表示**:
 
-    ```bash
+    ```bash frame="none"
     sudo ufw --help
     ```
 
 3. **ファイアウォールの有効化**:
 
-    ```bash
+    ```bash frame="none"
     sudo ufw enable
     ```
 
 4. **特定のポート（例: SSHポート22）の許可**:
 
-    ```bash
+    ```bash frame="none"
     sudo ufw allow 22/tcp
     ```
 
 5. **ファイアウォールのステータス確認**:
 
-    ```bash
+    ```bash frame="none"
     sudo ufw status
     sudo ufw status verbose
     ```
 
 6. **デフォルトポリシーの設定（例: 受信トラフィックを拒否）**:
 
-    ```bash
+    ```bash frame="none"
     sudo ufw default deny incoming
     ```
 
 7. **ロギングの有効化**:
 
-    ```bash
+    ```bash frame="none"
     sudo ufw logging on
     sudo ufw logging high
     ```
 
 8. **ファイアウォールのリセット**:
 
-    ```bash
+    ```bash frame="none"
     sudo ufw reset
     sudo ufw reset --force
     ```
@@ -178,7 +184,7 @@ Anywhere                   LIMIT       Anywhere                 # SSH port
 > **トラフィックの許可・拒否設定**
 >
 
-```bash
+```bash frame="none"
 # ホスト上の任意のアドレスに対して TCP および UDP ポート 53 を許可
 ufw allow 53
 
@@ -187,23 +193,27 @@ ufw allow 53
 ufw allow 25/tcp
 
 # 上記の処理と同じだがサービス名で指定する場合は
-ufw allow <*service*>
+ufw allow <service>
 # ex.
 ufw allow smtp
 ```
 
 <aside>
-<img src="/icons/info-alternate_blue.svg" alt="/icons/info-alternate_blue.svg" width="40px" />
+<img src="/icons/info-filled.svg" alt="/icons/info-filled.svg" width="40px" />
 
 サービス名で指定する場合、`ufw` は `/etc/services` をチェックします。
 
 </aside>
 
+:::caution
+サービス名で指定する場合、`ufw` は `/etc/services` をチェックします。
+:::
+
 `ufw` は受信（ingress）および送信（egress）のフィルタリングの両方をサポートしており、ユーザーはオプションでトラフィックの方向を `in` または `out` のいずれかで指定できます。方向が指定されていない場合(default)、ルールは受信トラフィックに適用されます。
 
 例：
 
-```bash
+```bash frame="none"
 ufw allow in http
 ufw reject out smtp
 ufw reject telnet comment 'telnet is unencrypted'
@@ -213,7 +223,7 @@ ufw reject telnet comment 'telnet is unencrypted'
 ユーザーは、ソースおよびデスティネーションのアドレスやポートを指定するフル構文も使用できます。
 この構文は OpenBSD の PF 構文に大まかに基づいています。例えば：
 
-```bash
+```bash frame="none"
 # ホスト上の TCP ポート 80 へのすべてのトラフィックを拒否
 ufw deny proto tcp to any port 80
 
@@ -225,13 +235,13 @@ ufw deny proto tcp from 2001:db8::/32 to any port 25
 ```
 
 <aside>
-<img src="/icons/warning_yellow.svg" alt="/icons/warning_yellow.svg" width="40px" />
+<img src="/icons/warning-filled.svg" alt="/icons/warning-filled.svg" width="40px" />
 
 IPv6 ファイアウォールを機能させるためには、`/etc/default/ufw` で IPv6 を有効にする必要があります。
 
 </aside>
 
-```bash
+```bash frame="none"
 # eth0 インターフェース上の 224.0.0.1 へのすべての IGMP トラフィックを拒否
 ufw deny in on eth0 to 224.0.0.1 proto igmp
 
@@ -239,7 +249,7 @@ ufw deny in on eth0 to 224.0.0.1 proto igmp
 ufw allow in on eth0 to 192.168.0.1 proto gre
 ```
 
-```bash
+```bash frame="none"
 # TCP ポート 80、443、および 8080-8090（両端を含む）へのすべてのトラフィックを許可し、ルールにコメントを追加します
 ufw allow proto tcp from any to any port 80,443,8080:8090 comment 'web app'
 ```
@@ -264,7 +274,7 @@ ufw allow proto tcp from any to any port 80,443,8080:8090 comment 'web app'
 
 例えば：
 
-```bash
+```bash frame="none"
 # eth1 から eth2 に入ってくるすべてのトラフィックをファイアウォールを通過させることを許可
 ufw route allow in on eth1 out on eth2
 
@@ -278,7 +288,7 @@ ufw route allow in on eth0 out on eth1 to 12.34.45.67 port 80 proto tcp
 ルーティングルールおよびポリシーに加えて、IP フォワーディングも設定する必要があります。
 `/etc/ufw/sysctl.conf` に以下を設定することで行えます：
 
-```bash
+```bash frame="none"
 net/ipv4/ip_forward=1
 net/ipv6/conf/default/forwarding=1
 net/ipv6/conf/all/forwarding=1
@@ -287,7 +297,7 @@ net/ipv6/conf/all/forwarding=1
 
 その後、設定を反映させるためにファイアウォールを再起動：
 
-```bash
+```bash frame="none"
 ufw disable
 ufw enable
 
@@ -301,7 +311,7 @@ ufw enable
 詳細は [Debian Administrationの記事](http://www.debian-administration.org/articles/187) を参照してください。
 典型的な使用例は：
 
-```bash
+```bash frame="none"
 ufw limit ssh/tcp
 ```
 
@@ -309,7 +319,7 @@ ufw limit ssh/tcp
 このような場合は、単に無視するのではなく `deny` の代わりに `reject` を使用します。
 例えば：
 
-```bash
+```bash frame="none"
 ufw reject auth
 ```
 
@@ -319,21 +329,21 @@ ufw reject auth
 
 例えば、`eth0` 上で新しいすべての受信 HTTP 接続を許可するには、次のようにします：
 
-```bash
+```bash frame="none"
 ufw allow in on eth0 to any port 80 proto tcp
 ```
 
 ルールを削除するには、元のルールの前に `delete` を付けます。ルールのコメントがある場合でもない場合でも構いません。
 例えば、元のルールが `ufw deny 80/tcp` の場合、これを削除するには：
 
-```bash
+```bash frame="none"
 ufw delete deny 80/tcp
 ```
 
 また、`status` の番号付き出力で見られるように、ルール番号 `NUM` を指定してルールを削除することもできます。
 例えば、ルール番号 `3` を削除したい場合は：
 
-```bash
+```bash frame="none"
 ufw delete 3
 ```
 
@@ -341,13 +351,13 @@ IPv6 が有効になっていて、IPv4 および IPv6 の両方に適用され�
 
 ルールを挿入するには、新しいルールを通常通り指定しますが、ルール番号を前に付けて挿入します。例えば、ルールが 4 つあり、新しいルールをルール番号 3 として挿入したい場合は：
 
-```bash
+```bash frame="none"
 ufw insert 3 deny to any port 22 from 10.0.0.135 proto tcp
 ```
 
 同様に、ルールの IP タイプに一致するすべての他のルールの前にルールを追加するには、`prepend` ルールを使用します：
 
-```bash
+```bash frame="none"
 ufw prepend deny from 1.2.3.4
 ```
 
@@ -355,13 +365,13 @@ ufw prepend deny from 1.2.3.4
 
 番号付きルールのリストを表示するには、次のコマンドを使用します：
 
-```bash
+```bash frame="none"
 ufw status numbered
 ```
 
 `ufw` はルールごとのログ記録をサポートしています。デフォルトでは、パケットがルールにマッチしたときにログは記録されません。`log` を指定すると、そのルールにマッチするすべての新しい接続がログに記録され、`log-all` を指定すると、そのルールにマッチするすべてのパケットがログに記録されます。例えば、すべての新しい SSH 接続を許可してログに記録するには：
 
-```bash
+```bash frame="none"
 ufw allow log 22/tcp
 ```
 
@@ -373,7 +383,7 @@ ufw allow log 22/tcp
 
 ### EXAMPLES
 
-```bash
+```bash frame="none"
 # 53番ポートのアクセスをすべて拒否する
 ufw deny 53
 
@@ -397,14 +407,14 @@ ufw allow proto udp from 1.2.3.5 port 5469 to 1.2.3.4 port 5469
 `ufw enable` を実行するか、`ufw` をそのinitスクリプト経由で起動する際、`ufw` はチェーンをフラッシュします。これは `ufw` が一貫した状態を維持するために必要ですが、既存の接続（例：SSH）が切断される可能性があります。
 `ufw` はファイアウォールを有効化する前にルールを追加することをサポートしているため、管理者は以下のように実行できます：
 
-```bash
+```bash frame="none"
 ufw allow proto tcp from any to any port 22
 ```
 
 `ufw enable` を実行する前にこれを行うことで、ルールはフラッシュされますが、ファイアウォールを有効化した後にSSHポートは開放されます。`ufw` が「有効化」された後、ルールを追加または削除する際にはチェーンはフラッシュされません（ただし、ルールの変更やデフォルトポリシーの変更時にはフラッシュされます）。デフォルトでは、SSH経由で実行している場合、ファイアウォールを有効化する際に `ufw` はプロンプトを表示します。これを無効にするには、`ufw --force enable` を使用します。
 
 <aside>
-<img src="/icons/warning_yellow.svg" alt="/icons/warning_yellow.svg" width="40px" />
+<img src="/icons/warning-filled.svg" alt="/icons/warning-filled.svg" width="40px" />
 
 `ufw --force enable` について
 
@@ -430,7 +440,7 @@ ufw allow proto tcp from any to any port 22
 - **設定のバックアップ**:
   - ファイアウォール設定を変更する前に、現在の設定をバックアップしておくと、問題が発生した場合に元の状態に戻しやすくなります。例えば、以下のコマンドで現在のルールを保存できます：
 
-    ```bash
+    ```bash frame="none"
     sudo ufw status verbose > ~/ufw-backup-$(date +%F).txt
 
     ```
@@ -439,25 +449,25 @@ ufw allow proto tcp from any to any port 22
 
 `ufw` は、`/etc/ufw/applications.d` に配置されたプロファイルを読み込むことで、アプリケーション統合をサポートしています。`ufw` に認識されているアプリケーションプロファイルの名前を一覧表示するには、以下のコマンドを使用します：
 
-```bash
+```bash frame="none"
 ufw app list
 ```
 
 ユーザーはルールを追加する際にアプリケーション名を指定することができます（スペースを含むプロファイル名は引用符で囲んでください）。例えば、シンプルな構文を使用する場合、以下のように実行します：
 
-```bash
+```bash frame="none"
 ufw allow <name>
 ```
 
 または、拡張構文を使用する場合は以下のようになります：
 
-```bash
+```bash frame="none"
 ufw allow from 192.168.0.0/16 to any app <name>
 ```
 
 どちらの構文でもプロトコルを指定しないでください。拡張構文では、ポート部分の代わりに `app` を使用します。特定のアプリケーションに関するファイアウォールプロファイルの詳細は、以下のコマンドで確認できます：
 
-```bash
+```bash frame="none"
 ufw app info <name>
 
 ```
@@ -488,19 +498,19 @@ ports=12/udp|34|56,78:90/tcp
 
 アプリケーションプロファイルを作成または編集した後、更新されたプロファイル情報でファイアウォールを自動的に更新する：
 
-```bash
+```bash frame="none"
 ufw app update <name>
 ```
 
 新しいルールをファイアウォールに自動的に追加してプロファイルを更新するには、以下のコマンドを実行できます：
 
-```bash
+```bash frame="none"
 ufw app update --add-new <name>
 ```
 
 `update --add-new` コマンドの動作は、以下のコマンドで設定できる
 
-```bash
+```bash frame="none"
 ufw app default <policy>
 ```
 
@@ -508,7 +518,7 @@ ufw app default <policy>
 ユーザーは `allow` または `deny` のポリシーを指定することもでき、`update --add-new` コマンドがファイアウォールを自動的に更新するようにできます。
 
 <aside>
-<img src="/icons/warning_yellow.svg" alt="/icons/warning_yellow.svg" width="40px" />
+<img src="/icons/warning-filled.svg" alt="/icons/warning-filled.svg" width="40px" />
 
 NOTE
 
@@ -535,7 +545,7 @@ NOTE
 
 ### **使用例：**
 
-```bash
+```bash frame="none"
 # **アプリケーションプロファイルの一覧表示**
 ufw app list
 
@@ -562,7 +572,7 @@ ufw app update --add-new MyCustomApp**
 
 ロギングレベルが指定されていない場合、`ufw` はデフォルトで `low` レベルに設定されます。ユーザーは以下のコマンドでロギングレベルを指定することができます：
 
-```bash
+```bash frame="none"
 ufw logging LEVEL
 ```
 
@@ -600,26 +610,26 @@ ufw logging LEVEL
 
 1. **ロギングレベルの設定**：
 
-    ```bash
+    ```bash frame="none"
     ufw logging medium
     ```
 
 2. **ロギングの有効化**：
 
-    ```bash
+    ```bash frame="none"
     ufw logging on
     ```
 
 3. **ロギングレベルの確認**：
 現在のロギング設定を確認するには、ステータスを表示します。
 
-    ```bash
+    ```bash frame="none"
     ufw status verbose
     ```
 
 4. **ロギングの無効化**：
 
-    ```bash
+    ```bash frame="none"
     ufw logging off
     ```
 
@@ -669,7 +679,7 @@ ufw logging LEVEL
 
 1. **利用可能なレポートの一覧表示**：
 
-    ```bash
+    ```bash frame="none"
     # **ファイアウォールの全体的な状態を確認**
     ufw show raw
 
@@ -751,14 +761,14 @@ ufw logging LEVEL
 
 `status` コマンドはファイアウォールの状態および `ufw` コマンドで管理されているルールに関する基本的な情報を表示します。ただし、`/etc/ufw` のルールファイルからのルールは表示されません。ファイアウォールの完全な状態を確認するには、以下のコマンドを使用します：
 
-```bash
+```bash frame="none"
 ufw show raw
 
 ```
 
 これは、以下のコマンドを使用して `filter`, `nat`, `mangle`, `raw` テーブルを表示します：
 
-```bash
+```bash frame="none"
 iptables -n -L -v -x -t <table>
 ip6tables -n -L -v -x -t <table>
 
@@ -774,7 +784,7 @@ ip6tables -n -L -v -x -t <table>
 
 デフォルトでIPv6は有効になっています。この動作を変更し、ループバックインターフェースでのみIPv6トラフィックを受け入れるようにするには、`/etc/default/ufw` の `IPV6` を `no` に設定し、`ufw` をリロードします。IPv6が有効になっている場合、IPv4ルールと同様の方法でルールを指定でき、`ufw status` で表示されます。IPv4およびIPv6の両方のアドレスにマッチするルールは、両方のIPバージョンに適用されます。例えば、IPv6が有効になっている場合、以下のルールはIPv4およびIPv6トラフィックの両方に対してポート22へのアクセスを許可します：
 
-```bash
+```bash frame="none"
 ufw allow 22
 
 ```
@@ -783,7 +793,7 @@ ufw allow 22
 
 IPv4トンネルおよび6to4は、`ipv6` プロトコル（`41`）を使用することでサポートされています。このプロトコルはフル構文でのみ使用できます。例えば：
 
-```bash
+```bash frame="none"
 ufw allow to 10.0.0.1 proto ipv6
 ufw allow to 10.0.0.1 from 10.4.0.0/16 proto ipv6
 
@@ -793,7 +803,7 @@ ufw allow to 10.0.0.1 from 10.4.0.0/16 proto ipv6
 
 IPSecは、`esp`（`50`）および `ah`（`51`）プロトコルを使用することでサポートされています。これらのプロトコルはフル構文でのみ使用できます。例えば：
 
-```bash
+```bash frame="none"
 ufw allow to 10.0.0.1 proto esp
 ufw allow to 10.0.0.1 from 10.4.0.0/16 proto esp
 ufw allow to 10.0.0.1 proto ah
@@ -825,7 +835,7 @@ ufw allow to 10.0.0.1 from 10.4.0.0/16 proto ah
 - **設定のバックアップ**：
   - ファイアウォール設定を変更する前に、現在の設定をバックアップしておくことで、問題が発生した場合に元の状態に戻しやすくなります。例えば、以下のコマンドで現在のルールを保存できます：
 
-    ```bash
+    ```bash frame="none"
     sudo ufw status verbose > ~/ufw-backup-$(date +%F).txt
     ```
 

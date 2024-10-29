@@ -22,7 +22,7 @@ modDatetime: 2024-10-27T21:39:29.000+09:00
 
 ### 構文
 
-```bash
+```bash frame="none"
 ls -a  # --all 隠しファイルも表示
 ls -A # --almost-all
 ls -l # 詳細表示、 long の意味

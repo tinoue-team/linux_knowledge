@@ -1,13 +1,9 @@
 ---
 import CustomTable from '@components/CustomTable.astro';
-// import type { Frontmatter } from '@/type';
-// import CmdLayout from '@layouts/CmdLayout.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { Code } from 'astro/components';
-// import type { MarkdownInstance } from 'astro';
 
 import { type CollectionEntry, getCollection } from 'astro:content';
-// import { type CollectionEntry, getCollection, getEntry } from 'astro:content';
 
 export async function getStaticPaths() {
     const posts = await getCollection('cmd');
@@ -17,18 +13,9 @@ export async function getStaticPaths() {
     }));
 }
 
-// console.log(Astro.props);
-
-// const { cmd } = Astro.params;
 const post = Astro.props;
-console.log(post);
-
 const { Content } = await post.render();
-
-// const { content } = Astro.props;
 ---
-
-<!-- <CmdLayout {content} /> -->
 
 <BaseLayout pageTitle={post.data.title}>
     <p>{post.data.pubDatetime.toString()}</p>
@@ -75,5 +62,3 @@ const { Content } = await post.render();
         </Fragment>
     </CustomTable>
 </BaseLayout>
-
-<!-- </Cmd> -->
