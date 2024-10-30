@@ -19,9 +19,16 @@ for path in "$@"; do
     if [ -f "$path" ]; then
         # ファイルが指定された場合
         files=("$path")
+
     elif [ -d "$path" ]; then
         # ディレクトリが指定された場合、拡張子 .md のファイルを全て取得
-        files=($(find "$path" -type f -name "*.md"))
+        files=()
+
+        # `find` コマンドの出力を読み込み、配列に追加
+        while IFS= read -r file; do
+            files+=("$file")
+        done < <(find "$path" -type f \( -name "*.md" -o -name "*.mdx" \))
+
     else
         echo "Warning: $path is not a valid file or directory. Skipping."
         continue
@@ -37,8 +44,8 @@ for path in "$@"; do
         # sed コマンドで編集を行う
         # ```bash と ```sh で後続するテキストがない場合 frame="none" を挿入
 
-        sed -i '' "s/\`\`\`bash$/\`\`\`bash frame=\"none\"/g" $file
-        sed -i '' "s/\`\`\`sh$/\`\`\`sh frame=\"none\"/g" $file
+        sed -i '' "s/\`\`\`bash$/\`\`\`bash frame=\"none\"/g" "$file"
+        sed -i '' "s/\`\`\`sh$/\`\`\`sh frame=\"none\"/g" "$file"
 
         # 確認のため、一時的なログを表示
         grep -E '^```(bash|sh)' "$file" | grep -v 'frame="none"'
