@@ -1,5 +1,6 @@
 // 1. ユーティリティを`astro:content`からインポート
 import { defineCollection, z } from 'astro:content';
+import { docsSchema } from '@astrojs/starlight/schema';
 
 // 2. 各コレクションに`type`と`schema`を定義
 const cmdCollection = defineCollection({
@@ -24,5 +25,6 @@ const cmdCollection = defineCollection({
 
 // 3. コレクションを登録するために、単一の`collections`オブジェクトをエクスポート
 export const collections = {
+    docs: defineCollection({ schema: docsSchema() }),
     cmd: cmdCollection,
 };
