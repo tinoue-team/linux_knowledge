@@ -4,6 +4,8 @@ import preact from '@astrojs/preact';
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 
+import tailwind from '@astrojs/tailwind';
+
 // https://astro.build/config
 export default defineConfig({
     site: 'https://linuledge-test.netlify.app',
@@ -12,6 +14,7 @@ export default defineConfig({
         db(),
         starlight({
             title: 'Linuledge',
+            customCss: ['./src/styles/custom.css', './src/tailwind.css'],
             tableOfContents: {
                 minHeadingLevel: 2,
                 maxHeadingLevel: 5,
@@ -29,6 +32,10 @@ export default defineConfig({
             //         autogenerate: { directory: 'blog' },
             //     },
             // ],
+        }),
+        tailwind({
+            // デフォルトのベーススタイルを無効にする
+            // applyBaseStyles: false,
         }),
     ],
     output: 'hybrid',
