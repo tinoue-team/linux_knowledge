@@ -82,6 +82,10 @@ var fun = function lang(l) {
 
 #### ハイライト行の指定
 
+````txt
+```js {1, 4, 7-8}
+````
+
 ```js {1, 4, 7-8}
 // Line 1 - targeted by line number
 // Line 2
@@ -155,6 +159,10 @@ function thisIsJavaScript() {
 
 #### まずはプレーンテキストで指定
 
+````txt
+```js "given text" /this contains both "double" and 'single' quotes/
+````
+
 ```js "given text" /this contains both "double" and 'single' quotes/
 function demo() {
     console.log("this contains both "double" and 'single' quotes");
@@ -166,6 +174,10 @@ function demo() {
 
 #### 正規表現でのマーカー
 
+````txt
+```ts /ye[sp]/
+````
+
 ```ts /ye[sp]/
 console.log("The words yes and yep will be marked.");
 ```
@@ -175,6 +187,10 @@ echo "Test" > /home/test.txt
 ```
 
 #### インラインマーカーの種類を選択
+
+````txt
+```js "return true;" ins="inserted" del="deleted"
+````
 
 ```js "return true;" ins="inserted" del="deleted"
 function demo() {

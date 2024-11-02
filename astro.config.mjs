@@ -33,14 +33,17 @@ export default defineConfig({
                 // @font-face CSSファイルへの相対パス
                 './src/fonts/font-face.css',
             ],
+            editLink: {
+                baseUrl: 'https://github.com/kinmapping/linuledge/edit/main/docs/',
+            },
             // customCss: ['./src/styles/custom.css', './src/tailwind.css'],
             tableOfContents: {
                 minHeadingLevel: 2,
                 maxHeadingLevel: 5,
             },
-            // social: {
-            //     github: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-            // },
+            social: {
+                github: 'https://github.com/kinmapping/linuledge',
+            },
             // sidebar: [
             //     {
             //         label: 'Guides',
@@ -50,6 +53,15 @@ export default defineConfig({
             //         label: 'Blog',
             //         autogenerate: { directory: 'blog' },
             //     },
+            // ],
+            // カスタム 404 ページを利用するか
+            // disable404Route: true,
+            // sidebar のレンダリングをカスタム
+            // sidebar: [
+            //     // CSSとスタイリングガイドへのリンク。
+            //     { label: 'CSSとスタイリング', link: '/guides/css-and-tailwind/' },
+            //     // Astroウェブサイトへの外部リンク。
+            //     { label: 'Astro', link: 'https://astro.build/' },
             // ],
         }),
         tailwind({
