@@ -14,7 +14,16 @@ export default defineConfig({
         db(),
         starlight({
             title: 'Linuledge',
-            customCss: ['./src/styles/custom.css', './src/tailwind.css'],
+            logo: {
+                src: './src/assets/linuledge-logo.svg',
+                // replacesTitle: true,
+            },
+            customCss: [
+                './src/styles/custom.css',
+                // @font-face CSSファイルへの相対パス
+                './src/fonts/font-face.css',
+            ],
+            // customCss: ['./src/styles/custom.css', './src/tailwind.css'],
             tableOfContents: {
                 minHeadingLevel: 2,
                 maxHeadingLevel: 5,

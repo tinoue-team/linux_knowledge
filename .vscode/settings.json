@@ -14,6 +14,7 @@
     "editor.guides.bracketPairs": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
+    "editor.colorDecorators": true,
 
     "shellcheck.run": "onSave",
     "shfmt.executablePath": "/opt/homebrew/bin/shfmt", // also: "onType"
@@ -73,5 +74,25 @@
         "source.organizeImports.biome": "explicit"
     },
     "editor.minimap.maxColumn": 30,
-    "cSpell.configFile": "./cspell.json"
+    "svg.preview.background": "dark-transparent"
+    // "cSpell.configFile": "./cspell.json",
+    // "colorInfo.fields": ["cmyk"],
+    // "colorInfo.languages": [
+    //     {
+    //         "selector": "css",
+    //         "colors": "css"
+    //     },
+    //     {
+    //         "selector": "sass",
+    //         "colors": "css"
+    //     },
+    //     {
+    //         "selector": "scss",
+    //         "colors": "css"
+    //     },
+    //     {
+    //         "selector": "less",
+    //         "colors": "css"
+    //     }
+    // ]
 }

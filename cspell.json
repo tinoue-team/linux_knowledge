@@ -17,6 +17,7 @@
         "Datetime",
         "linuledge",
         "preact",
+        "tailwindcss",
         "tsconfigs",
         "turso"
     ]
