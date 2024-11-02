@@ -1,0 +1,103 @@
+---
+title: FileTree
+description: FileTree コンポーネントの紹介
+---
+
+import { FileTree } from "@astrojs/starlight/components";
+
+## 概要
+
+`<FileTree>` コンポーネントはディレクトリ構造を表示するコンポーネントです。
+ファイルアイコンやサブディレクトリの折りたたみを実現する
+特にプロパティの用意はない。
+
+### インポート
+
+```mdx
+import { FileTree } from "@astrojs/starlight/components";
+
+<FileTree>
+
+    -   astro.config.mjs
+    -   package.json
+    -   src
+        -   components
+            -   Header.astro
+            -   Title.astro
+        -   pages/
+
+</FileTree>
+```
+
+> 出力結果
+
+<FileTree>
+
+    -   astro.config.mjs
+    -   package.json
+    -   src
+        -   components
+            -   Header.astro
+            -   Title.astro
+        -   pages/
+
+</FileTree>
+
+:::note[ディレクトリの表現]
+
+-   リスト項目の末尾に `/` を追加するとディレクトリになる
+-   サブディレクトリを追加する
+
+:::
+
+### 強調表示
+
+```txt
+-   **Header.astro**
+```
+
+```mdx
+import { FileTree } from "@astrojs/starlight/components";
+
+<FileTree>
+
+-   src
+    -   components
+        -   **Header.astro**
+        -   Title.astro
+
+</FileTree>
+```
+
+<FileTree>
+
+-   src
+    -   components
+        -   **Header.astro**
+        -   Title.astro
+
+</FileTree>
+
+### コメント追加
+
+```mdx
+import { FileTree } from "@astrojs/starlight/components";
+
+<FileTree>
+
+-   src
+    -   components
+        -   Header.astro **重要な**ファイル
+        -   Title.astro
+
+</FileTree>
+```
+
+<FileTree>
+
+-   src
+    -   components
+        -   Header.astro **重要な**ファイル
+        -   Title.astro
+
+</FileTree>
