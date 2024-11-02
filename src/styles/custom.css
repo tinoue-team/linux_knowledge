@@ -1,9 +1,10 @@
 /* Dark mode colors. */
 :root {
     --sl-color-accent-low: #131e4f;
-    --sl-color-accent: #3447ff;
-    --sl-color-accent-high: #b3c7ff;
+    --sl-color-accent: #e7ff34;
+    --sl-color-accent-high: #fffab3;
     --sl-color-white: #ffffff;
+    --sl-color-text: #d4d7dd;
     --sl-color-gray-1: #eceef2;
     --sl-color-gray-2: #c0c2c7;
     --sl-color-gray-3: #888b96;
@@ -11,6 +12,28 @@
     --sl-color-gray-5: #353841;
     --sl-color-gray-6: #24272f;
     --sl-color-black: #17181c;
+    --sl-font: "Hannari";
+    /* --sl-font: "Hannari", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+        Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
+    --sl-sidebar-width: 18rem;
+
+    --scale-factor: 0.9;
+
+    --sl-text-2xs: 0.67rem; /* 9.6px */
+    --sl-text-xs: 0.75rem; /* 10.4px */
+    --sl-text-sm: 0.8rem; /* 11.2px */
+    --sl-text-base: 0.88rem; /* 12.8px */
+    --sl-text-lg: 0.95rem; /* 14.4px */
+    --sl-text-xl: 1rem; /* 16px */
+    --sl-text-2xl: 1.2rem; /* 19.2px */
+    --sl-text-3xl: 1.4rem; /* 23.2px */
+    --sl-text-4xl: 1.7rem; /* 28px */
+    --sl-text-5xl: 2rem; /* 33.6px */
+    --sl-text-6xl: 3.2rem; /* 51.2px */
+
+    --sl-line-height: 1.6;
+    --sl-line-height-headings: 1;
 }
 /* Light mode colors. */
 :root[data-theme="light"] {
@@ -26,4 +49,13 @@
     --sl-color-gray-6: #eceef2;
     --sl-color-gray-7: #f5f6f8;
     --sl-color-black: #ffffff;
+}
+
+main {
+    background-image: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.6),
+            rgba(0, 0, 0, 0.6)
+        ),
+        url(../assets/paper-dark.webp);
 }

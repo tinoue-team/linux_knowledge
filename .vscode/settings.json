@@ -58,6 +58,10 @@
         "editor.wordWrap": "off"
     },
 
+    "[css]": {
+        "editor.wordWrap": "off"
+    },
+
     // "editor.defaultFormatter": "esbenp.prettier-vscode",
     // "editor.formatOnSave": true,
 
