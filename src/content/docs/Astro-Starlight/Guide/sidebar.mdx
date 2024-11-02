@@ -1,0 +1,60 @@
+---
+title: サイドバーナビゲーション
+description: サイト内のを移動するためのサイトツリーが表示を説明
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: カスタムサイドバーラベル
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { FileTree } from "@astrojs/starlight/components";
+
+## デフォルトのサイドバーの動き
+
+Starlight はデフォルトで、ドキュメントのファイルシステム構造に基づいてサイドバーを自動的に生成する。
+その際、各ファイルの `title` プロパティをサイドバーのエントリとして使用する。
+
+<FileTree>
+
+    -   src
+        -   content
+            - docs
+                - guides
+                    -   components.md
+                    -   i18n.md
+                -   reference
+                    - configuration.md
+
+</FileTree>
+
+このようなファイル構造の場合、
+
+## カスタム HTML 属性
+
+ページのファイルの link 要素に attrs プロパティを使用すると
+
+```js {10}
+starlight({
+    sidebar: [
+        {
+            label: "ガイド",
+            items: [
+                // 新しいタブで開かれる、Astroドキュメントへの外部リンク。
+                {
+                    label: "Astro Docs",
+                    link: "https://docs.astro.build/",
+                    attrs: { target: "_blank", style: "font-style: italic" },
+                },
+            ],
+        },
+    ],
+});
+```
+
+-   `target: '_blank'`: リンクが新しいタブで開かれる
+-   `style: 'プロパティ: 値'`: リンクのラベルにカスタムの style を指定

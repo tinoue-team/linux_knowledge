@@ -44,25 +44,19 @@ export default defineConfig({
             social: {
                 github: 'https://github.com/kinmapping/linuledge',
             },
-            // sidebar: [
-            //     {
-            //         label: 'Guides',
-            //         autogenerate: { directory: 'guides' },
-            //     },
-            //     {
-            //         label: 'Blog',
-            //         autogenerate: { directory: 'blog' },
-            //     },
-            // ],
+            sidebar: [
+                {
+                    label: 'Astro-Starlight',
+                    autogenerate: { directory: 'Astro-Starlight' },
+                },
+                {
+                    label: 'Linux',
+                    // link: '/linux/',
+                    autogenerate: { directory: 'Linux' },
+                },
+            ],
             // カスタム 404 ページを利用するか
             // disable404Route: true,
-            // sidebar のレンダリングをカスタム
-            // sidebar: [
-            //     // CSSとスタイリングガイドへのリンク。
-            //     { label: 'CSSとスタイリング', link: '/guides/css-and-tailwind/' },
-            //     // Astroウェブサイトへの外部リンク。
-            //     { label: 'Astro', link: 'https://astro.build/' },
-            // ],
         }),
         tailwind({
             // デフォルトのベーススタイルを無効にする
