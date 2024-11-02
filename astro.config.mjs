@@ -14,6 +14,16 @@ export default defineConfig({
         db(),
         starlight({
             title: 'Linuledge',
+            defaultLocale: 'root',
+            locales: {
+                root: {
+                    label: '日本語',
+                    lang: 'ja',
+                },
+                en: {
+                    label: 'English',
+                },
+            },
             logo: {
                 src: './src/assets/linuledge-logo.svg',
                 // replacesTitle: true,

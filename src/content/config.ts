@@ -1,6 +1,7 @@
 // 1. ユーティリティを`astro:content`からインポート
+
 import { defineCollection, z } from 'astro:content';
-import { docsSchema } from '@astrojs/starlight/schema';
+import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
 
 // 2. 各コレクションに`type`と`schema`を定義
 const cmdCollection = defineCollection({
@@ -27,4 +28,12 @@ const cmdCollection = defineCollection({
 export const collections = {
     docs: defineCollection({ schema: docsSchema() }),
     cmd: cmdCollection,
+    i18n: defineCollection({
+        type: 'data',
+        schema: i18nSchema({
+            extend: z.object({
+                'custom.label': z.string().optional(),
+            }),
+        }),
+    }),
 };
