@@ -1,0 +1,116 @@
+---
+import type { OGData } from '@/type';
+// import type { Icon } from '@astrojs/starlight/icon';
+// type IconProps = ComponentProps<typeof Icon>;
+// import type { Props } from '@astrojs/starlight/props'
+import type { ComponentProps } from 'astro/types';
+import { parse } from 'node-html-parser';
+// import Default from '@astrojs/starlight/components
+interface Props {
+    url: string;
+}
+
+const { url } = Astro.props;
+
+async function fetchOGTags(url: string): Promise<OGData> {
+    try {
+        const response = await fetch(url);
+        const html = await response.text();
+        const root = parse(html);
+
+        const getMetaContent = (property: string): string | undefined => {
+            const meta = root.querySelector(`meta[property="og:${property}"]`);
+            return meta?.getAttribute('content');
+        };
+
+        const ogData: OGData = {
+            title: getMetaContent('title'),
+            description: getMetaContent('description'),
+            image: getMetaContent('image'),
+            url: getMetaContent('url'),
+            siteName: getMetaContent('site_name'),
+        };
+
+        if (!ogData.title) {
+            // フォールバック
+            ogData.title = root.querySelector('title')?.text || '';
+        }
+        if (!ogData.description) {
+            const metaDesc = root.querySelector('meta[name="description"]');
+            ogData.description = metaDesc?.getAttribute('content') || '';
+        }
+
+        return ogData;
+    } catch (error) {
+        console.error('OGタグの取得に失敗しました:', error);
+        return {};
+    }
+}
+
+const ogData = await fetchOGTags(url);
+---
+
+<style>
+.link-preview {
+    /* border: 1px solid; */
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 600px;
+    text-decoration: none;
+    color: inherit;
+
+    & .preview-content {
+        display: flex;
+
+        & img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+
+        }
+    }
+
+}
+
+
+/* .preview-content img {
+} */
+
+.text-content {
+    padding: 10px;
+    flex: 1;
+
+    & h3 {
+        /* margin: 0 0 5px;
+        font-size: 16px; */
+    }
+
+    & p {
+        margin: 0 0 10px;
+        font-size: 14px;
+        color: #a76f6f;
+    }
+
+    & .url {
+        /* font-size: var(--sl-text-sm); */
+        font-size: 12px;
+        color: #888;
+    }
+}
+</style>
+
+{ogData.title ? (
+    <a href={url} target="_blank" rel="noopener noreferrer" class="link-preview">
+        <div class="preview-content">
+        {ogData.image && <img src={ogData.image} alt="thumbnail" />}
+        <div class="text-content">
+            <p>{ogData.title}</p>
+            {ogData.description && <p>{ogData.description}</p>}
+            <span class="url">{ogData.siteName || new URL(url).hostname}</span>
+        </div>
+        </div>
+    </a>
+) : (
+    <p>プレビューを表示できませんでした。</p>
+)}
+

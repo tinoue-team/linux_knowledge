@@ -2,9 +2,8 @@ import db from '@astrojs/db';
 import netlify from '@astrojs/netlify';
 import preact from '@astrojs/preact';
 import starlight from '@astrojs/starlight';
-import { defineConfig } from 'astro/config';
-
 import tailwind from '@astrojs/tailwind';
+import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
@@ -47,16 +46,27 @@ export default defineConfig({
             sidebar: [
                 {
                     label: 'Astro-Starlight',
-                    autogenerate: { directory: 'Astro-Starlight' },
+                    autogenerate: { directory: 'astro-starlight' },
+
+                    // items: [
+                    //     { label: 'Component', slug: 'astro-starlight/component/*' },
+                    //     { label: 'CSS', slug: '/astro-starlight/css' },
+                    //     { label: 'Guide', slug: '/astro-starlight/guide' },
+                    // ],
                 },
                 {
                     label: 'Linux',
                     // link: '/linux/',
-                    autogenerate: { directory: 'Linux' },
+                    autogenerate: { directory: 'linux' },
+                    // items: [
+                    //     { label: 'Linux 1', link: '/linux/post/' },
+                    //     // { label: 'Linux 2', link: '/linux/linux-2/' },
+                    // ],
                 },
             ],
             // カスタム 404 ページを利用するか
             // disable404Route: true,
+            credits: true,
         }),
         tailwind({
             // デフォルトのベーススタイルを無効にする
