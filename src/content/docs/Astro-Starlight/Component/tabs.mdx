@@ -1,0 +1,118 @@
+---
+title: Tabs, TabItem
+description: <Tabs>と<TabItem>コンポーネントの紹介
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Tabs, TabItem
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 10
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+
+## 使用方法
+
+タブインターフェースを作成するには、`<Tabs>`と`<TabItem>`コンポーネントを使用していく
+
+```mdx
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+<Tabs>
+    <TabItem label="星">シリウス、ベガ、ベテルギウス</TabItem>
+    <TabItem label="衛星">イオ、エウロパ、ガニメデ</TabItem>
+</Tabs>
+```
+
+> プレビュー
+
+<Tabs>
+    <TabItem label="星">シリウス、ベガ、ベテルギウス</TabItem>
+    <TabItem label="衛星">イオ、エウロパ、ガニメデ</TabItem>
+</Tabs>
+
+### 選択するタブを同期させる
+
+複数の `<Tabs>` コンポーネントが存在して、それらのアクティブな選択タブを同期させることもできる。
+`<Tabs>` コンポーネントに syncKey 属性を使用する
+
+```mdx
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+_いくつかの星:_
+
+<Tabs syncKey="constellations">
+    <TabItem label="オリオン座">ベラトリックス、リゲル、ベテルギウス</TabItem>
+    <TabItem label="ふたご座">ポルックス、カストルA、カストルB</TabItem>
+</Tabs>
+
+_いくつかのエキソプラネット:_
+
+<Tabs syncKey="constellations">
+    <TabItem label="オリオン座">HD 34445 b、グリーゼ 179 b、Wasp-82 b</TabItem>
+    <TabItem label="ふたご座">ポルックスb、HAT-P-24b、HD 50554 b</TabItem>
+</Tabs>
+```
+
+> プレビュー
+
+_いくつかの星:_
+
+<Tabs syncKey="constellations">
+    <TabItem label="オリオン座">ベラトリックス、リゲル、ベテルギウス</TabItem>
+    <TabItem label="ふたご座">ポルックス、カストルA、カストルB</TabItem>
+</Tabs>
+
+_いくつかのエキソプラネット:_
+
+<Tabs syncKey="constellations">
+    <TabItem label="オリオン座">HD 34445 b、グリーゼ 179 b、Wasp-82 b</TabItem>
+    <TabItem label="ふたご座">ポルックスb、HAT-P-24b、HD 50554 b</TabItem>
+</Tabs>
+
+### タブにアイコンを追加する
+
+```mdx
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+<Tabs>
+    <TabItem label="星" icon="star">
+        シリウス、ベガ、ベテルギウス
+    </TabItem>
+    <TabItem label="衛星" icon="moon">
+        イオ、エウロパ、ガニメデ
+    </TabItem>
+</Tabs>
+```
+
+> プレビュー
+
+<Tabs>
+    <TabItem label="星" icon="star">
+        シリウス、ベガ、ベテルギウス
+    </TabItem>
+    <TabItem label="衛星" icon="moon">
+        イオ、エウロパ、ガニメデ
+    </TabItem>
+</Tabs>
+
+## `<Tabs>` プロパティ
+
+<LinkPreview url="https://github.com/withastro/starlight/blob/main/packages/starlight/user-components/Tabs.astro" />
+
+| prop      | type     | description                                              |
+| :-------- | :------- | :------------------------------------------------------- |
+| `syncKey` | `string` | 複数のページにわたってタブグループを同期させるためのキー |
+
+## `<TabItem>` プロパティ
+
+<LinkPreview url="https://github.com/withastro/starlight/blob/main/packages/starlight/user-components/TabItem.astro" />
+
+| prop    | type     | description                                                                                                                                                                                                                      |
+| :------ | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label` | `string` | タブ項目には、タブに表示されるテキストを指定する`label`属性が必要                                                                                                                                                                |
+| `icon`  | `string` | タブ項目、ラベルの横に表示される[Starlight に組み込まれたアイコン](https://starlight.astro.build/ja/reference/icons/#%E3%81%99%E3%81%B9%E3%81%A6%E3%81%AE%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3)を指定する icon 属性を設定できます |

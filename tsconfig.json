@@ -11,9 +11,12 @@
             "@assets/*": ["src/assets/*"]
         },
         "types": ["astro/client"],
+
+        // "types": ["astro/client", "@astrojs/starlight/types"],
         "jsx": "react-jsx",
         "jsxImportSource": "preact",
         "verbatimModuleSyntax": true
+        // "esModuleInterop": true
     },
     "include": [
         "astro.config.mjs",
