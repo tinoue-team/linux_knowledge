@@ -29,6 +29,7 @@ export default defineConfig({
             },
             customCss: [
                 './src/styles/custom.css',
+                './src/tailwind.css',
                 // @font-face CSSファイルへの相対パス
                 './src/fonts/font-face.css',
             ],
