@@ -1,7 +1,7 @@
 import mermaid from 'mermaid';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-export default function ThemeReact({ src }: { src: string }) {
+export default function ThemeReactMermaid({ src }: { src: string }) {
     const mermaidRef = useRef<HTMLDivElement>(null);
 
     const [theme, setTheme] = useState<'default' | 'dark'>(
@@ -9,52 +9,59 @@ export default function ThemeReact({ src }: { src: string }) {
     );
 
     // mermaidの再レンダリング用の関数
-    const renderMermaid = async () => {
+    const renderMermaid = useCallback(async () => {
         try {
             if (!mermaidRef.current) return;
-            // 既存のmermaid要素をクリア
-            // const element = document.querySelector('.mermaid');
-            // if (element) {
-            //     element.innerHTML = src;
-            // }
 
             // DOMの準備を待つ
             await new Promise(resolve => setTimeout(resolve, 0));
 
             // mermaidの初期化と再レンダリング
-            await mermaid.initialize({
+            mermaid.initialize({
                 startOnLoad: false,
                 theme: theme,
                 securityLevel: 'loose', // SVG レンダリングの制限を緩和
+                themeVariables: {
+                    // テーマに基づいたスタイルを定義
+                    fontSize: '28px',
+                    dark: {
+                        background: '#333',
+                        nodeBackground: '#555',
+                        nodeBorder: '#888',
+                        nodeTextColor: '#fff',
+                        lineColor: '#888',
+                        mainTextColor: '#fff',
+                    },
+                    default: {
+                        background: '#fff',
+                        nodeBackground: '#fff',
+                        nodeBorder: '#888',
+                        nodeTextColor: '#333',
+                        lineColor: '#888',
+                        mainTextColor: '#333',
+                    },
+                },
             });
 
             // 既存の内容をクリア
             mermaidRef.current.innerHTML = src;
 
-            // ユニークなIDを生成
-            const uniqueId = `mermaid-${Date.now()}`;
-
             // レンダリング前にDOMの準備ができていることを確認
             await new Promise(resolve => setTimeout(resolve, 100));
 
             // mermaidのレンダリング
-            const { svg } = await mermaid.render(uniqueId, src);
+            const { svg } = await mermaid.render(`mermaid-${Date.now()}`, src);
 
             // SVGを挿入
             if (mermaidRef.current) {
                 mermaidRef.current.innerHTML = svg;
             }
-
-            // await mermaid.run({
-            //     querySelector: '.mermaid',
-            // });
         } catch (error) {
             console.error('Mermaid rendering error:', error);
         }
-    };
+    }, [src, theme]);
 
-    // 初回レンダリング時
-    //// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+    // テーマ変更の監視と初回レンダリング用の Effect
     useEffect(() => {
         // コールバック関数を定義
         const observerCallback: MutationCallback = (mutationsList: MutationRecord[]) => {
@@ -82,30 +89,19 @@ export default function ThemeReact({ src }: { src: string }) {
             observer.disconnect();
             clearTimeout(timer);
         };
-    }, [src]);
-
-    // テーマが変更された時に再レンダリング
-    //// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-    useEffect(() => {
-        // renderMermaid();
-        const timer = setTimeout(() => {
-            renderMermaid();
-        }, 100);
-
-        return () => clearTimeout(timer);
-    }, [theme]);
+    }, [renderMermaid]);
 
     return (
         <>
-            {/* <div ref={mermaidRef} class='mermaid'>
+            <div ref={mermaidRef} class='rounded-lg border border-solid p-4'>
                 {src}
-            </div> */}
-            <div
+            </div>
+            {/* <div
                 ref={mermaidRef}
                 class='mr-auto ml-auto max-w-fit rounded-lg border border-solid p-4'
             >
                 {src}
-            </div>
+            </div> */}
         </>
     );
 }
