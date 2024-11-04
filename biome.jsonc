@@ -12,7 +12,7 @@
         "ignore": [],
         "indentWidth": 4,
         "indentStyle": "space",
-        "lineWidth": 150,
+        "lineWidth": 100,
         "lineEnding": "lf"
     },
     "javascript": {

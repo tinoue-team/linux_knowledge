@@ -65,83 +65,84 @@ Postfix は単一のデーモンプログラムではなく、複数のプログ
     chart={`
     graph LR
 
-%% ****************\*\*\*\***************** 宣言
-mail(受信した<br>メール<br>✉️)
+    %% ****************\*\*\*\***************** 宣言
+    mail(受信した<br>メール<br>✉️)
 
-%% キュー
-subgraph queue
-maildrop[maildrop<br>キュー]:::class1
-incoming[incoming<br>キュー]:::class1
-corrupt[corrupt<br>キュー]:::class1
-active[active<br>キュー]:::class1
-deferred[deferred<br>キュー]:::class1
-hold[hold<br>キュー]:::class1
+    %% キュー
+    subgraph queue
+        maildrop[maildrop<br>キュー]:::class1
+        incoming[incoming<br>キュー]:::class1
+        corrupt[corrupt<br>キュー]:::class1
+        active[active<br>キュー]:::class1
+        deferred[deferred<br>キュー]:::class1
+        hold[hold<br>キュー]:::class1
 
-flush[flush<br>キュー]:::class1
-end
+        flush[flush<br>キュー]:::class1
+    end
 
-%% 処理
-subgraph 外部処理
-mailbox[(サーバ内<br>メール box)]
-out[\外部送信\]
-filter([フィルタ処理<br>外部アプリケーション])
+    %% 処理
+    subgraph 外部処理
+        mailbox[(サーバ内<br>メール box)]
+        out[\外部送信\]
+        filter([フィルタ処理<br>外部アプリケーション])
 
-error[送信エラー]
-end
+        error[送信エラー]
+    end
 
-subgraph master[ master デーモン ]
-sendmail((sendmail <br> デーモン)):::class2
-pickup((pickup <br> デーモン)):::class2
-smtpd((smtpd <br> デーモン)):::class2
+    subgraph master[ master デーモン ]
+        sendmail((sendmail <br> デーモン)):::class2
+        pickup((pickup <br> デーモン)):::class2
+        smtpd((smtpd <br> デーモン)):::class2
 
-cleanup((cleanup <br> デーモン)):::class2
-anvil((anvil <br> デーモン)):::class2
-qmgr((qmgr<br>【nqmgr, oqmgr】<br> デーモン)):::class2
-local((local <br> デーモン)):::class2
-pipe((pipe <br> デーモン)):::class2
-smtp((smtp <br> デーモン)):::class2
-bounce((bounce <br> デーモン)):::class2
-tlsmgr((tlsmgr <br> デーモン)):::class2
-end
+        cleanup((cleanup <br> デーモン)):::class2
+        anvil((anvil <br> デーモン)):::class2
+        qmgr((qmgr<br>【nqmgr, oqmgr】<br> デーモン)):::class2
+        local((local <br> デーモン)):::class2
+        pipe((pipe <br> デーモン)):::class2
+        smtp((smtp <br> デーモン)):::class2
+        bounce((bounce <br> デーモン)):::class2
+        tlsmgr((tlsmgr <br> デーモン)):::class2
+    end
 
-%% ****************\*\*\*\***************** 関連
+    %% ****************\*\*\*\***************** 関連
 
-mail ==>|外部から<br>メールを受信| smtpd
+    mail ==>|外部から<br>メールを受信| smtpd
 
-%% デーモン同士の連携
-pickup -->|検出したメールを<br>形式チェック| cleanup
-smtpd -->|検出したメールを<br>形式チェック| cleanup
+    %% デーモン同士の連携
+    pickup -->|検出したメールを<br>形式チェック| cleanup
+    smtpd -->|検出したメールを<br>形式チェック| cleanup
 
-anvil ~~~ cleanup
-smtpd ---|外部からの<br>接続数を制限| anvil
+    anvil ~~~ cleanup
+    smtpd ---|外部からの<br>接続数を制限| anvil
 
-qmgr -->|配送先を見て<br>自サーバなら| local
-qmgr -->|配送先を見て<br>リモートなら| smtp
-qmgr -->|配送先を見て<br>外部プログラムなら| pipe
-qmgr ---|⬆️ バウンスメッセージ<br>を渡す| bounce
-smtpd <-->|TLS セッション<br>を開始<br>TLS セッションの<br>キャッシュを再利用| tlsmgr
-tlsmgr <-->|TLS セッションの要求| smtp
+    qmgr -->|配送先を見て<br>自サーバなら| local
+    qmgr -->|配送先を見て<br>リモートなら| smtp
+    qmgr -->|配送先を見て<br>外部プログラムなら| pipe
+    qmgr ---|⬆️ バウンスメッセージ<br>を渡す| bounce
+    smtpd <-->|TLS セッション<br>を開始<br>TLS セッションの<br>キャッシュを再利用| tlsmgr
+    tlsmgr <-->|TLS セッションの要求| smtp
 
-%% 処理との関連
-local ==> mailbox
-smtp ==> out
-pipe ==> filter
-error ==> bounce
-bounce ~~~ error
+    %% 処理との関連
+    local ==> mailbox
+    smtp ==> out
+    pipe ==> filter
+    error ==> bounce
+    bounce ~~~ error
 
-%% queue への操作
-sendmail -.->|sendmail コマンドで<br>メールをキューに<br>追加| maildrop
-pickup -.-|⬅️ maildrop キューを監視して<br>格納されたメールを検出| maildrop
-cleanup -.->|ヘッダーの追加・形式<br>を終えたメールを格納| incoming
-cleanup -.->|メールの形式が正しくない<br>・破損している| corrupt
-qmgr -.->|キューに格納された<br>メールを取り出す| incoming
-qmgr -.->|メールが破損している| corrupt
-qmgr <-.->|送信予定メールが入る ▶️<br>| active
-qmgr <-.->|送信エラーメールを一時保管 ▶️<br>◀️ 一定時間後に再試行する| deferred
-postuser(postuser) -.->|postuser コマンドで<br>管理者が手動で<br>メールを保留| hold
+    %% queue への操作
+    sendmail -.->|sendmail コマンドで<br>メールをキューに<br>追加| maildrop
+    pickup -.-|⬅️ maildrop キューを監視して<br>格納されたメールを検出| maildrop
+    cleanup -.->|ヘッダーの追加・形式<br>を終えたメールを格納| incoming
+    cleanup -.->|メールの形式が正しくない<br>・破損している| corrupt
+    qmgr -.->|キューに格納された<br>メールを取り出す| incoming
+    qmgr -.->|メールが破損している| corrupt
+    qmgr <-.->|送信予定メールが入る ▶️<br>| active
+    qmgr <-.->|送信エラーメールを一時保管 ▶️<br>◀️ 一定時間後に再試行する| deferred
+    postuser(postuser) -.->|postuser コマンドで<br>管理者が手動で<br>メールを保留| hold
 
-%% スタイル
-classDef class1 fill:#970a61,stroke:#9e5757,stroke-width:0px
-classDef class2 fill:#000a61,stroke:#9e5757,stroke-width:3px
+    %% スタイル
+    classDef class1 fill:#970a61,stroke:#9e5757,stroke-width:0px
+    classDef class2 fill:#000a61,stroke:#9e5757,stroke-width:3px
+
 `}
 />

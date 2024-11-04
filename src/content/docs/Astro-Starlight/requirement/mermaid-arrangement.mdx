@@ -1,0 +1,161 @@
+---
+title: Mermaid コンポーネントの修正
+description: Mermaid コンポーネントをテーマに合わせて変更
+---
+
+import { Steps } from "@astrojs/starlight/components";
+import ThemeReact from "@components/ThemeReact";
+import LinkPreview from "@components/LinkPreview.astro";
+
+## ThemeProvider コンポーネントの解説
+
+```astro title="packages/starlight/components/ThemeProvider.astro"
+---
+import type { Props } from '../props';
+import Icon from '../user-components/Icon.astro';
+---
+
+{/* This is intentionally inlined to avoid FOUC. */}
+<script is:inline>
+	window.StarlightThemeProvider = (() => {
+        {/* localStorage が利用可能であれば、ローカルストレージの 'starlight-theme' の値 */}
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+        {/* storedTheme が存在すれば、利用し、なければ window.matchMedia() でシステム設定の値を参照 */}
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+
+        {/* 上記で取得できたカラーテーマを<html>要素に data-theme 属性を追加して、現在のテーマを設定する */}
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+                {/* starlight-theme-select 要素をすべて取得し、 */}
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+                    {/* select 要素の選択中の値(select.value)を取得した theme にセット */}
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+                    {/* id="theme-icons" の要素(<template>) を取得  */}
+					const tmpl = document.querySelector(`#theme-icons`);
+                    {/* <template>内で theme にあった <svg>要素を取得  */}
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+                    {/* 新しいアイコンが生成できれば、現在のセレクトしているアイコンを取得し、newIcon で置き換える */}
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script>
+
+<template id="theme-icons">
+	<Icon name="sun" class="light" />
+	<Icon name="moon" class="dark" />
+	<Icon name="laptop" class="auto" />
+</template>
+```
+
+### template 要素について
+
+<LinkPreview url="https://qiita.com/saka212/items/ac77e778b7e323749e61" />
+
+template 要素(タグ)は、html5 から追加された要素です。
+ページ内で繰り返し表示したい内容を`<template>...</template>`内に書いておき、JavaScript と組み合わせて使う
+
+```html
+<template id="template">
+    <p>テンプレート</p>
+</template>
+```
+
+このように書いてもブラウザ上では表示されない。template 要素内に書いたコンテンツは、隠れた DOM として扱われ、レンダリングされない。
+
+#### template 要素の使い方
+
+<Steps>
+    1. template 要素を取得
+
+        ```js
+        const template = document.getElementById('template');
+        ```
+
+    1. 取得した template 要素の内容を複製
+
+        ```js
+        const clone = template.content.cloneNode(true);
+        ```
+
+    1. 2 で複製したノードを DOM に追加
+
+        ```js
+        document.getElementById('container').appendChild(clone);
+        ```
+
+</Steps>
+
+## 実験する
+
+```tsx title="version1"
+import mermaid from "mermaid";
+import { useEffect, useState } from "preact/hooks";
+
+export default function ThemeReact({ chart }: { chart: string }) {
+    // const randomMessage = () => messages[Math.floor(Math.random() * messages.length)];
+
+    // const [greeting, setGreeting] = useState(messages[0]);
+    const [theme, setTheme] = useState(
+        document.documentElement.dataset.theme || "light"
+    );
+
+    useEffect(() => {
+        // コールバック関数を定義
+        const observerCallback = (mutationsList: MutationRecord[]) => {
+            for (const mutation of mutationsList) {
+                if (
+                    mutation.type === "attributes" &&
+                    mutation.attributeName === "data-theme"
+                ) {
+                    const newTheme = document.documentElement.dataset.theme;
+                    setTheme(newTheme || "light");
+                }
+            }
+        };
+
+        // MutationObserverを作成
+        const observer = new MutationObserver(observerCallback);
+
+        // オプションを設定して監視を開始
+        observer.observe(document.documentElement, { attributes: true });
+
+        // クリーンアップ関数を返す
+        return () => {
+            observer.disconnect();
+        };
+    });
+
+    mermaid.initialize({ startOnLoad: true });
+
+    const themedChart = `%%{init: {'theme':'${theme}'}}%%\n${chart}`;
+
+    return <div>{themedChart}</div>;
+}
+```
+
+{/* <ThemeReact client:only messages={["Hej", "Hallo", "Hola", "Habari"]} /> */}
+
+<ThemeReact
+    client:only
+    src={`
+    graph TD
+        A[開始] --> B{条件分岐}
+        B -->|はい| C[処理1]
+        B -->|いいえ| D[処理2]
+        C --> E[終了]
+        D --> E
+    `}
+/>
