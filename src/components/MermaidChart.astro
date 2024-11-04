@@ -1,19 +1,16 @@
 ---
+import ThemeReact from '@components/client/ThemeReact';
 const { chart } = Astro.props;
 ---
 
-<div class="mermaid">
-    {chart}
-</div>
-
-<script>
-    import mermaid from 'mermaid';
-    mermaid.initialize({ startOnLoad: true });
-</script>
+<ThemeReact
+    client:only="preact"
+    src={chart}
+/>
 
 <style>
-    .mermaid {
+    /* .mermaid {
         margin-left: auto;
         margin-right: auto;
-    }
+    } */
 </style>
