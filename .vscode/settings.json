@@ -5,14 +5,13 @@
             // "editor.minimap.background": "#1e1e1e",
             // "editor.minimap.foregroundOpacity": 0.5,
             // "editor.minimap.selectionHighlight": "#444444",
-            "activityBar.activeBackground": "#7d1212",
-            "titleBar.activeBackground": "#60181890",
+            "activityBar.activeBackground": "#a1cdff",
+            "titleBar.activeBackground": "#19549b90",
             "titleBar.activeForeground": "#ffffff"
         }
     },
 
     "editor.guides.bracketPairs": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
     "editor.colorDecorators": true,
 
@@ -54,12 +53,9 @@
         ]
     },
 
-    "[markdown]": {
-        "editor.wordWrap": "off"
-    },
-
-    "[css]": {
-        "editor.wordWrap": "off"
+    "[markdown][css][html][mdx]": {
+        "editor.wordWrap": "off",
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
 
     // "editor.defaultFormatter": "esbenp.prettier-vscode",

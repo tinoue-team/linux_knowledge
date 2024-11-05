@@ -16,7 +16,7 @@ export default function ThemeReactMermaid({ src }: { src: string }) {
             // DOMの準備を待つ
             await new Promise(resolve => setTimeout(resolve, 0));
 
-            // mermaidの初期化と再レンダリング
+            // mermaidの初期化と再レンダリング(https://mermaid.js.org/config/setup/interfaces/mermaid.Mermaid.html#initialize)
             mermaid.initialize({
                 startOnLoad: false,
                 theme: theme,
@@ -49,7 +49,7 @@ export default function ThemeReactMermaid({ src }: { src: string }) {
             // レンダリング前にDOMの準備ができていることを確認
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            // mermaidのレンダリング
+            // mermaidのレンダリング(https://mermaid.js.org/config/setup/interfaces/mermaid.Mermaid.html#render)
             const { svg } = await mermaid.render(`mermaid-${Date.now()}`, src);
 
             // SVGを挿入

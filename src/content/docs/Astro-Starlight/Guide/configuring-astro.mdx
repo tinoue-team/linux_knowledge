@@ -1,0 +1,66 @@
+---
+title: Astroの設定ファイル
+description: 設定ファイルについて
+---
+
+import LinkPreview from "@components/LinkPreview.astro";
+
+<LinkPreview url="https://docs.astro.build/ja/guides/configuring-astro/" />
+## 環境変数について
+
+<LinkPreview url="https://docs.astro.build/ja/guides/environment-variables/#cli%E3%81%AE%E5%88%A9%E7%94%A8" />
+
+Astro は他のファイルをロードする前に設定ファイルを評価する。
+そのため、`.env` ファイルによってセットされた環境変数を取得するために、
+`import.meta.env` を利用できない
+
+設定ファイルの中で、環境変数を取得するには
+
+-   `process.env` を利用
+-   Vite の `loadEnv` ヘルパーを使用
+
+CLI を利用して環境変数を追加する
+
+```bash
+ENV_SAMPLE=hogehoge pnpm run dev
+```
+
+dev サーバー起動時に環境変数を渡す。
+
+### Vite の `loadEnv` ヘルパーを使用
+
+<LinkPreview url="https://zenn.dev/immttt7777/scraps/a0efef82c0988b" />
+<LinkPreview url="https://ja.vite.dev/config/#%E7%92%B0%E5%A2%83%E5%A4%89%E6%95%B0%E3%82%92%E8%A8%AD%E5%AE%9A%E3%81%AB%E4%BD%BF%E7%94%A8%E3%81%99%E3%82%8B" />
+Vite の loadEnv を利用して設定ファイルに読み込ませる
+
+```js
+import { defineConfig } from "astro/config";
+// pnpm add -D vite でパッケージをインストール
+import { loadEnv } from "vite";
+
+export default defineConfig({
+    site: env.SITE_URL,
+});
+```
+
+#### loadEnv() 関数の使用方法
+
+```js
+loadEnv(mode: string, envDir: string, prefixes?: string | string[]): Record<string, string>
+```
+
+| arg      | type                 | description                                 |
+| :------- | :------------------- | :------------------------------------------ |
+| mode     | `string`             | 現在の実行モード                            |
+| envDir   | `string`             | プロジェクトのルートディレクトリ            |
+| prefixes | `string \| string[]` | 環境変数名のプレフィックス（例：`'VITE_'`） |
+
+##### 環境変数ファイルの読み込み順序
+
+1. `.env`
+1. `.env.local`
+1. `.env.[mode]`
+1. `.env.[mode].local`
+
+`process.env.NODE_ENV` は、`run dev` の実行時は 'development'
+`run build` の実行時には、'production'

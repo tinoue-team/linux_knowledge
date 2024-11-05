@@ -4,10 +4,14 @@ import preact from '@astrojs/preact';
 import starlight from '@astrojs/starlight';
 import tailwind from '@astrojs/tailwind';
 import { defineConfig } from 'astro/config';
+import { loadEnv } from 'vite';
+
+// ヘルパー関数経由で環境変数を呼び出す
+const env = loadEnv(process.env.NODE_ENV, process.cwd(), '');
 
 // https://astro.build/config
 export default defineConfig({
-    site: 'https://linuledge-test.netlify.app',
+    site: env.SITE_URL,
     integrations: [
         preact(),
         db(),
@@ -76,6 +80,7 @@ export default defineConfig({
     ],
     output: 'hybrid',
     adapter: netlify(),
+    // adapter: isProd ? netlify() : '',
     // 特定のパターンのページを事前レンダリング
     // prerender: {
     //     paths: ['/blog/*', '/about', '/products/[...slug]'],
