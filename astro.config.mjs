@@ -7,11 +7,11 @@ import { defineConfig } from 'astro/config';
 import { loadEnv } from 'vite';
 
 // ヘルパー関数経由で環境変数を呼び出す
-const env = loadEnv(process.env.NODE_ENV, process.cwd(), '');
+const { SITE_URL, EDIT_SITE_URL, SOCIAL_GITHUB } = loadEnv(process.env.NODE_ENV, process.cwd(), '');
 
 // https://astro.build/config
 export default defineConfig({
-    site: env.SITE_URL,
+    site: SITE_URL,
     integrations: [
         preact(),
         db(),
@@ -38,7 +38,7 @@ export default defineConfig({
                 './src/fonts/font-face.css',
             ],
             editLink: {
-                baseUrl: 'https://github.com/kinmapping/linuledge/edit/main/docs/',
+                baseUrl: EDIT_SITE_URL,
             },
             // customCss: ['./src/styles/custom.css', './src/tailwind.css'],
             tableOfContents: {
@@ -46,29 +46,29 @@ export default defineConfig({
                 maxHeadingLevel: 5,
             },
             social: {
-                github: 'https://github.com/kinmapping/linuledge',
+                github: SOCIAL_GITHUB,
             },
-            sidebar: [
-                {
-                    label: 'Astro-Starlight',
-                    autogenerate: { directory: 'astro-starlight' },
+            // sidebar: [
+            //     {
+            //         label: 'Astro-Starlight',
+            //         // autogenerate: { directory: 'astro-starlight' },
 
-                    // items: [
-                    //     { label: 'Component', slug: 'astro-starlight/component/*' },
-                    //     { label: 'CSS', slug: '/astro-starlight/css' },
-                    //     { label: 'Guide', slug: '/astro-starlight/guide' },
-                    // ],
-                },
-                {
-                    label: 'Linux',
-                    // link: '/linux/',
-                    autogenerate: { directory: 'linux' },
-                    // items: [
-                    //     { label: 'Linux 1', link: '/linux/post/' },
-                    //     // { label: 'Linux 2', link: '/linux/linux-2/' },
-                    // ],
-                },
-            ],
+            //         items: [
+            //             { label: 'Component', slug: '/astro-starlight/component' },
+            //             { label: 'CSS', slug: '/astro-starlight/css' },
+            //             { label: 'Guide', slug: '/astro-starlight/guide' },
+            //         ],
+            //     },
+            //     {
+            //         label: 'Linux',
+            //         // link: '/linux/',
+            //         autogenerate: { directory: 'linux' },
+            //         // items: [
+            //         //     { label: 'Linux 1', link: '/linux/post/' },
+            //         //     // { label: 'Linux 2', link: '/linux/linux-2/' },
+            //         // ],
+            //     },
+            // ],
             // カスタム 404 ページを利用するか
             // disable404Route: true,
             credits: true,

@@ -64,3 +64,30 @@ loadEnv(mode: string, envDir: string, prefixes?: string | string[]): Record<stri
 
 `process.env.NODE_ENV` は、`run dev` の実行時は 'development'
 `run build` の実行時には、'production'
+
+### Vite が扱う環境変数のルール
+
+サーバー側のコード(SSR・SSG)では、すべての環境変数が利用できるが、
+クライアント側では、`PUBLIC_` というプレフィックスを持つ環境変数のみが使える。
+
+```bash title=".env"
+SECRET_PASSWORD=password123 # サーバー側で使える
+PUBLIC_ANYBODY=there # クライアント側で使える
+```
+
+利用する時は、`import.meta.env.HOGE_HOGE`としてコード側で呼び出す
+
+:::note
+前述のように環境変数を設定ファイルで読み込むには `loadEnv` を利用する
+:::
+
+## Astro が用意している(デフォルト環境変数)
+
+| デフォルト環境変数              | 説明                                                                                                |
+| :------------------------------ | :-------------------------------------------------------------------------------------------------- |
+| `import.meta.env.MODE`          | サイトが動作しているモード。 astro dev は development、 astro build を実行している場合は production |
+| `import.meta.env.PROD`          |                                                                                                     |
+| `import.meta.env.DEV`           |                                                                                                     |
+| `import.meta.env.BASE_URL`      |                                                                                                     |
+| `import.meta.env.SITE`          |                                                                                                     |
+| `import.meta.env.ASSETS_PREFIX` |                                                                                                     |
