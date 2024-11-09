@@ -32,7 +32,7 @@ export default defineConfig({
                 // replacesTitle: true,
             },
             customCss: [
-                './src/styles/custom.css',
+                './src/styles/over-w-props.css',
                 './src/tailwind.css',
                 // @font-face CSSファイルへの相対パス
                 './src/fonts/font-face.css',
@@ -40,7 +40,6 @@ export default defineConfig({
             editLink: {
                 baseUrl: EDIT_SITE_URL,
             },
-            // customCss: ['./src/styles/custom.css', './src/tailwind.css'],
             tableOfContents: {
                 minHeadingLevel: 2,
                 maxHeadingLevel: 5,
@@ -75,7 +74,7 @@ export default defineConfig({
         }),
         tailwind({
             // デフォルトのベーススタイルを無効にする
-            // applyBaseStyles: false,
+            applyBaseStyles: false,
         }),
     ],
     output: 'hybrid',

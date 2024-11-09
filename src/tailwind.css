@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    .sl-markdown-content h1:not(:where(.not-content *)) {
+        @apply text-4xl font-semibold text-accent-600 mb-4;
+    }
+    .sl-markdown-content h2:not(:where(.not-content *)) {
+        @apply text-3xl
+            font-semibold
+            text-transparent
+            bg-clip-text bg-gradient-to-r
+            mb-3
+            from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90%;
+        /* @apply text-3xl font-semibold text-accent-600 mb-3; */
+    }
+    .sl-markdown-content h3:not(:where(.not-content *)) {
+        @apply text-2xl font-semibold text-accent-600 mb-2;
+    }
+    .sl-markdown-content h4:not(:where(.not-content *)) {
+        @apply text-xl font-semibold text-accent-600 mb-2;
+    }
+    .sl-markdown-content h5:not(:where(.not-content *)) {
+        @apply text-lg font-semibold text-accent-600 mb-1;
+    }
+    /* .sl-markdown-content h6:not(:where(.not-content *)) {
+        @apply text-base font-semibold text-accent-600 mb-3;
+    } */
+}

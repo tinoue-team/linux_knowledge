@@ -1,5 +1,6 @@
 ---
 import type { OGData } from '@/type';
+import { decode } from 'html-entities';
 import { parse } from 'node-html-parser';
 
 interface Props {
@@ -55,12 +56,12 @@ const ogData = await fetchOGTags(url);
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        class="border rounded-lg flex my-4 no-underline"
+        class="rounded-lg flex my-4 no-underline"
     >
-        <div class="flex max-h-32 w-full">
+        <div class="flex w-full sl-link-card astro-ggf2imng">
             <div class="flex-1 p-3">
                 <h4>{ogData.title}</h4>
-                {ogData.description && <p>{ogData.description}</p>}
+                {ogData.description && <p>{decode(ogData.description)}</p>}
                 <span class="url">{ogData.siteName || new URL(url).hostname}</span>
             </div>
             {
@@ -69,7 +70,7 @@ const ogData = await fetchOGTags(url);
                     src={ogData.image}
                     alt="thumbnail"
                     class="w-1/3 rounded-r-lg object-cover"
-                    style="margin: 0, color: var(--sl-color-gray-4)"
+                    style="margin: 0; color: var(--sl-color-gray-4)"
                 />
             }
         </div>

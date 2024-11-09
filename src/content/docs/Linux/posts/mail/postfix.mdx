@@ -15,6 +15,7 @@ sidebar:
 import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
 import LinkPreview from "@components/LinkPreview.astro";
 import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
 
 ## 参考
 
@@ -145,4 +146,32 @@ Postfix は単一のデーモンプログラムではなく、複数のプログ
     classDef class2 fill:#000a61,stroke:#9e5757,stroke-width:3px
 
 `}
+/>
+
+### デーモン一覧
+
+#### master
+
+Postfix の動作全体の制御をするデーモン
+
+<Table
+    columns={["Role", "Description"]}
+    data={[
+        [
+            '<span class="font-bold">デーモンの起動と停止</span>',
+            "他のすべての Postfix デーモンを起動し、必要に応じて停止する",
+        ],
+        [
+            '<span class="font-bold">デーモンの監視</span>',
+            "各デーモンの動作状況を監視し、必要に応じて再起動する",
+        ],
+        [
+            '<span class="font-bold">設定管理</span>',
+            "Postfix の設定に基づいて、適切なデーモンを適切な設定で実行する",
+        ],
+        [
+            '<span class="font-bold">リソース管理</span>',
+            "システムリソースの使用状況を管理し、効率的な動作を確保する",
+        ],
+    ]}
 />

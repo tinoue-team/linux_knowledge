@@ -19,7 +19,7 @@ importers:
         version: 5.5.4(@types/node@22.7.7)(astro@4.16.8(@types/node@22.7.7)(rollup@4.24.0)(typescript@5.6.3))
       '@astrojs/preact':
         specifier: ^3.5.3
-        version: 3.5.3(@babel/core@7.26.0)(preact@10.24.3)(vite@5.4.10(@types/node@22.7.7))
+        version: 3.5.3(@babel/core@7.25.8)(preact@10.24.3)(vite@5.4.10(@types/node@22.7.7))
       '@astrojs/rss':
         specifier: ^4.0.9
         version: 4.0.9
@@ -41,6 +41,9 @@ importers:
       astro:
         specifier: ^4.16.8
         version: 4.16.8(@types/node@22.7.7)(rollup@4.24.0)(typescript@5.6.3)
+      html-entities:
+        specifier: ^2.5.2
+        version: 2.5.2
       mermaid:
         specifier: ^11.4.0
         version: 11.4.0
@@ -50,6 +53,9 @@ importers:
       preact:
         specifier: ^10.24.3
         version: 10.24.3
+      sanitize-html:
+        specifier: ^2.13.1
+        version: 2.13.1
       tailwindcss:
         specifier: ^3.4.14
         version: 3.4.14
@@ -60,6 +66,9 @@ importers:
       '@biomejs/biome':
         specifier: 1.9.3
         version: 1.9.3
+      '@types/sanitize-html':
+        specifier: ^2.13.0
+        version: 2.13.0
       vite:
         specifier: ^5.4.10
         version: 5.4.10(@types/node@22.7.7)
@@ -1164,6 +1173,9 @@ packages:
   '@types/node@22.7.7':
     resolution: {integrity: sha512-SRxCrrg9CL/y54aiMCG3edPKdprgMVGDXjA3gB8UmmBW5TcXzRUYAh8EWzTnSJFAd1rgImPELza+A3bJ+qxz8Q==}
 
+  '@types/sanitize-html@2.13.0':
+    resolution: {integrity: sha512-X31WxbvW9TjIhZZNyNBZ/p5ax4ti7qsNDBDEnH4zAgmEh35YnFD1UiS6z9Cd34kKm0LslFW0KPmTQzu/oGtsqQ==}
+
   '@types/sax@1.2.7':
     resolution: {integrity: sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A==}
 
@@ -1737,6 +1749,10 @@ packages:
   deep-diff@1.0.2:
     resolution: {integrity: sha512-aWS3UIVH+NPGCD1kki+DCU9Dua032iSsO43LqQpcs4R3+dVv7tX0qBGjiVHJHjplsoUM2XRO/KB92glqc68awg==}
 
+  deepmerge@4.3.1:
+    resolution: {integrity: sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==}
+    engines: {node: '>=0.10.0'}
+
   default-browser-id@5.0.0:
     resolution: {integrity: sha512-A6p/pu/6fyBcA1TRz/GqWYPViplrftcW2gZC9q79ngNCKAeR/X3gcEdXQHl4KNXV+3wgIJ1CPkJQ3IHM6lcsyA==}
     engines: {node: '>=18'}
@@ -1946,6 +1962,10 @@ packages:
   escape-string-regexp@1.0.5:
     resolution: {integrity: sha512-vbRorB5FUQWvla16U8R/qgaFIya2qGzwDrNmCZuYKrbdSUMG6I1ZCGQRefkRVhuOkIGVne7BQ35DSfo1qvJqFg==}
     engines: {node: '>=0.8.0'}
+
+  escape-string-regexp@4.0.0:
+    resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
+    engines: {node: '>=10'}
 
   escape-string-regexp@5.0.0:
     resolution: {integrity: sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==}
@@ -2190,6 +2210,9 @@ packages:
     resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
     hasBin: true
 
+  html-entities@2.5.2:
+    resolution: {integrity: sha512-K//PSRMQk4FZ78Kyau+mZurHn3FH0Vwr+H36eE0rPbeYkRRi9YxceYPhuN60UwWorxyKHhqoAJl2OFKa4BVtaA==}
+
   html-escaper@3.0.3:
     resolution: {integrity: sha512-RuMffC89BOWQoY0WKGpIhn5gX3iI54O6nRA0yC124NYVtzjmFWBIiFd8M0x+ZdX0P9R4lADg1mgP8C7PxGOWuQ==}
 
@@ -2198,6 +2221,9 @@ packages:
 
   html-whitespace-sensitive-tag-names@3.0.1:
     resolution: {integrity: sha512-q+310vW8zmymYHALr1da4HyXUQ0zgiIwIicEfotYPWGN0OJVEN/58IJ3A4GBYcEq3LGAZqKb+ugvP0GNB9CEAA==}
+
+  htmlparser2@8.0.2:
+    resolution: {integrity: sha512-GYdjWKDkbRLkZ5geuHs5NY1puJ+PXwP7+fHPRz06Eirsb9ugf6d8kkXav6ADhcODhFFPMIXyxkxSuMf3D6NCFA==}
 
   http-cache-semantics@4.1.1:
     resolution: {integrity: sha512-er295DKPVsV82j5kw1Gjt+ADA/XYHsajl82cGNQG2eyoPkvgUhX+nDIyelzhIWbbsXP39EHcI6l5tYs2FYqYXQ==}
@@ -2296,6 +2322,10 @@ packages:
   is-plain-obj@4.1.0:
     resolution: {integrity: sha512-+Pgi+vMuUNkJyExiMBt5IlFoMyKnr5zhJ4Uspz58WOhBF5QoIZkFyNHIbBAtHwzVAgk5RtndVNsDRN61/mmDqg==}
     engines: {node: '>=12'}
+
+  is-plain-object@5.0.0:
+    resolution: {integrity: sha512-VRSzKkbMm5jMDoKLbltAkFQ5Qr7VDiTFGXxYFXXowVj387GeGNOCsOH6Msy00SGZ3Fp84b1Naa1psqgcCIEP5Q==}
+    engines: {node: '>=0.10.0'}
 
   is-unicode-supported@1.3.0:
     resolution: {integrity: sha512-43r2mRvz+8JRIKnWJ+3j8JtjRKZ6GmjzfaE/qiBJnikNnYv/6bagRJ1kUhNk8R5EX/GkobD+r+sfxCPJsiKBLQ==}
@@ -2807,6 +2837,9 @@ packages:
   parse-latin@7.0.0:
     resolution: {integrity: sha512-mhHgobPPua5kZ98EF4HWiH167JWBfl4pvAIXXdbaVohtK7a6YBOy56kvhCqduqyo/f3yrHFWmqmiMg/BkBkYYQ==}
 
+  parse-srcset@1.0.2:
+    resolution: {integrity: sha512-/2qh0lav6CmI15FzA3i/2Bzk2zCgQhGMkvhOhKNcBVQ1ldgpbfiNTVslmooUmWJcADi1f1kIeynbDRVzNlfR6Q==}
+
   parse5@7.2.0:
     resolution: {integrity: sha512-ZkDsAOcxsUMZ4Lz5fVciOehNcJ+Gb8gTzcA4yl3wnc273BAybYWrQ+Ks/OjCjSEpjvQkDSeZbybK9qj2VHHdGA==}
 
@@ -3101,6 +3134,9 @@ packages:
 
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
+
+  sanitize-html@2.13.1:
+    resolution: {integrity: sha512-ZXtKq89oue4RP7abL9wp/9URJcqQNABB5GGJ2acW1sdO8JTVl92f4ygD7Yc9Ze09VAZhnt2zegeU0tbNsdcLYg==}
 
   sax@1.4.1:
     resolution: {integrity: sha512-+aWOz7yVScEGoKNd4PA10LZ8sk0A/z5+nXQG5giUO5rprX9jgYsTdov9qCchZiPIZezbZH+jRut8nPodFAX4Jg==}
@@ -3803,13 +3839,13 @@ snapshots:
       - supports-color
       - terser
 
-  '@astrojs/preact@3.5.3(@babel/core@7.26.0)(preact@10.24.3)(vite@5.4.10(@types/node@22.7.7))':
+  '@astrojs/preact@3.5.3(@babel/core@7.25.8)(preact@10.24.3)(vite@5.4.10(@types/node@22.7.7))':
     dependencies:
-      '@babel/plugin-transform-react-jsx': 7.25.7(@babel/core@7.26.0)
-      '@babel/plugin-transform-react-jsx-development': 7.25.7(@babel/core@7.26.0)
-      '@preact/preset-vite': 2.8.2(@babel/core@7.26.0)(preact@10.24.3)(vite@5.4.10(@types/node@22.7.7))
+      '@babel/plugin-transform-react-jsx': 7.25.7(@babel/core@7.25.8)
+      '@babel/plugin-transform-react-jsx-development': 7.25.7(@babel/core@7.25.8)
+      '@preact/preset-vite': 2.8.2(@babel/core@7.25.8)(preact@10.24.3)(vite@5.4.10(@types/node@22.7.7))
       '@preact/signals': 1.3.0(preact@10.24.3)
-      babel-plugin-transform-hook-names: 1.0.2(@babel/core@7.26.0)
+      babel-plugin-transform-hook-names: 1.0.2(@babel/core@7.25.8)
       preact: 10.24.3
       preact-render-to-string: 6.5.11(preact@10.24.3)
     transitivePeerDependencies:
@@ -4075,9 +4111,9 @@ snapshots:
     dependencies:
       '@babel/types': 7.26.0
 
-  '@babel/plugin-syntax-jsx@7.25.7(@babel/core@7.26.0)':
+  '@babel/plugin-syntax-jsx@7.25.7(@babel/core@7.25.8)':
     dependencies:
-      '@babel/core': 7.26.0
+      '@babel/core': 7.25.8
       '@babel/helper-plugin-utils': 7.25.7
 
   '@babel/plugin-syntax-jsx@7.25.9(@babel/core@7.26.0)':
@@ -4085,20 +4121,20 @@ snapshots:
       '@babel/core': 7.26.0
       '@babel/helper-plugin-utils': 7.25.9
 
-  '@babel/plugin-transform-react-jsx-development@7.25.7(@babel/core@7.26.0)':
+  '@babel/plugin-transform-react-jsx-development@7.25.7(@babel/core@7.25.8)':
     dependencies:
-      '@babel/core': 7.26.0
-      '@babel/plugin-transform-react-jsx': 7.25.7(@babel/core@7.26.0)
+      '@babel/core': 7.25.8
+      '@babel/plugin-transform-react-jsx': 7.25.7(@babel/core@7.25.8)
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/plugin-transform-react-jsx@7.25.7(@babel/core@7.26.0)':
+  '@babel/plugin-transform-react-jsx@7.25.7(@babel/core@7.25.8)':
     dependencies:
-      '@babel/core': 7.26.0
+      '@babel/core': 7.25.8
       '@babel/helper-annotate-as-pure': 7.25.7
       '@babel/helper-module-imports': 7.25.7
       '@babel/helper-plugin-utils': 7.25.7
-      '@babel/plugin-syntax-jsx': 7.25.7(@babel/core@7.26.0)
+      '@babel/plugin-syntax-jsx': 7.25.7(@babel/core@7.25.8)
       '@babel/types': 7.25.8
     transitivePeerDependencies:
       - supports-color
@@ -4630,14 +4666,14 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@preact/preset-vite@2.8.2(@babel/core@7.26.0)(preact@10.24.3)(vite@5.4.10(@types/node@22.7.7))':
+  '@preact/preset-vite@2.8.2(@babel/core@7.25.8)(preact@10.24.3)(vite@5.4.10(@types/node@22.7.7))':
     dependencies:
-      '@babel/core': 7.26.0
-      '@babel/plugin-transform-react-jsx': 7.25.7(@babel/core@7.26.0)
-      '@babel/plugin-transform-react-jsx-development': 7.25.7(@babel/core@7.26.0)
+      '@babel/core': 7.25.8
+      '@babel/plugin-transform-react-jsx': 7.25.7(@babel/core@7.25.8)
+      '@babel/plugin-transform-react-jsx-development': 7.25.7(@babel/core@7.25.8)
       '@prefresh/vite': 2.4.6(preact@10.24.3)(vite@5.4.10(@types/node@22.7.7))
       '@rollup/pluginutils': 4.2.1
-      babel-plugin-transform-hook-names: 1.0.2(@babel/core@7.26.0)
+      babel-plugin-transform-hook-names: 1.0.2(@babel/core@7.25.8)
       debug: 4.3.7
       kolorist: 1.8.0
       magic-string: 0.30.5
@@ -4972,6 +5008,10 @@ snapshots:
     dependencies:
       undici-types: 6.19.8
 
+  '@types/sanitize-html@2.13.0':
+    dependencies:
+      htmlparser2: 8.0.2
+
   '@types/sax@1.2.7':
     dependencies:
       '@types/node': 22.7.7
@@ -5231,9 +5271,9 @@ snapshots:
 
   axobject-query@4.1.0: {}
 
-  babel-plugin-transform-hook-names@1.0.2(@babel/core@7.26.0):
+  babel-plugin-transform-hook-names@1.0.2(@babel/core@7.25.8):
     dependencies:
-      '@babel/core': 7.26.0
+      '@babel/core': 7.25.8
 
   bail@2.0.2: {}
 
@@ -5649,6 +5689,8 @@ snapshots:
 
   deep-diff@1.0.2: {}
 
+  deepmerge@4.3.1: {}
+
   default-browser-id@5.0.0: {}
 
   default-browser@5.2.1:
@@ -5778,6 +5820,8 @@ snapshots:
   escalade@3.2.0: {}
 
   escape-string-regexp@1.0.5: {}
+
+  escape-string-regexp@4.0.0: {}
 
   escape-string-regexp@5.0.0: {}
 
@@ -6166,11 +6210,20 @@ snapshots:
 
   he@1.2.0: {}
 
+  html-entities@2.5.2: {}
+
   html-escaper@3.0.3: {}
 
   html-void-elements@3.0.0: {}
 
   html-whitespace-sensitive-tag-names@3.0.1: {}
+
+  htmlparser2@8.0.2:
+    dependencies:
+      domelementtype: 2.3.0
+      domhandler: 5.0.3
+      domutils: 3.1.0
+      entities: 4.5.0
 
   http-cache-semantics@4.1.1: {}
 
@@ -6249,6 +6302,8 @@ snapshots:
   is-number@7.0.0: {}
 
   is-plain-obj@4.1.0: {}
+
+  is-plain-object@5.0.0: {}
 
   is-unicode-supported@1.3.0: {}
 
@@ -7065,6 +7120,8 @@ snapshots:
       unist-util-visit-children: 3.0.0
       vfile: 6.0.3
 
+  parse-srcset@1.0.2: {}
+
   parse5@7.2.0:
     dependencies:
       entities: 4.5.0
@@ -7427,6 +7484,15 @@ snapshots:
   safe-buffer@5.2.1: {}
 
   safer-buffer@2.1.2: {}
+
+  sanitize-html@2.13.1:
+    dependencies:
+      deepmerge: 4.3.1
+      escape-string-regexp: 4.0.0
+      htmlparser2: 8.0.2
+      is-plain-object: 5.0.0
+      parse-srcset: 1.0.2
+      postcss: 8.4.47
 
   sax@1.4.1: {}
 
