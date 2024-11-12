@@ -1,0 +1,57 @@
+---
+title: postmulti
+description: postfix マルチインスタンスの管理ツール
+tags:
+    - "メール管理"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: postmulti
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+// import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## 概要
+
+<LinkPreview url="https://hp.vector.co.jp/authors/VA022911/tec/centos/postfix_multi_instance.htm" />
+<LinkPreview url="https://docs.oracle.com/cd/E62101_01/html/E62874/postmulti-1.html" />
+<LinkPreview url="https://qiita.com/amedama/items/79c8e4e0714e1676e99b" />
+
+## 基本
+
+### 説明
+
+Postfix マルチインスタンスの管理ツール
+
+`postmulti`コマンドは、Postfix 管理者が一つのホスト上で複数の Postfix インスタンスを管理することを可能にします。
+
+-   iterator mode …複数の Postfix インスタンスに対して同じコマンドを実行する
+-   life-cycle management mode …一つのインスタンスを追加・削除・状態を変更したりします。
+
+それぞれの動作モードには独自のコマンド構文があります。このため、それぞれのモードについて、以下に別々のセクションで説明します。
+
+### 構文
+
+#### Enabling multi-instance management (マルチインスタンス管理の有効化)
+
+```bash
+postmulti -e init [-v]
+```
+
+#### Iterator mode
+
+```bash
+postmulti -l [-aRv] [-g group] [-i name]
+
+postmulti -p [-av] [-g group] [-i name] postfix-command...
+
+postmulti -x [-aRv] [-g group] [-i name] unix-command...
+```
