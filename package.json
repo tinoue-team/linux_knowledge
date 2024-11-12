@@ -31,6 +31,8 @@
         "@expressive-code/plugin-line-numbers": "^0.37.1",
         "astro": "^4.16.8",
         "html-entities": "^2.5.2",
+        "iconv-lite": "^0.6.3",
+        "jschardet": "^3.1.4",
         "mermaid": "^11.4.0",
         "node-html-parser": "^6.1.13",
         "preact": "^10.24.3",
