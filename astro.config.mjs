@@ -42,7 +42,7 @@ export default defineConfig({
             },
             tableOfContents: {
                 minHeadingLevel: 2,
-                maxHeadingLevel: 5,
+                maxHeadingLevel: 4,
             },
             social: {
                 github: SOCIAL_GITHUB,
