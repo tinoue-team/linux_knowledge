@@ -6,7 +6,9 @@ const { chart } = Astro.props;
 <ThemeReactMermaid
     client:only="preact"
     src={chart}
-/>
+>
+    <div slot="fallback">Loading...</div>
+</ThemeReactMermaid >
 
 <style>
     /* .mermaid {

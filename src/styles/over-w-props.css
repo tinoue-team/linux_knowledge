@@ -1,9 +1,18 @@
 /* Dark mode colors. */
+/* https://github.com/withastro/starlight/blob/main/packages/starlight/style/props.css */
 :root {
-    --sl-color-accent-low: #131e4f;
-    --sl-color-accent: #e7ff34;
-    /* --sl-color-accent: #182775; */
-    --sl-color-accent-high: #fffab3;
+    --accent-100: hsl(65, 100%, 91%, 0.6);
+    --accent-200: hsl(65, 100%, 77%, 0.6);
+    --accent-300: hsl(65, 95%, 61%, 0.6);
+    --accent-400: hsl(65, 90%, 55%, 0.6);
+    --accent-500: hsl(58, 95%, 61%, 0.6);
+    --accent-600: hsl(65, 70%, 54%, 0.6);
+    --accent-700: hsl(65, 79%, 42%, 0.6);
+    --accent-800: hsl(54, 56%, 44%, 0.6);
+    --accent-900: hsla(59, 81%, 29%, 0.6);
+    --sl-color-accent-low: hsl(67, 77%, 32%);
+    --sl-color-accent: hsl(67, 100%, 60%);
+    --sl-color-accent-high: hsl(56, 100%, 85%);
     --sl-color-white: #ffffff;
     --sl-color-text: #d4d7dd;
     --sl-color-gray-1: #eceef2;
@@ -17,6 +26,19 @@
     /* --sl-font: "Hannari", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
         Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
+    /* Shadows (dark mode) */
+    --sl-shadow-sm: 0px 1px 1px hsla(0, 0%, 0%, 0.12),
+        0px 2px 1px hsla(0, 0%, 0%, 0.24);
+    --sl-shadow-md: 0px 8px 4px hsla(0, 0%, 0%, 0.08),
+        0px 5px 2px hsla(0, 0%, 0%, 0.08), 0px 3px 2px hsla(0, 0%, 0%, 0.12),
+        0px 1px 1px hsla(0, 0%, 0%, 0.15);
+    --sl-shadow-lg: 0px 25px 7px hsla(0, 0%, 0%, 0.03),
+        0px 16px 6px hsla(0, 0%, 0%, 0.1), 0px 9px 5px hsla(223, 13%, 10%, 0.33),
+        0px 4px 4px hsla(0, 0%, 0%, 0.75), 0px 4px 2px hsla(0, 0%, 0%, 0.25);
+
+    --inset-shadow: inset 3px 3px 10px hsl(0deg 0% 0% / 74.12%),
+        inset -3px -3px 10px hsl(0deg 0% 38.43%);
+
     --sl-sidebar-width: 18rem;
     --sl-content-width: 100%;
 
@@ -45,6 +67,12 @@
             ),
             url(../assets/paper-dark.webp);
     }
+    /*
+    & code {
+        font-size: var(--sl-text-base);
+        padding: 5px;
+        border-radius: 4px;
+    } */
 }
 /* Light mode colors. */
 :root[data-theme="light"] {
@@ -60,6 +88,17 @@
     --sl-color-gray-6: #eceef2;
     --sl-color-gray-7: #f5f6f8;
     --sl-color-black: #ffffff;
+
+    /* Shadows (light mode) */
+    --sl-shadow-sm: 0px 1px 1px hsla(0, 0%, 0%, 0.06),
+        0px 2px 1px hsla(0, 0%, 0%, 0.06);
+    --sl-shadow-md: 0px 8px 4px hsla(0, 0%, 0%, 0.03),
+        0px 5px 2px hsla(0, 0%, 0%, 0.03), 0px 3px 2px hsla(0, 0%, 0%, 0.06),
+        0px 1px 1px hsla(0, 0%, 0%, 0.06);
+    --sl-shadow-lg: 0px 25px 7px rgba(0, 0, 0, 0.01),
+        0px 16px 6px hsla(0, 0%, 0%, 0.03),
+        0px 9px 5px hsla(223, 13%, 10%, 0.08), 0px 4px 4px hsla(0, 0%, 0%, 0.16),
+        0px 4px 2px hsla(0, 0%, 0%, 0.04);
 
     & main {
         background-image: linear-gradient(

@@ -74,7 +74,7 @@
         "source.organizeImports.biome": "explicit"
     },
     "editor.minimap.maxColumn": 30,
-    "svg.preview.background": "dark-transparent"
+    "svg.preview.background": "dark-transparent",
     // "cSpell.configFile": "./cspell.json",
     // "colorInfo.fields": ["cmyk"],
     // "colorInfo.languages": [
@@ -95,4 +95,7 @@
     //         "colors": "css"
     //     }
     // ]
+    "files.associations": {
+        "*.css": "tailwindcss"
+    }
 }

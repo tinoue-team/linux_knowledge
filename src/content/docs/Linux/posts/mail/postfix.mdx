@@ -15,6 +15,7 @@ sidebar:
 import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
 import LinkPreview from "@components/LinkPreview.astro";
 import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
 
 ## 参考
 
@@ -146,3 +147,338 @@ Postfix は単一のデーモンプログラムではなく、複数のプログ
 
 `}
 />
+
+### Daemon List
+
+<Tabs stncKey="postfix-deamons">
+    <TabItem label="master">
+        ##### 役割
+
+        Postfix の動作全体の制御をするデーモン
+
+        <Table
+            columns={["Role", "Description"]}
+            data={[
+                [
+                    '<span class="font-bold">デーモンの起動と停止</span>',
+                    "他のすべての Postfix デーモンを起動し、必要に応じて停止する",
+                ],
+                [
+                    '<span class="font-bold">デーモンの監視</span>',
+                    "各デーモンの動作状況を監視し、必要に応じて再起動する",
+                ],
+                [
+                    '<span class="font-bold">設定管理</span>',
+                    "Postfix の設定に基づいて、適切なデーモンを適切な設定で実行する",
+                ],
+                [
+                    '<span class="font-bold">リソース管理</span>',
+                    "システムリソースの使用状況を管理し、効率的な動作を確保する",
+                ],
+            ]}
+        />
+        ##### 関連するデーモン、およびキューの流れ
+
+        全てのデーモンを管理する
+    </TabItem>
+
+    <TabItem label="sendmail">
+        ##### 役割
+
+        Postfix の sendmail コマンド互換プログラム。ローカルユーザーがメールを送信するために使用される。
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - `sendmail` → `maildrop`
+    </TabItem>
+
+    <TabItem label="smtpd">
+        ##### 役割
+
+        - SMTP サーバープロセス。外部からのメールを受信し、Postfix 内部に渡す。
+        - 受信後に cleanup デーモンへ渡される
+        - TLS 接続の際に `tlsmgr` 呼び出し、TLS セッションを始める
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - `smtpd` → `cleanup`
+            - `smtpd` → `tlsmgr`
+    </TabItem>
+
+    <TabItem label="pickup">
+        ##### 役割
+        - ローカルの maildrop キューを監視し、メッセージを読み取り、処理を開始する。
+        - 内部配送(受信後に cleanup に渡す)を処理する
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **queue**
+            - `maildrop` キュー → `pickup`
+
+        - **daemon**
+            - `pickup` → `cleanup`
+    </TabItem>
+
+    <TabItem label="cleanup">
+        ##### 役割
+
+        受け取ったメールの形式が正しいか確認
+        1. メールメッセージのヘッダーをフォーマットし、必要に応じて補完する
+        2. メッセージのフォーマットやフィルタリングを行う。
+        ヘッダの書き換えなどをおこなって incoming キューに入れ、qmgr に通知する
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **queue**
+            - `cleanup` キュー → `incoming`
+
+        - **daemon**
+            - `cleanup` → `qmgr`
+    </TabItem>
+
+    <TabItem label="qmgr">
+        ##### 役割
+
+        メールキューマネージャー。キュー内のメールを管理し、配送プロセスを制御する。
+        incomingキュー内のメールを配送プログラム(activeキュー)に渡す。
+
+        並行して、active キューと deferred キューを定期チェックしてメールの指定に合わせて smtp、local、pipe デーモンへ渡す
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **queue**
+            - `incoming` キュー → `qmgr`
+            - `qmgr` ↔ `active` キュー、
+            - `qmgr` ↔ `deferred` キュー、
+
+        - **daemon**
+            - `qmgr` → `smtp`
+            - `qmgr` → `local`
+            - `qmgr` → `pipe`
+    </TabItem>
+
+    <TabItem label="nqmgr">
+        ##### 役割
+
+        新しいキューマネージャー。qmgr の代替(配送アルゴリズム)として使用されることがある。
+        主にパフォーマンスの向上が目的。
+
+        ##### 関連するデーモン、およびキューの流れ
+        `nqmgr` → 各キューに渡す(qmgrと同様)
+    </TabItem>
+
+    <TabItem label="smtp">
+        ##### 役割
+
+        外部のメールサーバへメールを送信する SMTP クライアントプロセス。
+        指定された宛先(リモートの SMTP サーバーに)にメールを外部送信する、リレー先があれば指定先へ送信する。
+        無ければドメインの MX 宛に送信する
+        送信先サーバーがTLS接続を要求する場合、smtp デーモンは tlsmgr デーモンを呼び出してTLSセッションを開始
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - `qmgr` → `smtp`
+            - `smtp` → `tlsmgr`
+    </TabItem>
+
+    <TabItem label="bounce">
+        ##### 役割
+
+        - バウンスメール(設定ミスなどで行ったり来たりする配送に失敗したメール)を処理するため、
+            バウンスメッセージ（エラーメール）を生成する。
+        - メール送信元または Return-Path を宛先に変更して defered キューに格納し、再試行が行われる。
+            送信エラーで、アドレスが存在しない、拒否された場合に実行される
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - `bounce` → `qmgr`
+    </TabItem>
+
+    <TabItem label="local">
+        ##### 役割
+
+        - 自サーバ内のメールボックスへメールを配送するローカル配送エージェント。
+            main.cf の mydomain で自サーバを判定しているためローカルのメールボックスにメールを配送する。
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - `qmgr` → `local`
+    </TabItem>
+
+    <TabItem label="pipe">
+        ##### 役割
+
+        - 外部プログラムやサービスと連携してメールを処理するためのプロセス。
+            メールをパイプを通じて外部プログラムに渡す。
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - `qmgr` → `pipe`
+    </TabItem>
+
+    <TabItem label="trivial-rewrite">
+        ##### 役割
+
+        - メールの宛先アドレスを書き換えるプロセス。別名や仮想ドメインの処理を行う。
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - `trivial-rewrite` → `cleanup`
+            - `trivial-rewrite` → `qmgr`
+    </TabItem>
+
+    <TabItem label="virtual">
+        ##### 役割
+
+        仮想ドメインのメールを処理する。仮想メールボックスにメールを配送します。
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - `qmgr` → `virtual`
+    </TabItem>
+
+    <TabItem label="proxymap">
+        ##### 役割
+
+        メモリ内のデータベースキャッシュを提供。
+        Postfix の他のデーモンが使用するデータベースアクセスの高速化を図る。
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - 他のデーモン → `proxymap`
+    </TabItem>
+
+    <TabItem label="tlsmgr">
+        ##### 役割
+
+        TLS （Transport Layer Security）セッションキャッシュの管理を行う。
+        頻繁に接続するクライアントとの間で TLS ハンドシェイクを再利用でき、パフォーマンスが向上する。
+        また、TLS キーや証明書の管理も行い、秘密鍵、公開鍵、証明書の読み込み、検証、更新が含まれる。
+        他のデーモンがTLS情報を取得する際に使用します。
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - その他のデーモン → `tlsmgr`
+    </TabItem>
+
+    <TabItem label="anvil">
+        ##### 役割
+
+        smtpd の接続数を制限し、DoS（Denial of Service）攻撃を防ぐ。
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - `smtpd` ↔ `anvil`
+    </TabItem>
+
+    <TabItem label="discard">
+        ##### 役割
+
+        特定の条件に合致するメールを破棄するプロセス。
+
+        ##### 関連するデーモン、およびキューの流れ
+        - **daemon**
+            - `qmgr` → `discard`
+            - `cleanup` → `discard`
+    </TabItem>
+
+</Tabs>
+
+### Queue List
+
+<Tabs stncKey="postfix-queue">
+    <TabItem label="maildrop">
+
+        ローカルのユーザーが送信したメールが最初に置かれるキュー。
+        ユーザーが送信したメールが postdrop または sendmail
+        などのコマンドによって maildrop キューに入ります。
+        メールフィルタリングやウイルススキャンなどの処理が行われる前の段階。
+        pickup デーモンが定期的にメールを取得しにくる。
+    </TabItem>
+
+    <TabItem label="incoming">
+
+        cleanup が済んだ後に格納される。溜まっているキューは qmgr
+        デーモンが取得しに来る。
+        外部から受信したメールや、maildropキューから移動してきたメールが配置されるキュー。ここでメールの基本的な検証が行われる。
+    </TabItem>
+
+    <TabItem label="active">
+
+        送信予定のメールが保持される。
+        配信処理中のメールが格納されるキュー。incomingキューから移動してきたメールがここで処理される。
+    </TabItem>
+
+    <TabItem label="deferred">
+
+        一時的に配信できなかったメール(ネットワークの問題、受信サーバの一時的なダウンの場合)が保管されるキュー。
+        後で再試行される。
+    </TabItem>
+
+    <TabItem label="hold">
+
+        管理者の介入が必要なメールが保管されるキュー。手動での確認や処理が必要。
+        管理者が `postsuper -h` コマンドを使用してメールを hold
+        キューに移動させるために使用されます。 また、 `postsuper -H` コマンドで
+        hold キューからメールを解放することもできます。
+    </TabItem>
+
+    <TabItem label="corrupt">
+
+        破損したメッセージが隔離されるキュー。通常、管理者の介入が必要。
+    </TabItem>
+
+    <TabItem label="corrupt">
+
+        キューマネージャーによって強制的に処理されるメールが一時的に保管されるキュー。
+        再送を試みるためにキュー内のすべてのメールを即座に送信しようとするコマンドを実行するためのキュー。
+        通常、定期的に（例えば、cronジョブで）実行
+    </TabItem>
+
+</Tabs>
+
+### mail log
+
+#### 出力されるログの構文
+
+```bash frame=none
+Mon dd hh:mm:ss host postfix/daemon[<PID>]: <queueID>: Header Info
+```
+
+-   **`Mon dd hh:mm:ss`** : ログの発生時間、これは設定による
+-   **`host`** : マシンのホスト名
+-   **`postfix/daemon`**: postfix はどのインスタンスか、postfix だけだと、プライマリインスタンスを示す。daemon でどのデーモンが動いているかを確認
+-   **`[<PID>]:`**: プロセス ID
+-   **`<queueID>:`**: キュー ID
+-   **`Header Info`**: ヘッダー情報
+
+出力されるログの例
+
+```bash frame=none
+Dec 27 10:11:32 sv postfix/smtpd[2083]: 3A5AFC00F5: client=xxxxx.net[xxx.xxx.xxx.xxx]
+Dec 27 10:11:32 sv postfix/cleanup[1631]: 3A5AFC00F5: message-id=<1234567890abcdefghi@testtest.com>
+Dec 27 10:11:32 sv postfix/qmgr[10675]: 3A5AFC00F5: from=<info@testtest.com>, size=5892, nrcpt=1 (queue active)
+Dec 27 10:11:32 sv postfix/pipe[1870]: 3A5AFC00F5: to=<xxxxxxxxxxx@yahoo.co.jp>, relay=filter, delay=0.1, delays=0.03/0/0/0.07, dsn=2.0.0, status=sent (delivered via filter service)
+Dec 27 10:11:32 sv postfix/qmgr[10675]: 3A5AFC00F5: removed
+```
+
+```bash frame=none
+                           daemon      PID     queID     ヘッダー情報
+                               ↓       ↓        ↓           ↓
+～～省略～～
+Dec 27 10:11:33 sv postfix-14/pickup[26084]: 38AA31A3C7E: uid=0 from=<info@testtest.com>
+Dec 27 10:11:33 sv postfix-14/cleanup[15094]: 38AA31A3C7E: message-id=<1234567890abcdefghi@testtest.com>
+Dec 27 10:11:33 sv postfix-14/qmgr[11685]: 38AA31A3C7E: from=<info@testtest.com>, size=5892, nrcpt=1 (queue active)
+Dec 27 10:11:33 sv postfix-14/smtp[24435]: 38AA31A3C7E: to=<xxxxxxxxxxx@yahoo.co.jp>, relay=mx3.mail.yahoo.co.jp[202.93.78.241]:25, delay=9620, delays=0.01/0.01/6.7/0.49, dsn=2.0.0, status=sent (250 ok dirdel)
+Dec 27 10:11:33 sv postfix-14/qmgr[11685]: 38AA31A3C7E: removed
+```
+
+## Postfix の設定
+
+Postfix の設定は、/etc.postfix ディレクトリ以下の main.cf と master.cf で行う。
+
+-   main.cf は MTA としての基本設定ファイル
+-   master.cf は、Postfix を構成する各種デーモンの設定ファイル
+
+### main.cf の設定
+
+### master.cf の設定
+
+### transport の設定

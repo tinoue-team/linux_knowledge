@@ -1,0 +1,90 @@
+---
+import { sanitizeAndDecodeHtml } from '@utils/htmlUtils';
+
+interface Props {
+    columns: string[];
+    data: string[][];
+    align?: 'left' | 'center' | 'right';
+    caption?: string;
+}
+
+const { columns, data, align = 'left', caption } = Astro.props as Props;
+
+// data 内のそれぞれのレコード(要素である)の配列の要素数 と column の要素数が一致するか確認する処理を入れる
+// データの検証: 各行の要素数が列の数と一致するか
+const isValid = data.every(row => row.length === columns.length);
+
+if (!isValid) {
+    throw new Error('Each row in data must have the same number of elements as columns.');
+}
+
+// data.map(row => row.map(cell => console.log(sanitizeAndDecodeHtml(cell))));
+---
+<div class="not-content">
+    <!-- not-content で width: 100% を有効化できる -->
+    <table class="
+            shadow-inner
+            w-full
+            overflow-auto
+            p-2
+            border
+            border-solid
+            border-t-gray-300/[.10]
+            border-r-gray-300/[.10]
+            border-b-gray-300/[.10]
+            border-l-gray-300/[.10]
+            rounded-md
+            border-spacing-1
+        "
+        style={{
+            height: '240px',
+            boxShadow: 'var(--inset-shadow)',
+            textAlign: align
+        }}
+
+    >
+        {typeof caption === 'string' && <caption set:html={sanitizeAndDecodeHtml(caption)} class="caption-top" />}
+        <thead class="">
+        <!-- <thead class="after:content-[''] after:p-1"> -->
+            <tr
+                class=""
+            >
+                {columns.map((column, index) => (
+                    <th
+                        set:html={sanitizeAndDecodeHtml(column)}
+                        class={`
+                            text-accent-200
+                            p-2
+                            border-s-2
+                            border-accent-200
+                            border-dashed
+                        `}
+                        style="
+                            border-bottom: 1px solid var(--sl-color-gray-3);
+                        "
+                    />
+                ))}
+            </tr>
+        </thead>
+        <tbody>
+            {data.map((row, rowIndex) => (
+                <tr class="divide-x-2">
+                    {row.map((cell, cellIndex) => (
+                        <td
+                            set:html={sanitizeAndDecodeHtml(cell)}
+                            class={`
+                                p-2
+                                border-gray-300/[.10]
+                            `}
+                        />
+                    ))}
+                </tr>
+            ))}
+        </tbody>
+    </table>
+
+    <!-- <h1 class="after:content-['👋🏼']">
+  Hello world!
+</h1> -->
+
+</div>
