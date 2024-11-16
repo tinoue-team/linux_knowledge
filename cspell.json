@@ -16,7 +16,9 @@
         "biomejs",
         "Datetime",
         "linuledge",
+        "mbump",
         "preact",
+        "sbump",
         "tailwindcss",
         "tsconfigs",
         "turso"

@@ -23,27 +23,31 @@ if (!isValid) {
 <div class="not-content">
     <!-- not-content で width: 100% を有効化できる -->
     <table class="
-            shadow-inner
-            w-full
-            overflow-auto
-            p-2
-            border
-            border-solid
-            border-t-gray-300/[.10]
-            border-r-gray-300/[.10]
-            border-b-gray-300/[.10]
-            border-l-gray-300/[.10]
-            rounded-md
-            border-spacing-1
+        w-full
+        overflow-auto
+        text-base
+        border-spacing-0
+        border
+        border-t-gray-400/[.10]
+        border-r-gray-400/[.10]
+        border-b-gray-400/[.10]
+        border-l-gray-400/[.10]
+        rounded-md
+        shadow-sbump
         "
         style={{
-            height: '240px',
-            boxShadow: 'var(--inset-shadow)',
+            // height: '240px',
+            // boxShadow: 'var(--inset-shadow)',
             textAlign: align
         }}
 
     >
-        {typeof caption === 'string' && <caption set:html={sanitizeAndDecodeHtml(caption)} class="caption-top" />}
+        {typeof caption === 'string' &&
+            <caption
+                set:html={sanitizeAndDecodeHtml(caption)}
+                class="caption-top py-2"
+            />
+        }
         <thead class="">
         <!-- <thead class="after:content-[''] after:p-1"> -->
             <tr
@@ -53,14 +57,18 @@ if (!isValid) {
                     <th
                         set:html={sanitizeAndDecodeHtml(column)}
                         class={`
-                            text-accent-200
-                            p-2
-                            border-s-2
-                            border-accent-200
-                            border-dashed
+                            text-white
+                            px-2
+                            py-1
+                            bg-gray-600/50
+                            border
+                            border-gray-500
+                            first:rounded-tl-md
+                            last:rounded-tr-md
+                            shadow-xs-distinct
                         `}
                         style="
-                            border-bottom: 1px solid var(--sl-color-gray-3);
+                            text-shadow: var(--text-shadow);
                         "
                     />
                 ))}
@@ -68,13 +76,22 @@ if (!isValid) {
         </thead>
         <tbody>
             {data.map((row, rowIndex) => (
-                <tr class="divide-x-2">
+                <tr class="
+                    hover:bg-accent-800
+                    hover:text-white
+                    last:rounded-bl-md
+                    last:rounded-br-md
+                ">
                     {row.map((cell, cellIndex) => (
                         <td
                             set:html={sanitizeAndDecodeHtml(cell)}
                             class={`
                                 p-2
-                                border-gray-300/[.10]
+                                border
+                                border-gray-500
+                                first:border-l-0
+                                shadow-s-depressed
+                                ${rowIndex === data.length - 1 && cellIndex === row.length - 1 ? 'rounded-br-md' : ''}
                             `}
                         />
                     ))}

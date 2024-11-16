@@ -15,6 +15,7 @@ const { url } = Astro.props;
 async function fetchOGTags(url: string): Promise<OGData> {
     try {
         const response = await fetch(url);
+
         const buffer = await response.arrayBuffer();
         const bufferData = Buffer.from(buffer);
 
@@ -97,9 +98,19 @@ const decodedTitle = ogData.title
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        class="rounded-lg flex my-4 no-underline hover:bg-blue-950/60"
+        class="rounded-lg flex my-4 no-underline hover:bg-neutral-950/60"
     >
-        <div class="flex w-full astro-ggf2imng shadow-mbump hover:shadow-mbump-active rounded-lg">
+        <div class="
+            flex
+            w-full
+            astro-ggf2imng
+            shadow-mbump
+            hover:shadow-mbump-active
+            rounded-lg
+            border
+            border-white/10
+            hover:border-white/80
+            ">
             <div class="flex-1 p-3">
                 <h4>{decodedTitle}</h4>
                 {ogData.description && <p>{sanitizeAndDecodeHtml(ogData.description)}</p>}

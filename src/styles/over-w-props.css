@@ -1,27 +1,31 @@
 /* Dark mode colors. */
 /* https://github.com/withastro/starlight/blob/main/packages/starlight/style/props.css */
 :root {
-    --accent-100: hsl(65, 100%, 91%, 0.6);
-    --accent-200: hsl(65, 100%, 77%, 0.6);
-    --accent-300: hsl(65, 95%, 61%, 0.6);
-    --accent-400: hsl(65, 90%, 55%, 0.6);
-    --accent-500: hsl(58, 95%, 61%, 0.6);
-    --accent-600: hsl(65, 70%, 54%, 0.6);
-    --accent-700: hsl(65, 79%, 42%, 0.6);
-    --accent-800: hsl(54, 56%, 44%, 0.6);
-    --accent-900: hsla(59, 81%, 29%, 0.6);
-    --sl-color-accent-low: hsl(67, 77%, 32%);
-    --sl-color-accent: hsl(67, 100%, 60%);
-    --sl-color-accent-high: hsl(56, 100%, 85%);
-    --sl-color-white: #ffffff;
-    --sl-color-text: #d4d7dd;
-    --sl-color-gray-1: #eceef2;
-    --sl-color-gray-2: #c0c2c7;
-    --sl-color-gray-3: #888b96;
-    --sl-color-gray-4: #545861;
-    --sl-color-gray-5: #353841;
-    --sl-color-gray-6: #24272f;
-    --sl-color-black: #17181c;
+    --accent-opacity: 0.75;
+    --accent-100: hsl(65, 100%, 91%, 0.75);
+    --accent-200: hsl(65, 100%, 77%, 0.75);
+    --accent-300: hsl(65, 95%, 61%, 0.75);
+    --accent-400: hsl(65, 90%, 55%, 0.75);
+    --accent-500: hsl(58, 95%, 61%, 0.75);
+    --accent-600: hsl(65, 70%, 54%, 0.75);
+    --accent-700: hsl(65, 79%, 42%, 0.75);
+    --accent-800: hsla(54, 78%, 23%, 0.75);
+    --accent-900: hsla(65, 85%, 5%, 0.9);
+
+    --text-shadow: 3px 3px 8px hsl(65, 90%, 55%, 0.15),
+        -3px -3px 8px hsl(65, 90%, 55%, 0.15);
+
+    --sl-color-white: hsla(0, 0%, 100%, 0.8);
+    --sl-color-text: hsla(220, 12%, 85%, 0.8);
+    --sl-color-gray-1: hsla(220, 19%, 94, 0.8);
+    --sl-color-gray-2: hsla(223, 6%, 77%, 0.8);
+    --sl-color-gray-3: hsla(227, 6%, 56%, 0.8);
+    --sl-color-gray-4: hsla(222, 7%, 35%, 0.8);
+    --sl-color-gray-5: hsla(225, 10%, 23%, 0.8);
+    --sl-color-gray-6: hsla(224, 14%, 16%, 0.8);
+    --sl-color-gray-7: hsla(230, 13%, 9%, 0.8);
+    --sl-color-gray-8: hsla(180, 11%, 2%, 0.8);
+    --sl-color-black: hsla(0, 0%, 0%, 0.8);
     --sl-font: "Hannari";
     /* --sl-font: "Hannari", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
@@ -38,6 +42,11 @@
 
     --inset-shadow: inset 3px 3px 10px hsl(0deg 0% 0% / 74.12%),
         inset -3px -3px 10px hsl(0deg 0% 38.43%);
+
+    --xs-distinct: inset -5px -5px 8px var(--sl-color-gray-4),
+        inset 5px 5px 8px var(--sl-color-gray-2),
+        6px 6px 15px var(--sl-color-black),
+        -5px -5px 20px var(--sl-color-gray-2)
 
     --sl-sidebar-width: 18rem;
     --sl-content-width: 100%;
@@ -62,8 +71,8 @@
     & main {
         background-image: linear-gradient(
                 to bottom,
-                rgba(0, 0, 0, 0.6),
-                rgba(0, 0, 0, 0.6)
+                rgba(5, 5, 5, 0.65),
+                rgba(0, 0, 0, 0.65)
             ),
             url(../assets/paper-dark.webp);
     }

@@ -3,25 +3,28 @@ import type { Config } from 'tailwindcss';
 
 // Generated color palettes
 const accent = {
-    100: 'hsl(65, 100%, 91%)', //--sl-color-accent-high
-    200: 'hsl(65, 100%, 77%)', //--sl-color-accent-high
-    300: 'hsl(65, 95%, 61%)', //--sl-color-accent-high
-    400: 'hsl(65, 90%, 55%)', //--sl-color-accent-high
-    500: 'hsl(58, 95%, 61%)', //--sl-color-accent-high
-    600: 'hsl(65, 70%, 54%)', //--sl-color-accent-high
-    700: 'hsl(65, 79%, 42%)', //--sl-color-accent
-    800: 'hsl(54, 56%, 44%)', // --sl-color-accent-low
-    900: 'hsl(59, 81%, 29%)', //--sl-color-accent-high
+    100: 'var(--accent-100)', //--sl-color-accent-high
+    200: 'var(--accent-200)', //--sl-color-accent-high
+    300: 'var(--accent-300)', //--sl-color-accent-high
+    400: 'var(--accent-400)', //--sl-color-accent-high
+    500: 'var(--accent-500)', //--sl-color-accent-high
+    600: 'var(--accent-600)', //--sl-color-accent-high
+    700: 'var(--accent-700)', //--sl-color-accent
+    800: 'var(--accent-800)', //
+    // 800: 'hsla(54, 78%, 23%, 0.75)', //
+    900: 'var(--accent-900)', // --sl-color-accent-low
 };
 const gray = {
-    100: '#f5f6f8',
-    200: '#eceef2',
-    300: '#c0c2c7',
-    400: '#888b96',
-    500: '#545861',
-    700: '#353841',
-    800: '#24272f',
-    900: '#17181c',
+    100: 'hsla(220, 19%, 94, 0.8)', // --sl-color-gray-1
+    200: 'hsla(223, 6%, 77%, 0.8)', // --sl-color-gray-2
+    300: 'hsla(227, 6%, 56%, 0.8)', // --sl-color-gray-3
+    400: 'hsla(222, 7%, 35%, 0.8)', // --sl-color-gray-4
+    // 500: 'var(--sl-color-gray-5)', // --sl-color-gray-5
+    500: 'hsla(225, 10%, 23%, 0.8)', // --sl-color-gray-5
+    600: 'hsla(224, 14%, 16%, 0.8)', // --sl-color-gray-6
+    700: 'hsla(230, 13%, 9%, 0.8)', // --sl-color-gray-7
+    800: 'hsla(180, 11%, 2%, 0.8)', // --sl-color-gray-8
+    900: 'hsla(0, 0%, 0%, 0.8)', // --sl-color-black
 };
 
 export default {
@@ -29,6 +32,9 @@ export default {
     theme: {
         extend: {
             colors: { accent, gray },
+            textShadow: {
+                neon: 'var(--text-shadow)',
+            },
         },
         fontFamily: {
             // 好みのテキストフォント。Starlightはデフォルトでシステムフォントスタックを使用します。
@@ -50,9 +56,33 @@ export default {
             '6xl': '3.2rem',
         },
         boxShadow: {
-            mbump: '2px 2px 10px var(--sl-color-black), -2px -2px 10px var(--sl-color-gray-4)',
-            'mbump-active': '2px 2px 10px var(--accent-700), -2px -2px 10px var(--accent-400)',
+            // depressed
+            's-depressed':
+                'inset 2px 2px 8px var(--sl-color-gray-8), inset -2px -2px 8px var(--sl-color-gray-2)',
+            // bump
+            sbump: '4px 2px 12px -2px var(--sl-color-black), -4px -2px 12px -2px var(--sl-color-gray-2)',
+            'sbump-active':
+                '4px 2px 12px -2px var(--accent-700), -4px -2px 12px -2px var(--accent-400)',
+            mbump: '6px 4px 20px -2px var(--sl-color-black), -6px -4px 20px -2px var(--sl-color-gray-4)',
+            'mbump-active':
+                '6px 4px 20px -2px var(--accent-700), -6px -4px 20px -2px var(--accent-400)',
+            // distinct
+            // description
+            'xs-distinct':
+                'inset -1px -1px 2px var(--sl-color-gray-8), inset 1px 1px 2px var(--sl-color-gray-2), 1px 1px 2px var(--sl-color-black), -1px -1px 2px var(--sl-color-gray-2)',
         },
     },
-    plugins: [starlightPlugin()],
+    plugins: [
+        starlightPlugin(),
+        // plugin(function ({matchUtilities, theme}) {
+        //     matchUtilities(
+        //         {
+        //             'text-shadow': value => ({
+        //                 textShadow: value,
+        //             }),
+        //         },
+        //         { values: theme('textShadow') },
+        //     );
+        // })
+    ],
 } satisfies Config;
