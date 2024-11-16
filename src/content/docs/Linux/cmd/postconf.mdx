@@ -1,0 +1,82 @@
+---
+title: postconf
+description: postfix インスタンスの設定情報管理ツール
+tags:
+    - "メール管理"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: postconf
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+// import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## 概要
+
+`postconf` コマンドは、Postfix の設定ファイルを管理するためのユーティリティです。
+管理者が main.cf や master.cf ファイル内の設定を表示、編集、操作するのに使用されます。  
+postconf は、Postfix というメール転送エージェント（MTA）の設定を管理・表示するために使用され、
+主に main.cf（一般設定用）と master.cf（サービスごとの設定用）のファイルを管理するために利用されます。
+
+### 構文
+
+```bash frame=none
+postconf オプション
+```
+
+<LinkPreview url="https://vpslife.server-memo.net/postfix_postconf/#google_vignette" />
+
+#### オプションリスト
+
+<Table
+    caption="ITERATOR MODE OPTION"
+    columns={["Option", "Description"]}
+    data={[
+        [
+            "-c config_dir",
+            "引数に Postfix インスタンスのディレクトリを指定することで対象のインスタンスの設定ファイルを指定できる",
+        ],
+        ["-C class, …", "特定のクラス(builtin、service、user、all) からパラメータを表示"],
+        ["-v", "デバッグ目的で詳細なログを有効にする"],
+        ["-f", "人間が読みやすいように長い行を折り返す"],
+        ["-h", "値の前に名前を表示しないでパラメータや属性の値を表示"],
+        ["-H", "名前の後に値を表示しないでパラメータや属性の名前を表示"],
+        ["-o name=value", "一時的に main.cf のパラメータ設定をオーバーライド"],
+    ]}
+/>
+
+## main.cf の設定管理
+
+### 構文
+
+```bash frame=none
+postconf [parameter...]
+```
+
+#### オプションリスト
+
+<Table
+    caption="ITERATOR MODE OPTION"
+    columns={["Option", "Description"]}
+    data={[
+        ["-d", "デフォルト値のパラメータ設定を表示"],
+        ["-n", "main.cf に明示的に設定されたパラメータのみを表示"],
+        ["-p", "現在のパラメータ設定を表示"],
+        ["-e parameter=value …", "パラメータ設定を直接変更(一度に複数の設定を指定可)"],
+        ["-x parameter_name …", "変数を展開して表示する(一度に複数指定可)"],
+        ["-X parameter", "設定のパラメータを削除"],
+        ["-# parameter", "特定のパラメータをコメントアウトして、デフォルト値に戻す"],
+    ]}
+/>
+
+### 設定項目
+
+<LinkPreview url="https://www.postfix-jp.info/trans-2.3/jhtml/postconf.5.html" />

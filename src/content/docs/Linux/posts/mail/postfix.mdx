@@ -19,14 +19,8 @@ import Table from "@components/Table.astro";
 
 ## 参考
 
-<LinkCard
-    title="Postfix 3系で追加された lookup table を試してみた"
-    href="https://tech-lab.sios.jp/archives/17600"
-/>
-
-{/* <LinkPreview /> */}
-
 <LinkPreview url="https://tech-lab.sios.jp/archives/17600" />
+<LinkPreview url="https://qiita.com/te2u/items/536687297ed18f0542e3" />
 
 ## 概要
 
@@ -149,6 +143,7 @@ Postfix は単一のデーモンプログラムではなく、複数のプログ
 />
 
 #### メール配送の一般的な流れ
+
 1. **メール送信**:
     - ユーザーが `sendmail` コマンドを使用してメールを送信します。`sendmail` デーモンはメールをローカルキューに格納します。
     - 外部からメールが `smtpd` デーモンによって受信されます。
@@ -165,18 +160,18 @@ Postfix は単一のデーモンプログラムではなく、複数のプログ
 
 #### その他のパターン
 
-- **TLS管理**:
-    - `tlsmgr` デーモンは TLS セッションキャッシュの管理を行い、他のデーモンがTLS情報を取得する際に使用します。
-- **接続制限**:
-    - `anvil` デーモンは `smtpd` デーモンと連携し、接続数の制限を行います。
-- **外部プログラムとの連携**:
-    - `pipe` デーモンは外部プログラムにメールを渡します。
+-   **TLS 管理**:
+    -   `tlsmgr` デーモンは TLS セッションキャッシュの管理を行い、他のデーモンが TLS 情報を取得する際に使用します。
+-   **接続制限**:
+    -   `anvil` デーモンは `smtpd` デーモンと連携し、接続数の制限を行います。
+-   **外部プログラムとの連携**:
+    -   `pipe` デーモンは外部プログラムにメールを渡します。
 
 これらのデーモンとキューの連携により、Postfix は効率的で柔軟なメール配送システムを実現しています。
 
 ### Daemon List
 
-<Tabs stncKey="postfix-deamons">
+<Tabs syncKey="postfix-deamons">
     <TabItem label="master">
         ##### 役割
 
@@ -409,7 +404,7 @@ Postfix は単一のデーモンプログラムではなく、複数のプログ
 
 ### Queue List
 
-<Tabs stncKey="postfix-queue">
+<Tabs syncKey="postfix-queue">
     <TabItem label="maildrop">
 
         ローカルのユーザーが送信したメールが最初に置かれるキュー。
