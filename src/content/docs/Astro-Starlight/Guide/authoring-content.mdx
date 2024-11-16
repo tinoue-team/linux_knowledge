@@ -5,11 +5,21 @@ description: Markdown での書き方を紹介
 
 ## インラインスタイル
 
+```md
+-   **bold テキスト**
+-   _イタリック_
+-   ~~打ち消し線~~
+```
+
 -   **bold テキスト**
 -   _イタリック_
 -   ~~打ち消し線~~
 
 [リンク](https://starlight.astro.build/ja/guides/authoring-content/)
+
+```md
+ここが`強調`されます
+```
 
 ここが`強調`されます
 
@@ -20,13 +30,10 @@ description: Markdown での書き方を紹介
 :::note
 注釈です。
 
-```bash frame="none"
-
+```md frame="none"
 :::note
 注釈です。
 \:::
-
-
 ```
 
 :::
@@ -38,6 +45,12 @@ tip です
 :::
 
 #### カスタムタイトルを利用
+
+```md
+:::tip[tip をカスタムタイトルしました]
+tip です
+:::
+```
 
 :::tip[tip をカスタムタイトルしました]
 tip です
@@ -99,7 +112,9 @@ var fun = function lang(l) {
 
 #### 挿入と削除のラインマーカー
 
-`ins={l}` 、`del{l}` とすると
+-   `del{2}` …削除行(赤色)
+-   `ins={3-4}` …追加行(緑色)
+-   `{6}` …普通のラインマーカー(青)
 
 ```js title="line-markers.js" del={2} ins={3-4} {6}
 function demo() {
@@ -118,8 +133,17 @@ function demo() {
 
 ```jsx {"1":5} del={"2":7-8} ins={"labeltext":10-13}
 // labeled-line-markers.jsx
-<button role="button" {...props} value={value} className={buttonClassName} disabled={disabled} active={active}>
-    {children && !active && (typeof children === "string" ? <span>{children}</span> : children)}
+<button
+    role="button"
+    {...props}
+    value={value}
+    className={buttonClassName}
+    disabled={disabled}
+    active={active}
+>
+    {children &&
+        !active &&
+        (typeof children === "string" ? <span>{children}</span> : children)}
 </button>
 ```
 
