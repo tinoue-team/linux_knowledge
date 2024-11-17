@@ -1,6 +1,6 @@
 ---
 import { sanitizeAndDecodeHtml } from '@utils/htmlUtils';
-
+import { marked } from 'marked';
 interface Props {
     columns: string[];
     data: string[][];
@@ -18,8 +18,36 @@ if (!isValid) {
     throw new Error('Each row in data must have the same number of elements as columns.');
 }
 
+columns.forEach((cell, i) => {
+    const parsed = marked.parse(cell) as string;
+    columns[i] = parsed
+        .replace(/^\s*<p>\s*/gm, '') // 開始の <p> タグを削除
+        .replace(/\s*<\/p>\s*$/gm, '') // 終了の </p> タグを削除
+        .trim(); // 余分な空白を削除
+});
+
+data.forEach((row, i) => {
+    row.forEach((cell, j) => {
+        const parsed = marked.parse(cell) as string;
+        data[i][j] = parsed
+            .replace(/^\s*<p>\s*/gm, '') // 開始の <p> タグを削除
+            .replace(/\s*<\/p>\s*$/gm, '') // 終了の </p> タグを削除
+            .trim(); // 余分な空白を削除
+    });
+});
+
+let parsedCaption = '';
+if (caption) {
+    parsedCaption = marked.parse(caption) as string;
+    parsedCaption
+        .replace(/^\s*<p>\s*/gm, '') // 開始の <p> タグを削除
+        .replace(/\s*<\/p>\s*$/gm, '') // 終了の </p> タグを削除
+        .trim(); // 余分な空白を削除
+}
+
 // data.map(row => row.map(cell => console.log(sanitizeAndDecodeHtml(cell))));
 ---
+<!-- <div class=""> -->
 <div class="not-content">
     <!-- not-content で width: 100% を有効化できる -->
     <table class="
@@ -27,11 +55,9 @@ if (!isValid) {
         overflow-auto
         text-base
         border-spacing-0
+        border-collapse
         border
-        border-t-gray-400/[.10]
-        border-r-gray-400/[.10]
-        border-b-gray-400/[.10]
-        border-l-gray-400/[.10]
+        border-transparent
         rounded-md
         shadow-sbump
         "
@@ -44,7 +70,7 @@ if (!isValid) {
     >
         {typeof caption === 'string' &&
             <caption
-                set:html={sanitizeAndDecodeHtml(caption)}
+                set:html={sanitizeAndDecodeHtml(parsedCaption)}
                 class="caption-top py-2"
             />
         }
@@ -56,13 +82,14 @@ if (!isValid) {
                 {columns.map((column, index) => (
                     <th
                         set:html={sanitizeAndDecodeHtml(column)}
+                        is:raw
                         class={`
                             text-white
                             px-2
                             py-1
                             bg-gray-600/50
-                            border
-                            border-gray-500
+
+                            border-spacing-0.5
                             first:rounded-tl-md
                             last:rounded-tr-md
                             shadow-xs-distinct
@@ -90,7 +117,8 @@ if (!isValid) {
                                 border
                                 border-gray-500
                                 first:border-l-0
-                                shadow-s-depressed
+                                shadow-xs-depressed
+                                ${rowIndex === data.length - 1 && cellIndex === 0 ? 'rounded-bl-md' : ''}
                                 ${rowIndex === data.length - 1 && cellIndex === row.length - 1 ? 'rounded-br-md' : ''}
                             `}
                         />
