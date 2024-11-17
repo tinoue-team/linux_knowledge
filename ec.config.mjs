@@ -13,8 +13,8 @@ export default {
         // Example: Hide the "Copy to clipboard" button
         showCopyToClipboardButton: true,
         borderWidth: '0px', // ボーダーをなしに
-        borderColor: 'transparent', // ボーダー色を透明に
-        shadowColor: 'transparent', // シャドウ色を透明に
+        // borderColor: 'transparent', // ボーダー色を透明に
+        // shadowColor: 'transparent', // シャドウ色を透明に
         backgroundColor: 'transparent', // 背景色を透明に
         codePaddingInline: '3rem',
     },
@@ -37,7 +37,7 @@ export default {
 
     styleOverrides: {
         borderRadius: '0.5rem',
-
+        codeBackground: 'hsl(245deg 77% 9% / 28%)',
         // You can optionally override the plugin's default styles here
         frames: {
             // type: 'none',

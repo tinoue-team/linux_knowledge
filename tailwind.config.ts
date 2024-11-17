@@ -3,28 +3,26 @@ import type { Config } from 'tailwindcss';
 
 // Generated color palettes
 const accent = {
-    100: 'var(--accent-100)', //--sl-color-accent-high
-    200: 'var(--accent-200)', //--sl-color-accent-high
-    300: 'var(--accent-300)', //--sl-color-accent-high
-    400: 'var(--accent-400)', //--sl-color-accent-high
-    500: 'var(--accent-500)', //--sl-color-accent-high
-    600: 'var(--accent-600)', //--sl-color-accent-high
-    700: 'var(--accent-700)', //--sl-color-accent
-    800: 'var(--accent-800)', //
-    // 800: 'hsla(54, 78%, 23%, 0.75)', //
-    900: 'var(--accent-900)', // --sl-color-accent-low
+    100: 'var(--accent-100)',
+    200: 'var(--accent-200)',
+    300: 'var(--accent-300)',
+    400: 'var(--accent-400)',
+    500: 'var(--accent-500)',
+    600: 'var(--accent-600)',
+    700: 'var(--accent-700)',
+    800: 'var(--accent-800)',
+    900: 'var(--accent-900)',
 };
 const gray = {
-    100: 'hsla(220, 19%, 94, 0.8)', // --sl-color-gray-1
-    200: 'hsla(223, 6%, 77%, 0.8)', // --sl-color-gray-2
-    300: 'hsla(227, 6%, 56%, 0.8)', // --sl-color-gray-3
-    400: 'hsla(222, 7%, 35%, 0.8)', // --sl-color-gray-4
-    // 500: 'var(--sl-color-gray-5)', // --sl-color-gray-5
-    500: 'hsla(225, 10%, 23%, 0.8)', // --sl-color-gray-5
-    600: 'hsla(224, 14%, 16%, 0.8)', // --sl-color-gray-6
-    700: 'hsla(230, 13%, 9%, 0.8)', // --sl-color-gray-7
-    800: 'hsla(180, 11%, 2%, 0.8)', // --sl-color-gray-8
-    900: 'hsla(0, 0%, 0%, 0.8)', // --sl-color-black
+    100: 'var(--color-gray-1)',
+    200: 'var(--color-gray-2)',
+    300: 'var(--color-gray-3)',
+    400: 'var(--color-gray-4)',
+    500: 'var(--color-gray-5)',
+    600: 'var(--color-gray-6)',
+    700: 'var(--color-gray-7)',
+    800: 'var(--color-gray-8)',
+    900: 'var(--color-gray-9)',
 };
 
 export default {
@@ -57,19 +55,16 @@ export default {
         },
         boxShadow: {
             // depressed
-            's-depressed':
-                'inset 2px 2px 8px var(--sl-color-gray-8), inset -2px -2px 8px var(--sl-color-gray-2)',
+            '2xs-depressed': 'var(--xxs-depressed)',
+            'xs-depressed': 'var(--xs-depressed)',
+            's-depressed': 'var(--s-depressed)',
             // bump
-            sbump: '4px 2px 12px -2px var(--sl-color-black), -4px -2px 12px -2px var(--sl-color-gray-2)',
-            'sbump-active':
-                '4px 2px 12px -2px var(--accent-700), -4px -2px 12px -2px var(--accent-400)',
-            mbump: '6px 4px 20px -2px var(--sl-color-black), -6px -4px 20px -2px var(--sl-color-gray-4)',
-            'mbump-active':
-                '6px 4px 20px -2px var(--accent-700), -6px -4px 20px -2px var(--accent-400)',
+            sbump: 'var(--sbump)',
+            'sbump-active': 'var(--sbump-active)',
+            mbump: 'var(--mbump)',
+            'mbump-active': 'var(--mbump-active)',
             // distinct
-            // description
-            'xs-distinct':
-                'inset -1px -1px 2px var(--sl-color-gray-8), inset 1px 1px 2px var(--sl-color-gray-2), 1px 1px 2px var(--sl-color-black), -1px -1px 2px var(--sl-color-gray-2)',
+            'xs-distinct': 'var(--xs-distinct)',
         },
     },
     plugins: [
