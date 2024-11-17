@@ -91,6 +91,24 @@ var fun = function lang(l) {
 };
 ```
 
+:::note[ファイル名を指定]
+コードブロックにファイル名を指定する方法は
+
+1. コードブロックの書き始めの三行以内にコメント文で記載
+
+````
+```js
+\// lang.js
+````
+
+1. title プロパティで指定
+
+````
+```js title="lang.js"
+````
+
+:::
+
 ### ラインマーカーの指定
 
 #### ハイライト行の指定
@@ -133,17 +151,8 @@ function demo() {
 
 ```jsx {"1":5} del={"2":7-8} ins={"labeltext":10-13}
 // labeled-line-markers.jsx
-<button
-    role="button"
-    {...props}
-    value={value}
-    className={buttonClassName}
-    disabled={disabled}
-    active={active}
->
-    {children &&
-        !active &&
-        (typeof children === "string" ? <span>{children}</span> : children)}
+<button role="button" {...props} value={value} className={buttonClassName} disabled={disabled} active={active}>
+    {children && !active && (typeof children === "string" ? <span>{children}</span> : children)}
 </button>
 ```
 
