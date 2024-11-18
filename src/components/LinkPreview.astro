@@ -82,11 +82,6 @@ async function fetchOGTags(url: string): Promise<OGData> {
 }
 
 const ogData = await fetchOGTags(url);
-
-// エンコードされたタイトルのデコードとサニタイズ
-const decodedTitle = ogData.title
-    ? sanitizeAndDecodeHtml(ogData.title)
-    : 'タイトルが取得できませんでした';
 ---
 
 <style>
@@ -112,7 +107,7 @@ const decodedTitle = ogData.title
             hover:border-white/80
             ">
             <div class="flex-1 p-3">
-                <h4>{decodedTitle}</h4>
+                <h5>{ogData.title ? sanitizeAndDecodeHtml(ogData.title) : 'タイトルが取得できませんでした'}</h5>
                 {ogData.description && <p>{sanitizeAndDecodeHtml(ogData.description)}</p>}
                 <span class="url">{ogData.siteName || new URL(url).hostname}</span>
             </div>
