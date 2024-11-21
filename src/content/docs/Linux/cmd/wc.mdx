@@ -1,0 +1,222 @@
+---
+title: wc
+description: 文字数、行数をカウントする
+tags:
+    - "テキスト処理"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: wc
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+## 説明
+
+wc(word count) は行数、文字数をカウントする
+
+```bash frame=none
+wc -l /etc/crontab
+```
+
+### 構文
+
+```bash frame=none
+wc [--libxo] [-Lclmw] [file ...]
+```
+
+## DESCRIPTION
+
+wc ユーティリティは、各入力ファイルまたは指定がない場合は標準入力に含まれる行数、単語数、バイト数を標準出力に表示します。
+行は、⟨改行⟩文字で区切られた文字列として定義されます。
+最終の⟨改行⟩文字以降の文字は行数のカウントに含まれません。
+
+単語は、空白文字で区切られた文字列として定義されます。
+空白文字とは、iswspace(3) 関数が真を返す文字の集合です。
+複数の入力ファイルが指定された場合、すべてのファイルの累積カウントが最後のファイルの出力後に別の行として表示されます。
+
+## 利用可能なオプション
+
+### `-l` :行数をカウントする
+
+各入力ファイルの行数を標準出力に書き込みます。
+
+```bash frame=none
+# ファイル内の行数をカウントする
+wc -l example.txt
+```
+
+### `-w` :単語数をカウントする
+
+各入力ファイルの単語数を標準出力に書き込みます。
+単語は空白文字で区切られた文字列として定義される。
+
+```bash frame=none
+cat sample2.txt
+apple apple
+grape, grape
+
+wc -w sample2.txt
+        4 sample2.txt
+```
+
+### `-c` :バイト数をカウントする
+
+各入力ファイルの**バイト数**を標準出力に書き込みます。
+これは、以前に指定された `-m` オプションの使用をキャンセルします。(`-mc` というオプションにした場合、`-m` オプションはキャンセルされる)
+
+```bash frame="none"
+cat sample2.txt
+apple
+
+wc -c sample2.txt
+        6 sample2.txt
+
+cat example.txt
+林檎
+
+wc -c example.txt
+        7 example.txt
+```
+
+### `-m` :文字数をカウントする
+
+各入力ファイルの文字数を標準出力に書き込みます。
+現在のロケールがマルチバイト文字をサポートしていない場合、これは `-c` オプションと同等です。
+これは、以前に指定された `-c` オプションの使用をキャンセルします。
+
+```bash frame=none
+cat example.txt
+apple
+
+wc -m example.txt
+        6 example.txt
+
+wc -c example.txt
+        6 example.txt
+
+cat example.txt
+林檎
+
+wc -m example.txt
+        3 example.txt
+wc -c example.txt
+        7 example.txt
+```
+
+:::note[マルチバイト文字のサポート]
+`-m` オプションは、マルチバイト文字を正確にカウントするために使用されますが、ロケール設定によっては期待通りに動作しない場合があります。その場合、-c オプションと同等となります。
+:::
+
+### `-L`: 最長行の長さ
+
+最もバイト数（デフォルト）または文字数（-m オプション使用時）を含む行の長さを標準出力に書き込みます。
+複数のファイル引数が指定された場合、すべてのファイルの中で最も長い入力行が「total」の値として報告されます。
+
+```bash frame="none"
+cat sample.txt
+Fox jumps up. # 13文字
+Ai grows. # 9文字
+Hello machine.  # 14文字
+
+# 最も長い行の文字数を表示
+wc -L sample.txt
+        14 sample.txt
+
+cat sample2.txt
+apple
+
+# 複数のファイルの中で、一番長い行の文字数を total の先頭に結果として出力する
+wc -L sample.txt sample2.txt
+        14 sample.txt
+        5 sample2.txt
+        14 total
+```
+
+### `--libxo`: libxo ライブラリを利用した出力
+
+libxo(3) を介して、人間が読める形式や機械が読める形式で出力を生成します。
+コマンドライン引数の詳細については xo_parse_args(3) を参照してください。
+
+```bash frame="none"
+wc --libxo=xml -l sample.txt
+# XML 形式で出力する
+<wc><file><lines>3</lines><filename>sample.txt</filename></file></wc>
+```
+
+オプションが指定された場合、`wc` はそのオプションで要求された情報のみを報告します。
+出力の順序は常に「行数、単語数、バイト数、ファイル名」の形式を取ります。
+デフォルトの動作は、-c、-l、-w オプションを指定した場合と同等です。
+
+ファイルが指定されていない場合、標準入力が使用され、ファイル名は表示されません。
+プロンプトは EOF（多くの環境では Ctrl+D）を受け取るまで入力を受け付けます。
+
+`wc` が SIGINFO（stty(1) の status 引数を参照）シグナルを受信すると、途中のデータが標準完了メッセージと同じ形式で標準エラー出力に書き込まれます。
+
+## ENVIRONMENT
+
+`wc` の実行には、LANG、LC_ALL、および LC_CTYPE 環境変数が影響を与えます（environ(7) を参照）。
+
+## EXIT STATUS (終了ステータス)
+
+`wc` ユーティリティは成功時に 0 を返し、エラーが発生した場合は 0 より大きい値を返します。
+
+## EXAMPLES (使用例)
+
+### オプションなしでの使用
+
+```bash
+wc sample.txt sample2.txt
+        3       7      39 sample.txt
+        1       1       6 sample2.txt
+        4       8      45 total
+```
+
+これは、オプション `-lwc` を利用した時と同じ。行、単語、バイト数を表示する
+
+### 各ファイルの文字数、単語数、行数をカウントし、両方の合計を表示する：
+
+```bash frame=none
+wc -mlw report1 report2
+```
+
+### ファイル一覧の中で最も長い行を見つける：
+
+```bash frame=none
+wc -L file1 file2 file3 | fgrep total
+```
+
+### 標準入力の使用
+
+```bash
+# 標準入力 を受け取り、wc を実行
+echo "Hello World" | wc -w
+    2
+```
+
+## COMPATIBILITY (互換性)
+
+歴史的に、`wc` ユーティリティは単語を「`<スペース>`、`<タブ>`、`<改行>` 文字で区切られた最大の文字列」と定義していました。
+しかし、実装では非表示文字を正しく扱わず、`  ^D^E  ` は 6 つのスペースとしてカウントされ、`foo^D^Ebar` は 8 文字としてカウントされていました。
+4BSD システムは 4.3BSD 以降、この実装を文書と一致するように修正しました。
+
+この実装では、単語を IEEE Std 1003.2（「POSIX.2」）で要求される iswspace(3) 関数に基づいて定義しています。
+
+`-L` オプションは非標準の FreeBSD 拡張であり、GNU `wc` ユーティリティの `-L` オプションと互換性があります。
+
+### SEE ALSO (関連コマンド)
+
+```
+iswspace(3), libxo(3), xo_parse_args(3)
+```
+
+### STANDARDS (標準)
+
+`wc` ユーティリティは、IEEE Std 1003.1-2001（「POSIX.1」）に準拠しています。
+
+### HISTORY (履歴)
+
+`wc` コマンドは、Version 1 AT&T UNIX に登場しました。

@@ -136,6 +136,23 @@ grep [OPTIONS] [-e PATTERN | -f FILE] [FILE...]
     ]}
 />
 
+```bash frame=none
+cat sample.txt
+林檎
+banana
+林檎
+
+# マッチしない行を表示
+grep -v 林檎 sample.txt
+banana
+
+# 大文字と小文字を区別しないで検索を行う
+grep -i Apple *.txt
+sample2.txt:apple
+sample2.txt:apple
+sample3.txt:apple
+```
+
 ### General Output Control
 
 <Table
@@ -205,6 +222,13 @@ grep [OPTIONS] [-e PATTERN | -f FILE] [FILE...]
         ],
     ]}
 />
+
+```bash frame=none
+# パターン (apple)と一致するファイル名を表示
+grep -l apple *.txt
+sample2.txt
+sample3.txt
+```
 
 ### Output Line Prefix Control
 
@@ -278,6 +302,13 @@ grep [OPTIONS] [-e PATTERN | -f FILE] [FILE...]
     ]}
 
 />
+
+```bash frame=none
+# 行番号を表示する
+grep -n 林檎 sample.txt
+1:林檎
+3:林檎
+```
 
 ### Context Line Control
 
@@ -386,7 +417,7 @@ grep [OPTIONS] [-e PATTERN | -f FILE] [FILE...]
         ],
         ["", "`--exclude-dir=DIR`", ["再帰検索から `DIR` パターンに一致するディレクトリを除外します。"].join("<br/>")],
         [
-            "-I",
+            "`-I`",
             "",
             [
                 "バイナリファイルをマッチしないものとして処理します。これは `--binary-files=without-match` オプションと同等です。",
@@ -400,14 +431,14 @@ grep [OPTIONS] [-e PATTERN | -f FILE] [FILE...]
             ].join("<br/>"),
         ],
         [
-            "-r",
+            "`-r`",
             "--recursive",
             [
                 "各ディレクトリ下のすべてのファイルを再帰的に読み取り、シンボリックリンクはコマンドラインにある場合のみ追従します。これは `-d recurse` オプションと同等です。",
             ].join("<br/>"),
         ],
         [
-            "-R",
+            "`-R`",
             "--dereference-recursive",
             [
                 "各ディレクトリ下のすべてのファイルを再帰的に読み取ります。`-r` とは異なり、すべてのシンボリックリンクを追従します。",

@@ -1,0 +1,20 @@
+---
+title: untaint
+description: リソースインスタンスから「tainted」状態を解除します。リソースが再作成されるのを防ぎます。
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: untaint
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+```bash
+terraform untaint aws_instance.example
+
+```

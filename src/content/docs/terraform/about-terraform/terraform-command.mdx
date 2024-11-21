@@ -1,0 +1,83 @@
+---
+title: terraform コマンド
+description: Terraform のコマンドリスト
+tags:
+    - "Terraform"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: terraform コマンド
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## コマンド一覧
+
+```bash
+terraform [global options] <subcommand> [args]
+```
+
+## subcommand
+
+### 主要なワークフローコマンド
+
+<Table
+    caption=""
+    columns={["コマンド", "説明"]}
+    data={[
+        ["init", ["プロバイダにアクセスするプラグインなどを用意"].join("<br/>")],
+        ["validate", ["設定が有効かどうかをチェックする"].join("<br/>")],
+        ["plan", ["プロバイダに tf ファイルの検証を行う"].join("<br/>")],
+        ["apply", ["インフラストラクチャの生成と更新"].join("<br/>")],
+        ["destroy", ["tf によって作成されたリソースを破棄する"].join("<br/>")],
+    ]}
+/>
+
+### 一般的でないコマンドや高度なコマンド
+
+<Table
+    caption=""
+    columns={["コマンド", "説明"]}
+    data={[
+        ["console", ["インタラクティブなコマンドプロンプトで Terraform 式を試す"].join("<br/>")],
+        ["fmt", ["標準スタイルでコンフィギュレーションを再フォーマットする"].join("<br/>")],
+        ["force-unlock", ["現在のワークスペースのスタックしたロックを解除する"].join("<br/>")],
+        ["get", ["リモートのTerraformモジュールをインストールまたはアップグレードする"].join("<br/>")],
+        ["graph", ["操作ステップの Graphviz グラフを生成する"].join("<br/>")],
+        ["import", ["既存のインフラをTerraformリソースに関連付ける"].join("<br/>")],
+        ["login", ["リモートホストの認証情報の取得と保存"].join("<br/>")],
+        ["logout", ["リモートホストのローカルに保存された認証情報を削除する"].join("<br/>")],
+        ["metadata", ["メタデータ関連コマンド"].join("<br/>")],
+        ["output", ["ルートモジュールからの出力値を表示"].join("<br/>")],
+        ["providers", ["この設定に必要なプロバイダーを表示する"].join("<br/>")],
+        ["refresh", ["リモートシステムに合わせて状態を更新"].join("<br/>")],
+        ["show", ["現在の状態または保存されたプランを表示する"].join("<br/>")],
+        ["state", ["高度な状態管理"].join("<br/>")],
+        ["taint", ["リソースインスタンスを完全に機能しないものとしてマークする"].join("<br/>")],
+        ["test", ["Terraform モジュールの統合テストを実行する"].join("<br/>")],
+        ["untaint", ["リソースインスタンスから'tainted'(汚染された)状態を取り除く"].join("<br/>")],
+        ["version", ["現在のTerraformのバージョンを表示する"].join("<br/>")],
+        ["workspace", ["ワークスペースの管理"].join("<br/>")],
+    ]}
+/>
+
+### global options
+
+必要であれば、サブコマンドの直前に使用する
+
+<Table
+    caption=""
+    columns={["Option", "説明"]}
+    data={[
+        ["-chdir=DIR", ["指定されたサブコマンドを実行する前に、別の作業ディレクトリに切り替える。"].join("<br/>")],
+        ["-help", ["このヘルプ出力、または指定したサブコマンドのヘルプを表示する。"].join("<br/>")],
+        ["-version", ["'version' サブコマンドのエイリアス"].join("<br/>")],
+    ]}
+/>

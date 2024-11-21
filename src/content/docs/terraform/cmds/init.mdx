@@ -1,0 +1,303 @@
+---
+title: init
+description: 他のコマンドのために作業ディレクトリを準備する
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: init
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 説明
+
+`init`コマンドの目的は以下のようなものです。
+
+-   新規または既存の Terraform プロジェクトディレクトリを初期化
+-   初期ファイルの作成
+-   リモート状態の読み込み
+-   必要なプロバイダのモジュール(プラグイン)のダウンロード
+
+Terraform プロジェクトで最初に実行すべきコマンドで、ダウンロードされるファイルはバージョン管理にコミットされない。ローカル環境に必要なデータをセットアップします。
+また、複数回実行しても、安全です。(設定や状態が削除されることはない)
+後続の実行で一部エラーが発生する可能性があり、重要な情報がある場合は、実行前にパックアップを推奨。
+
+```bash
+terraform [global options] init [options]
+```
+
+tf ファイルが書けたら、terraform コマンドの `terraform init` を実行して、これで初期化と認証が走ります。無事 provider で指定したプラットフォームにアクセスし、依存ファイルを取得できたら初期化完了です。成功すると、ファイルが置いてあるディレクトリに
+
+-   .terraform
+-   .terraform.lock.hcl
+
+が生成されます。
+
+```
+Options:
+
+-backend=false Disable backend or HCP Terraform initialization
+for this configuration and use what was previously
+initialized instead.
+
+                          aliases: -cloud=false
+
+-backend-config=path Configuration to be merged with what is in the
+configuration file's 'backend' block. This can be
+either a path to an HCL file with key/value
+assignments (same format as terraform.tfvars) or a
+'key=value' format, and can be specified multiple
+times. The backend type must be in the configuration
+itself.
+
+-force-copy Suppress prompts about copying state data when
+initializating a new state backend. This is
+equivalent to providing a "yes" to all confirmation
+prompts.
+
+-from-module=SOURCE Copy the contents of the given module into the target
+directory before initialization.
+
+-get=false Disable downloading modules for this configuration.
+
+-input=false Disable interactive prompts. Note that some actions may
+require interactive prompts and will error if input is
+disabled.
+
+-lock=false Don't hold a state lock during backend migration.
+This is dangerous if others might concurrently run
+commands against the same workspace.
+
+-lock-timeout=0s Duration to retry a state lock.
+
+-no-color If specified, output won't contain any color.
+
+-json If specified, machine readable output will be
+printed in JSON format.
+
+-plugin-dir Directory containing plugin binaries. This overrides all
+default search paths for plugins, and prevents the
+automatic installation of plugins. This flag can be used
+multiple times.
+
+-reconfigure Reconfigure a backend, ignoring any saved
+configuration.
+
+-migrate-state Reconfigure a backend, and attempt to migrate any
+existing state.
+
+-upgrade Install the latest module and provider versions
+allowed within configured constraints, overriding the
+default behavior of selecting exactly the version
+recorded in the dependency lockfile.
+
+-lockfile=MODE Set a dependency lockfile mode.
+Currently only "readonly" is valid.
+
+-ignore-remote-version A rare option used for HCP Terraform and the remote backend
+only. Set this to ignore checking that the local and remote
+Terraform versions use compatible state representations, making
+an operation proceed even when there is a potential mismatch.
+See the documentation on configuring Terraform with
+HCP Terraform or Terraform Enterprise for more information.
+
+-test-directory=path Set the Terraform test directory, defaults to "tests".
+```
+
+### Options
+
+<Table
+    caption=""
+    columns={["コマンド", "説明"]}
+    data={[
+        [
+            "-backend=false",
+            [
+                "バックエンドまたは HCP Terraform の初期化を無効にし、既存のバックエンド設定をそのまま使用したい場合に有効。",
+                "例えば、既に設定済みのバックエンドを再度初期化したくない場合に使用します。",
+                "alias: `-cloud=false`",
+            ].join("<br/>"),
+        ],
+        [
+            "-backend-config=path",
+            [
+                "バックエンド設定をカスタマイズするために使用する。",
+                "構成ファイルの backend ブロックにある設定(既存の設定)を指定して追加のパラメータとしてマージする。",
+                "これは、キーと値の割り当てを含む HCL ファイルへのパス（terraform.tfvars と同じ形式）または key=value 形式のいずれかで指定でき、複数回指定することができます。",
+                "バックエンドのタイプは構成ファイル自体に含まれている必要があります。",
+            ].join("<br/>"),
+        ],
+        [
+            "-force-copy",
+            [
+                "新しい状態バックエンドを初期化する際に、状態データのコピーに関する確認プロンプトを自動的に「はい」と回答して抑制します。(確認プロンプトの無視)",
+                "スクリプトや自動化された環境で役立つ。",
+            ].join("<br/>"),
+        ],
+        [
+            "-from-module=SOURCE",
+            [
+                "既存の Terraform モジュールからターゲットディレクトリにコンテンツをコピーして初期化を行います。モジュールの移行や複製に便利です。",
+            ].join("<br/>"),
+        ],
+        [
+            "-get=false",
+            [
+                "初期化時にモジュールのダウンロードを無効にします。",
+                "ローカルで既に必要なモジュールが存在する場合に使用します。",
+            ].join("<br/>"),
+        ],
+        [
+            "-input=false",
+            [
+                "初期化中の対話型プロンプトを無効にします。CI/CD パイプラインや自動化スクリプトでの使用に適している。",
+            ].join("<br/>"),
+        ],
+        [
+            "-lock=false",
+            [
+                "バックエンドの移行中に状態ロックを保持しない (状態ロックを無効にして init を行います)。",
+                "複数のユーザーが同時に Terraform を実行する環境では危険ですが、特定の状況では有用です。",
+            ].join("<br/>"),
+        ],
+        [
+            "-lock-timeout=0s",
+            [
+                "状態ロックの再試行期間を設定します。デフォルトでは再試行が行われますが、タイムアウトを設定して特定の期間後に失敗させることができます。",
+            ].join("<br/>"),
+        ],
+        ["-no-color", ["出力に色を含めないようにします。ログファイルへの出力やパイプ処理時に有用です。"].join("<br/>")],
+        [
+            "-json",
+            ["機械可読形式の JSON 出力を生成します。自動化ツールやスクリプトでの解析に適しています。"].join("<br/>"),
+        ],
+        [
+            "-plugin-dir",
+            [
+                "プラグインバイナリが存在するディレクトリを指定します。",
+                "これにより、デフォルトのプラグイン検索パスがオーバーライドされ、プラグインの自動インストールが防止されます。",
+                "カスタムプラグインを使用する場合に便利です。",
+            ].join("<br/>"),
+        ],
+        [
+            "-reconfigure",
+            [
+                "保存されたバックエンド設定を無視してバックエンドを再構成します。",
+                "バックエンド設定を変更したい場合に使用します。",
+            ].join("<br/>"),
+        ],
+        [
+            "-migrate-state",
+            [
+                "バックエンドを再構成し、既存の状態を新しいバックエンドに移行しようとします。",
+                "バックエンドの変更時に状態の移行が必要な場合に使用します。",
+            ].join("<br/>"),
+        ],
+        [
+            "-upgrade",
+            [
+                "構成された制約内で許可されている最新のモジュールおよびプロバイダーのバージョンをインストールします。",
+                "依存関係ロックファイルに記録されている正確なバージョンを選択するデフォルトの動作を上書きします。",
+            ].join("<br/>"),
+        ],
+        ["-lockfile=MODE", ["依存関係ロックファイルのモードを設定します。現在は `readonly` のみ有効"].join("<br/>")],
+        [
+            "-ignore-remote-version",
+            [
+                "HCP Terraform およびリモートバックエンド専用のオプションで、ローカルおよびリモートの Terraform バージョンが互換性のある状態表現を使用しているかどうかのチェックを無視し、潜在的な不一致がある場合でも操作を続行します。",
+            ].join("<br/>"),
+        ],
+        [
+            "-test-directory=path",
+            [
+                "Terraform テストディレクトリを設定します。デフォルトは `tests` です。特定のテストディレクトリを使用したい場合に指定します。",
+            ].join("<br/>"),
+        ],
+    ]}
+/>
+
+### Sample
+
+```bash
+# 既存のバックエンド設定を保持し、初期化プロセスをスキップ
+terraform init -backend=false
+
+# -backend-config="path"
+# backend.tfvars ファイルに記述された設定をバックエンド設定に追加する。
+terraform init -backend-config="path/to/backend.tfvars"
+
+# 複数の設定ファイルをマージしてバックエンド設定に適用する。
+terraform init -backend-config="path/to/backend1.tfvars" -backend-config="path/to/backend2.tfvars"
+
+# -force-copy
+# 確認プロンプトをスキップし、自動的に状態データをコピー
+terraform init -force-copy
+
+# -from-module=SOURCE
+# ../module-source ディレクトリの内容を現在のディレクトリにコピーして初期化する
+terraform init -from-module=../module-source
+
+# -get=false
+# モジュールのダウンロードをスキップ
+terraform init -get=false
+
+# -input=false
+# 初期化プロセス中の対話型入力を無効にする
+terraform init -input=false
+
+# -lock=false
+# 状態ロックを保持せずに初期化を行う
+terraform init -lock=false
+
+# -lock-timeout=0s
+# 状態ロックの再試行を30秒に設定
+terraform init -lock-timeout=30s
+
+# -no-color
+# カラーフォーマットを無効にして出力
+terraform init -no-color
+
+# -json
+# JSON 形式で初期化の詳細情報を出力
+terraform init -json
+
+# -plugin-dir
+# ./custom-plugins ディレクトリ内のプラグインを使用
+terraform init -plugin-dir=./custom-plugins
+# 複数のプラグインディレクトリを指定
+terraform init -plugin-dir=./plugins1 -plugin-dir=./plugins2
+
+# -reconfigure
+# 既存のバックエンド設定を無視して新しいバックエンド設定を適用します
+terraform init -reconfigure
+
+# -migrate-state
+# 現在の状態を新しいバックエンドに移行します。
+terraform init -migrate-state
+
+# -upgrade
+# 可能な限り最新のモジュールおよびプロバイダーにアップグレードします。
+terraform init -upgrade
+
+# -lockfile=MODE
+# 依存関係ロックファイルを読み取り専用モードで使用する。
+terraform init -lockfile=readonly
+
+# -ignore-remote-version
+# ローカルとリモートの Terraform バージョンの互換性を無視して初期化を続行
+terraform init -ignore-remote-version
+
+# -test-directory=path
+# ./custom-tests ディレクトリをテストディレクトリとして使用
+terraform init -test-directory=./custom-tests
+
+```

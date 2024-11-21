@@ -1,0 +1,19 @@
+---
+title: import
+description: 既存のインフラストラクチャを Terraform のリソースに関連付けます。手動で作成されたリソースを管理下に置く際に使用します。
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: import
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+```bash
+terraform import aws_instance.example i-12345678
+```

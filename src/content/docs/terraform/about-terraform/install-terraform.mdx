@@ -1,0 +1,121 @@
+---
+title: Terraform インストール
+description: Terraform のインストール方法
+tags:
+    - "terraform"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Terraform インストール
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 参考
+
+<LinkPreview url="https://zenn.dev/take_tech/articles/32188cd3607721" />
+
+## Mac でのインストール
+
+<LinkPreview url="https://developer.hashicorp.com/terraform/install" />
+
+### brew でのインストール
+
+```bash
+brew tap hashicorp/tap
+==> Auto-updating Homebrew...
+Adjust how often this is run with HOMEBREW_AUTO_UPDATE_SECS or disable with
+HOMEBREW_NO_AUTO_UPDATE. Hide these hints with HOMEBREW_NO_ENV_HINTS (see `man brew`).
+==> Auto-updated Homebrew!
+Updated 4 taps (homebrew/bundle, homebrew/services, homebrew/core and homebrew/cask).
+==> New Formulae
+bc-gh                   bump-my-version         fatal                   gollama                 immich-cli              libblastrampoline       pyupgrade               spidermonkey@115
+bed                     dra                     fierce                  grizzly                 ktor                    oasdiff                 rpcsvc-proto            wush
+==> New Casks
+blood-on-the-clocktower-online   dfcf                             font-departure-mono              font-scientifica                 parallels@19                     winbox
+choice-financial-terminal        feedflow                         font-ibm-plex-math               gauntlet                         rize                             zen-browser
+crosspaste                       flutterflow                      font-ibm-plex-sans-tc            gitlight                         wealthfolio
+
+You have 43 outdated formulae and 1 outdated cask installed.
+
+==> Tapping hashicorp/tap
+Cloning into '/opt/homebrew/Library/Taps/hashicorp/homebrew-tap'...
+remote: Enumerating objects: 4798, done.
+remote: Counting objects: 100% (1137/1137), done.
+remote: Compressing objects: 100% (382/382), done.
+remote: Total 4798 (delta 874), reused 980 (delta 755), pack-reused 3661 (from 1)
+Receiving objects: 100% (4798/4798), 874.50 KiB | 5.99 MiB/s, done.
+Resolving deltas: 100% (3189/3189), done.
+Tapped 2 casks and 32 formulae (93 files, 1.2MB).
+
+```
+
+```bash
+brew install hashicorp/tap/terraform
+==> Auto-updating Homebrew...
+Adjust how often this is run with HOMEBREW_AUTO_UPDATE_SECS or disable with
+HOMEBREW_NO_AUTO_UPDATE. Hide these hints with HOMEBREW_NO_ENV_HINTS (see `man brew`).
+==> Fetching hashicorp/tap/terraform
+==> Downloading https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_darwin_arm64.zip
+Already downloaded: /Users/t_inoue/Library/Caches/Homebrew/downloads/1efcc9b209d02554523fd176682b2c7704aee2798a40cf5a2ccd21eff7417983--terraform_1.9.5_darwin_arm64.zip
+==> Installing terraform from hashicorp/tap
+Warning: Your Xcode (15.0.1) is outdated.
+Please update to Xcode 15.4 (or delete it).
+Xcode can be updated from the App Store.
+
+🍺  /opt/homebrew/Cellar/terraform/1.9.5: 5 files, 83.8MB, built in 3 seconds
+==> Running `brew cleanup terraform`...
+Disable this behaviour by setting HOMEBREW_NO_INSTALL_CLEANUP.
+Hide these hints with HOMEBREW_NO_ENV_HINTS (see `man brew`).
+==> `brew cleanup` has not been run in the last 30 days, running now...
+Disable this behaviour by setting HOMEBREW_NO_INSTALL_CLEANUP.
+Hide these hints with HOMEBREW_NO_ENV_HINTS (see `man brew`).
+Removing: /Users/t_inoue/Library/Caches/Homebrew/awscli--2.17.27... (20.3MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/bdw-gc--8.2.6... (534.0KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/ca-certificates_bottle_manifest--2024-07-02... (1.8KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/ca-certificates--2024-07-02... (129.1KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/cffi--1.17.0... (334KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/composer--2.7.7... (711.1KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/cryptography--43.0.0... (2.5MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/curl--8.9.1... (1.5MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/ffmpeg--7.0.2... (20.0MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/git-filter-repo_bottle_manifest--2.45.0... (17.0KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/git-filter-repo--2.45.0... (81.4KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/glib--2.80.4... (8.5MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/imath--3.1.11... (185.0KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/jpeg-xl--0.10.3... (11.9MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/libnghttp2--1.61.0... (224.2KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/libpng--1.6.43... (448.7KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/libvmaf_bottle_manifest--3.0.0... (7.5KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/libvmaf--3.0.0... (1MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/mbedtls--3.6.0... (3.4MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/mysql--9.0.1... (81.6MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/openssl@3--3.3.1... (9.5MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/p11-kit_bottle_manifest--0.25.5... (10KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/p11-kit--0.25.5... (874.5KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/php--8.3.10... (20.3MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/python@3.12--3.12.4... (15.8MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/readline--8.2.10... (575.1KB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/sdl2--2.30.6... (1.8MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/sqlite--3.46.0... (2.2MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/svt-av1--2.1.2... (1.2MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/tree-sitter--0.22.6... (5.0MB)
+Removing: /Users/t_inoue/Library/Caches/Homebrew/unbound--1.20.0... (2.8MB)
+Removing: /Users/t_inoue/Library/Logs/Homebrew/python@3.11... (2 files, 2.5KB)
+
+```
+
+インストールの確認
+
+```bash
+terraform -v
+Terraform v1.9.5
+on darwin_arm64
+```

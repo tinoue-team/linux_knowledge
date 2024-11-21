@@ -58,7 +58,9 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "[markdown][mdx]": {
-        "files.trimTrailingWhitespace": false
+        "files.trimTrailingWhitespace": false,
+        "editor.rulers": [100],
+        "editor.wordWrap": "on"
     },
 
     // "editor.defaultFormatter": "esbenp.prettier-vscode",

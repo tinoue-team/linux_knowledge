@@ -1,0 +1,31 @@
+---
+title: workspace
+description: ワークスペースの管理を行います。複数の作業環境を切り替える際に使用する。
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: workspace
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+```bash
+terraform workspace list
+```
+
+新しいワークスペースの作成
+
+```bash
+terraform workspace new dev
+```
+
+ワークスペースの切り替え
+
+```bash
+terraform workspace select dev
+```

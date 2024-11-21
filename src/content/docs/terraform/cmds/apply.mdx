@@ -1,0 +1,29 @@
+---
+title: apply
+description: 計画されたインフラの適用を実行する。plan コマンドで作成した計画ファイルを使用することも。
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: apply
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+```bash
+terraform apply
+```
+
+```bash
+# 確認プロンプトをスキップして適用
+terraform apply -auto-approve
+```
+
+```bash
+# 入力の要求を無効にする
+terraform apply -input=false
+```

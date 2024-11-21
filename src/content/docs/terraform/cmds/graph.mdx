@@ -1,0 +1,21 @@
+---
+title: graph
+description: 操作のステップを Graphviz グラフとして生成
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: graph
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+操作のステップを Graphviz グラフとして生成します。依存関係の可視化に使用します。
+
+```bash
+terraform graph | dot -Tpng > graph.png
+```

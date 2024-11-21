@@ -1,0 +1,24 @@
+---
+title: state
+description: 高度な状態管理を行います。状態ファイルの操作や修正を行う際に使用します。
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: state
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+```bash
+terraform state list
+```
+
+```bash
+# 特定のリソースを削除
+terraform state rm aws_instance.example
+```
