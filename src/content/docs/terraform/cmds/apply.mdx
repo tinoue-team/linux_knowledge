@@ -14,16 +14,147 @@ sidebar:
     #     variant: tip
 ---
 
-```bash
-terraform apply
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 説明
+
+`terraform apply` コマンドは、Terraform の設定ファイルに基づいてインフラストラクチャを作成または更新します。デフォルトでは、`terraform plan` を実行して変更内容を確認し、ユーザーの承認を得てからアクションを実行します。しかし、以下のオプションを使用することで、このプロセスをカスタマイズできます。
+
+### 構文
+
+```bash frame="none"
+terraform [global options] apply [options] [PLAN]
 ```
 
-```bash
+### Option
+
+<Table
+    caption=""
+    columns={["Option", "説明"]}
+    data={[
+        [
+            "-auto-approve",
+            [
+                "プランの承認をスキップし、即座にインフラストラクチャの変更を適用する。",
+                "自動化スクリプトやCI/CDパイプラインで、ユーザーの承認なしに即座に変更を適用したい場合に使用する。",
+            ].join("<br/>"),
+        ],
+        [
+            "-backup=path",
+            [
+                "状態ファイルを変更する前にバックアップを取りたい場合に使用。",
+                "特に重要な環境では、状態ファイルのバックアップを保持することで、万が一の際に復元が可能です。",
+            ].join("<br/>"),
+        ],
+        [
+            "-compact-warnings",
+            ["大量の警告メッセージが出力される場合に、それらを要約形式で表示して見やすくするために使用します。"].join(
+                "<br/>"
+            ),
+        ],
+        [
+            "-destroy",
+            ["インフラストラクチャを完全に破壊したい場合に使用。", "`terraform destroy` コマンドのエイリアス"].join(
+                "<br/>"
+            ),
+        ],
+        ["-lock=false", ["共通オプション"].join("<br/>")],
+        ["-lock-timeout=0s", ["共通オプション"].join("<br/>")],
+        ["-no-color", ["共通オプション"].join("<br/>")],
+        [
+            "-input=true",
+            ["変数が設定されていない場合に対話的に入力を求めたい場合に使用します。通常はデフォルトの動作であり、スクリプトでは `-input=false` を使用"].join(
+                "<br/>"
+            ),
+        ],
+        [
+            "-parallelism=n",
+            ["同時に実行するリソース(並列リソース)操作の数を制限したい場合に使用します。リソースが多すぎて一度に実行するとシステムに負荷がかかる場合などに有用です。",
+            "デフォルトは 10"].join(
+                "<br/>"
+            ),
+        ],
+        [
+            "-state=path",
+            ["現在の状態ファイルを指定したパスから読み書きしたい場合に使用します。デフォルトは `terraform.tfstate` です。"].join(
+                "<br/>"
+            ),
+        ],
+        [
+            "-state-out=path",
+            ["状態ファイルを `-state` とは異なるパスに書き込みたい場合に使用します。これにより、既存の状態ファイルを保持しつつ新しい状態ファイルを作成できます。"].join(
+                "<br/>"
+            ),
+        ],
+
+    ]}
+
+/>
+
+### プランファイルの使用
+
+`terraform apply` コマンドは、`terraform plan` コマンドで作成された計画ファイルを指定することができます。これにより、計画済みの変更を確認せずに即座に適用することができます。
+
+```bash frame="none"
+terraform plan -out=plan.out
+terraform apply plan.out
+```
+
+最初のコマンドで `plan.out` に計画を保存し、`apply` で計画ファイルを指定して実行する。
+
+:::note[追加のプランカスタマイズオプション]
+`terraform apply` コマンドは、プランファイルを指定しない場合、 `terraform plan` コマンドで利用可能なすべてのプランカスタマイズオプションを受け付けます。詳細は `terraform plan -h` を参照
+:::
+
+## Sample
+
+```bash frame="none"
+# -auto-approve
 # 確認プロンプトをスキップして適用
 terraform apply -auto-approve
-```
 
-```bash
+# -backup=path
+# 現在の状態ファイルを state_backup.tfstate にバックアップし apply を実行
+terraform apply -backup=state_backup.tfstate
+
+# バックアップを無効にする
+terraform apply -backup=-
+
+# -compact-warnings
+# 大量の警告メッセージが出力される場合に、それらを要約形式で表示して見やすくする
+terraform apply -compact-warnings
+
+# -destroy
+# 管理下の全リソースを破壊
+terraform apply -destroy
+
+# -lock=false
+# 状態ロックを保持せずに適用を実行
+terraform apply -lock=false
+
+# -lock-timeout=0s
+# ロック取得を30秒間再試行
+terraform apply -lock-timeout=30s
+
+# -input=true
+# 必要な変数の入力を求めます。
+terraform apply -input=true
+
 # 入力の要求を無効にする
 terraform apply -input=false
+
+# -parallelism=n
+# 同時に実行するリソース操作の数を 5 に制限。システムリソースの制約がある場合に有用。
+terraform apply -parallelism=5
+
+# -state=path
+# 状態ファイルを ./state/custom.tfstate から読み書きする。
+# 複数の状態ファイルを管理したい場合や、特定のディレクトリに状態ファイルを保存したい場合に使用。
+terraform apply -state=./state/custom.tfstate
+
+# -state-out=path
+# ./state/new_state.tfstate に状態を出力
+terraform apply -state-out=./state/new_state.tfstate
 ```
