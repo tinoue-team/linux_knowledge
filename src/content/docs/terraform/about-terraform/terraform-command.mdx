@@ -32,11 +32,14 @@ terraform [global options] <subcommand> [args]
     caption=""
     columns={["コマンド", "説明"]}
     data={[
-        ["init", ["プロバイダにアクセスするプラグインなどを用意"].join("<br/>")],
-        ["validate", ["設定が有効かどうかをチェックする"].join("<br/>")],
-        ["plan", ["プロバイダに tf ファイルの検証を行う"].join("<br/>")],
-        ["apply", ["インフラストラクチャの生成と更新"].join("<br/>")],
-        ["destroy", ["tf によって作成されたリソースを破棄する"].join("<br/>")],
+        ["[init](/terraform/cmds/main-commands/init/)", ["プロバイダにアクセスするプラグインなどを用意"].join("<br/>")],
+        ["[validate](/terraform/cmds/main-commands/validate/)", ["設定が有効かどうかをチェックする"].join("<br/>")],
+        ["[plan](/terraform/cmds/main-commands/plan/)", ["プロバイダに tf ファイルの検証を行う"].join("<br/>")],
+        ["[apply](/terraform/cmds/main-commands/apply/)", ["インフラストラクチャの生成と更新"].join("<br/>")],
+        [
+            "[destroy](/terraform/cmds/main-commands/destroy/)",
+            ["tf によって作成されたリソースを破棄する"].join("<br/>"),
+        ],
     ]}
 />
 
@@ -46,25 +49,67 @@ terraform [global options] <subcommand> [args]
     caption=""
     columns={["コマンド", "説明"]}
     data={[
-        ["console", ["インタラクティブなコマンドプロンプトで Terraform 式を試す"].join("<br/>")],
-        ["fmt", ["標準スタイルでコンフィギュレーションを再フォーマットする"].join("<br/>")],
-        ["force-unlock", ["現在のワークスペースのスタックしたロックを解除する"].join("<br/>")],
-        ["get", ["リモートのTerraformモジュールをインストールまたはアップグレードする"].join("<br/>")],
-        ["graph", ["操作ステップの Graphviz グラフを生成する"].join("<br/>")],
-        ["import", ["既存のインフラをTerraformリソースに関連付ける"].join("<br/>")],
-        ["login", ["リモートホストの認証情報の取得と保存"].join("<br/>")],
-        ["logout", ["リモートホストのローカルに保存された認証情報を削除する"].join("<br/>")],
-        ["metadata", ["メタデータ関連コマンド"].join("<br/>")],
-        ["output", ["ルートモジュールからの出力値を表示"].join("<br/>")],
-        ["providers", ["この設定に必要なプロバイダーを表示する"].join("<br/>")],
-        ["refresh", ["リモートシステムに合わせて状態を更新"].join("<br/>")],
-        ["show", ["現在の状態または保存されたプランを表示する"].join("<br/>")],
-        ["state", ["高度な状態管理"].join("<br/>")],
-        ["taint", ["リソースインスタンスを完全に機能しないものとしてマークする"].join("<br/>")],
-        ["test", ["Terraform モジュールの統合テストを実行する"].join("<br/>")],
-        ["untaint", ["リソースインスタンスから'tainted'(汚染された)状態を取り除く"].join("<br/>")],
-        ["version", ["現在のTerraformのバージョンを表示する"].join("<br/>")],
-        ["workspace", ["ワークスペースの管理"].join("<br/>")],
+        [
+            "[console](/terraform/cmds/all-other-commands/console/)",
+            ["インタラクティブなコマンドプロンプトで Terraform 式を試す"].join("<br/>"),
+        ],
+        [
+            "[fmt](/terraform/cmds/all-other-commands/fmt/)",
+            ["標準スタイルでコンフィギュレーションを再フォーマットする"].join("<br/>"),
+        ],
+        [
+            "[force-unlock](/terraform/cmds/all-other-commands/force-unlock/)",
+            ["現在のワークスペースのスタックしたロックを解除する"].join("<br/>"),
+        ],
+        [
+            "[get](/terraform/cmds/all-other-commands/get/)",
+            ["リモートのTerraformモジュールをインストールまたはアップグレードする"].join("<br/>"),
+        ],
+        [
+            "[graph](/terraform/cmds/all-other-commands/graph/)",
+            ["操作ステップの Graphviz グラフを生成する"].join("<br/>"),
+        ],
+        [
+            "[import](/terraform/cmds/all-other-commands/import/)",
+            ["既存のインフラをTerraformリソースに関連付ける"].join("<br/>"),
+        ],
+        ["[login](/terraform/cmds/all-other-commands/login/)", ["リモートホストの認証情報の取得と保存"].join("<br/>")],
+        [
+            "[logout](/terraform/cmds/all-other-commands/logout/)",
+            ["リモートホストのローカルに保存された認証情報を削除する"].join("<br/>"),
+        ],
+        ["[metadata](/terraform/cmds/all-other-commands/metadata/)", ["メタデータ関連コマンド"].join("<br/>")],
+        ["[output](/terraform/cmds/all-other-commands/output/)", ["ルートモジュールからの出力値を表示"].join("<br/>")],
+        [
+            "[providers](/terraform/cmds/all-other-commands/providers/)",
+            ["この設定に必要なプロバイダーを表示する"].join("<br/>"),
+        ],
+        [
+            "[refresh](/terraform/cmds/all-other-commands/refresh/)",
+            ["リモートシステムに合わせて状態を更新"].join("<br/>"),
+        ],
+        [
+            "[show](/terraform/cmds/all-other-commands/show/)",
+            ["現在の状態または保存されたプランを表示する"].join("<br/>"),
+        ],
+        ["[state](/terraform/cmds/all-other-commands/state/)", ["高度な状態管理"].join("<br/>")],
+        [
+            "[taint](/terraform/cmds/all-other-commands/taint/)",
+            ["リソースインスタンスを完全に機能しないものとしてマークする"].join("<br/>"),
+        ],
+        [
+            "[test](/terraform/cmds/all-other-commands/test/)",
+            ["Terraform モジュールの統合テストを実行する"].join("<br/>"),
+        ],
+        [
+            "[untaint](/terraform/cmds/all-other-commands/untaint/)",
+            ["リソースインスタンスから'tainted'(汚染された)状態を取り除く"].join("<br/>"),
+        ],
+        [
+            "[version](/terraform/cmds/all-other-commands/version/)",
+            ["現在のTerraformのバージョンを表示する"].join("<br/>"),
+        ],
+        ["[workspace](/terraform/cmds/all-other-commands/workspace/)", ["ワークスペースの管理"].join("<br/>")],
     ]}
 />
 

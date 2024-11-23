@@ -11,6 +11,7 @@ const { SITE_URL, EDIT_SITE_URL, SOCIAL_GITHUB } = loadEnv(process.env.NODE_ENV,
 
 // https://astro.build/config
 export default defineConfig({
+    // サイトマップ有効化
     site: SITE_URL,
     integrations: [
         preact(),
@@ -47,27 +48,77 @@ export default defineConfig({
             social: {
                 github: SOCIAL_GITHUB,
             },
-            // sidebar: [
-            //     {
-            //         label: 'Astro-Starlight',
-            //         // autogenerate: { directory: 'astro-starlight' },
-
-            //         items: [
-            //             { label: 'Component', slug: '/astro-starlight/component' },
-            //             { label: 'CSS', slug: '/astro-starlight/css' },
-            //             { label: 'Guide', slug: '/astro-starlight/guide' },
-            //         ],
-            //     },
-            //     {
-            //         label: 'Linux',
-            //         // link: '/linux/',
-            //         autogenerate: { directory: 'linux' },
-            //         // items: [
-            //         //     { label: 'Linux 1', link: '/linux/post/' },
-            //         //     // { label: 'Linux 2', link: '/linux/linux-2/' },
-            //         // ],
-            //     },
-            // ],
+            sidebar: [
+                {
+                    label: 'Astro-Starlight',
+                    items: [
+                        {
+                            label: 'Guide',
+                            autogenerate: { directory: 'astro-starlight/guide' },
+                        },
+                        {
+                            label: 'Component',
+                            autogenerate: { directory: 'astro-starlight/component' },
+                        },
+                        {
+                            label: 'CSS',
+                            autogenerate: { directory: 'astro-starlight/css' },
+                        },
+                    ],
+                },
+                {
+                    label: 'Linux',
+                    items: [
+                        {
+                            label: 'コマンド',
+                            collapsed: true,
+                            autogenerate: { directory: 'linux/cmd' },
+                        },
+                        {
+                            label: '記事',
+                            items: [
+                                {
+                                    label: 'Mail について',
+                                    autogenerate: { directory: 'linux/posts/mail' },
+                                },
+                                {
+                                    label: 'ネットワーク について',
+                                    autogenerate: { directory: 'linux/posts/network' },
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    label: 'Terraform',
+                    items: [
+                        {
+                            label: 'Terraform について',
+                            autogenerate: { directory: 'terraform/about-terraform' },
+                        },
+                        {
+                            label: 'AWS プロバイダ',
+                            autogenerate: { directory: 'terraform/aws-provider-services' },
+                        },
+                        {
+                            label: 'Terraform コマンド',
+                            collapsed: true,
+                            items: [
+                                {
+                                    label: '主要なワークフローコマンド',
+                                    autogenerate: { directory: 'terraform/cmds/main-commands' },
+                                },
+                                {
+                                    label: '一般的でないコマンドや高度なコマンド',
+                                    autogenerate: {
+                                        directory: 'terraform/cmds/all-other-commands',
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
             // カスタム 404 ページを利用するか
             // disable404Route: true,
             credits: true,
