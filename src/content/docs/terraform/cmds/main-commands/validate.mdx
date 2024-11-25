@@ -14,6 +14,95 @@ sidebar:
     #     variant: tip
 ---
 
-```bash frame="none"
-terraform validate
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 説明
+
+### 解説
+
+ディレクトリ内の設定ファイルを検証します。設定ファイルのみを参照し、
+リモートステートやプロバイダー API などのリモートサービスにはアクセスしません。
+
+validate は、設定が構文的に有効で内部的に一貫性があるかどうかを、提供された変数や既存の状態に関係なくチェックします。
+したがって、属性名や値の型の正しさを含む、再利用可能なモジュールの一般的な検証に主に有用です。
+
+このコマンドは自動的に実行しても安全です。
+例えば、テキストエディタでの保存後のチェックや、
+CI システムでの再利用可能なモジュールのテストステップとして使用できます。
+
+検証には、参照されているプラグインやモジュールがインストールされた初期化済みの作業ディレクトリが必要です。
+リモートバックエンドにアクセスせずに検証用の作業ディレクトリを初期化するには、以下を使用します：
+
+```bash frame=none
+terraform init -backend=false
+```
+
+特定の実行（特定のターゲットワークスペース、入力変数の値など）のコンテキストで設定を検証するには、
+代わりに 'terraform plan' コマンドを使用してください。これは暗黙の検証チェックを含みます。
+
+### 構文
+
+```bash frame=none
+terraform [global options] validate [options]
+```
+
+#### 主な用途
+
+-   **設定ファイルの構文チェック**: 設定ファイルに誤った構文やタイプミスがないかを確認します。
+-   **再利用可能なモジュールの検証**: モジュールの属性名や値の型が正しいかを検証し、他のプロジェクトで安全に使用できるようにします。
+-   **自動化ツールとの統合**: テキストエディタの保存時チェックや CI/CD パイプラインでのテストステップとして、自動的に検証を実行します。
+
+:::note[重要なポイント]
+
+-   **初期化が必要**:
+    検証を行う前に、`terraform init` を実行して必要なプラグインやモジュールをインストールしておく必要があります。
+-   **リモートバックエンドの無効化**:
+    リモートバックエンドにアクセスせずに初期化するには、`terraform init -backend=false` を使用します。
+-   **実行時の検証ではない**:
+    このコマンドは変数の値や既存の状態を考慮しないため、実際の適用時に発生する可能性のある問題をすべて検出できるわけではありません。
+
+:::
+
+#### 他のコマンドとの比較
+
+-   `terraform plan`:
+
+    `terrafrom plan` は設定の検証だけでなく、次際に適用された場合に何が起こるかを示すプランを生成します。リモートサービスへのアクセスが必要であり、より詳細な検証が行われます。
+
+-   `terraform fmt`:
+
+    `terraform fmt` は設定ファイルのフォーマットを標準化します。構文エラーの検出にも役立ちますが、`terraform validate` ほど詳細な検証は行いません。
+
+## Option
+
+<Table
+    caption=""
+    columns={["Option", "説明"]}
+    data={[
+        [
+            "-no-tests",
+            [
+                "指定した場合、Terraformはテストファイルを検証しません。",
+            ].join("<br/>"),
+        ],
+        [
+            "-test-directory=path",
+            [
+                "Terraformのテストディレクトリを設定します。デフォルトは 'tests' です。",
+            ].join("<br/>"),
+        ],
+    ]}
+
+/>
+
+## Sample
+
+```bash frame=none
+# テストファイルを除外して検証
+terraform validate -no-tests
+
+# テストディレクトリを指定して検証
+terraform validate -test-directory=custom_tests
 ```

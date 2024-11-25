@@ -1,6 +1,6 @@
 ---
 title: refresh
-description: 状態ファイルをリモートシステムと一致させるために更新します。インフラストラクチャの現状を最新の状態に反映します。
+description: 状態ファイルをリモートシステムと一致させるために更新します。インフラストラクチャの現状を最新の状態に反映します。(.tfstate の内容を書き換える)
 tags:
     - "Terraform commands"
 sidebar:
@@ -14,6 +14,65 @@ sidebar:
     #     variant: tip
 ---
 
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 説明
+
+### 解説
+
+インフラストラクチャの状態ファイルを、追跡している物理リソースと一致するメタデータで更新する。
+
+これによってインフラストラクチャが変更されることはありませんが、メタデータを更新するために状態ファイルが変更される可能性があります。
+このメタデータは、プランを生成したり、apply next を呼び出したりする際に、新たな変更を引き起こす可能性があります。
+
+### 構文
+
 ```bash frame="none"
+terraform [global options] refresh [options]
+```
+
+## Options
+
+[共通オプションを参照](/terraform/about-terraform/terraform-command/#共通オプション)
+
+`-state`、`-state-out`、および `-backup`
+
+これらはローカルバックエンドのみでサポートされるレガシーオプションです。詳細についてはローカルバックエンドのドキュメントを参照してください。
+
+:::caution[注意点]
+
+-   **非推奨の可能性**: 最新の Terraform（バージョン 0.15 以降）では、`terraform refresh` コマンドは非推奨となっており、`terraform apply -refresh-only` や `terraform plan -refresh-only` の使用が推奨されています。将来的な互換性を考慮し、新しいコマンドへの移行を検討してください。
+
+-   **ステートファイルのバックアップ**: ステートファイルは Terraform の重要なコンポーネントであり、変更前にバックアップを取ることが推奨されます。
+
+-   **予期せぬ変更の可能性**: ステートファイルの更新により、次回のプランや適用時に予期しない変更が検出される場合があります。操作後に `terraform plan` を実行して、変更内容を確認することをお勧めします。
+
+```bash frame=none
+# ステートファイルを最新の状態に更新し、その変更内容をプランとして表示します。
+# インフラに対する変更は行われません。
+terraform plan -refresh-only
+
+# ステートファイルを最新の状態に更新し、その変更を適用します。
+# インフラ自体には変更が加えられません。
+terraform apply -refresh-only
+```
+
+:::
+
+## Sample
+
+```bash frame=none
+# 基本的なステートファイルの更新
 terraform refresh
+
+# 特定のリソースのみを更新
+terraform refresh -target=aws_instance.example
+
+# 並行操作数を制限して更新
+terraform refresh -parallelism=5
+
+# 変数ファイルを指定して更新
+terraform refresh -var-file=production.tfvars
 ```

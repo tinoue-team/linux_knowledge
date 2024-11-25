@@ -13,6 +13,21 @@ import { Steps } from "@astrojs/starlight/components";
 `<Steps>`で標準の Markdown の順序付きリストを囲むだけ。指定するプロパティはない。
 通常の Markdown 構文はすべて`<Steps>`内で適用されます。
 
+````astro
+import { Steps } from "@astrojs/starlight/components";
+<Steps>
+
+1. コンポーネントを MDX ファイルにインポートします:
+
+    ```js
+    import { Steps } from "@astrojs/starlight/components";
+    ```
+
+2. 順序付きリストのアイテムを`<Steps>`で囲みます。
+
+</Steps>
+````
+
 <Steps>
 
 1. コンポーネントを MDX ファイルにインポートします:

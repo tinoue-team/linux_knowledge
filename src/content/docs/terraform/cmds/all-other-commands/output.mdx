@@ -14,6 +14,46 @@ sidebar:
     #     variant: tip
 ---
 
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 説明
+
+### 解説
+
+Terraform ステートファイルから出力変数を読み込み、その値を表示する。引数を追加しない場合、output はルートモジュールのすべての出力を表示する。
+NAME が指定されていない場合は、すべての出力が表示されます。
+
+### 構文
+
+```bash
+terraform [global options] output [options] [NAME]
+```
+
+## Option
+
+<Table
+    caption=""
+    columns={["Option", "説明"]}
+    data={[
+        [
+            "-state=path",
+            [
+                "読み込む状態ファイルのパス。デフォルトは 「terraform.tfstate」。リモート状態を使用する場合は無視される。",
+            ].join("<br/>"),
+        ],
+        [
+            "raw",
+            ["自動的に文字列に変換される値型の場合は、人間向けの値の表現ではなく、生の文字列を直接表示します。"].join(
+                "<br/>"
+            ),
+        ],
+    ]}
+/>
+
+## Sample
+
 ```bash frame="none"
 terraform output
 ```
@@ -22,3 +62,94 @@ terraform output
 # 特定の出力を表示
 terraform output instance_ip
 ```
+
+## output セクション
+
+### 基本的なフロー
+
+<Steps>
+
+1.  .tf ファイルに以下を追記
+
+    ```tf
+    output "eip_public_ip" {
+        value = aws_eip.iac-eip.public_ip
+    }
+    ```
+
+2.  インフラストラクチャの更新
+
+    ```bash frame=none
+    terraform apply -auto-approve
+    aws_vpc.iac-vpc: Refreshing state... [id=vpc-052f6acfa7b91cd75]
+    aws_internet_gateway.iac-gateway: Refreshing state... [id=igw-0288101ee2c640558]
+    aws_subnet.iac-subnet: Refreshing state... [id=subnet-0b6e69c24dd8aedd3]
+    aws_security_group.iac-security-group: Refreshing state... [id=sg-0389a6f3b90dea414]
+    aws_route_table.iac-route-table: Refreshing state... [id=rtb-09348450641b18943]
+    aws_route_table_association.iac-association: Refreshing state... [id=rtbassoc-071ca02810081968f]
+    aws_network_interface.iac-nw-interface: Refreshing state... [id=eni-04fc6928ece9f0fdf]
+    aws_instance.iac-instance: Refreshing state... [id=i-0b68dbb75d51d276a]
+    aws_eip.iac-eip: Refreshing state... [id=eipalloc-064438dbccc0252dd]
+
+    Changes to Outputs:
+    + eip_public_ip = "52.192.134.177"
+
+    You can apply this plan to save these new output values to the Terraform state, without changing any real infrastructure.
+
+    Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+    Outputs:
+
+    eip_public_ip = "52.192.134.177"
+    ```
+
+    output セクションによって、apply と同時に出力する
+
+</Steps>
+
+### 複数の出力値を扱う
+
+<Steps>
+
+1.  output セクションは一つの value しか表示できないので、他の出力値は以下のように行う
+
+    ```tf
+    output "instance_private_ip" {
+        value = aws_instance.iac-instance.private_ip
+    }
+
+    output "instance_id" {
+        value = aws_instance.iac-instance.id
+    }
+    ```
+
+2.  出力結果が追加される
+
+    ```bash frame=none
+    terraform apply -auto-approve
+    aws_vpc.iac-vpc: Refreshing state... [id=vpc-052f6acfa7b91cd75]
+    aws_subnet.iac-subnet: Refreshing state... [id=subnet-0b6e69c24dd8aedd3]
+    aws_internet_gateway.iac-gateway: Refreshing state... [id=igw-0288101ee2c640558]
+    aws_security_group.iac-security-group: Refreshing state... [id=sg-0389a6f3b90dea414]
+    aws_route_table.iac-route-table: Refreshing state... [id=rtb-09348450641b18943]
+    aws_network_interface.iac-nw-interface: Refreshing state... [id=eni-04fc6928ece9f0fdf]
+    aws_route_table_association.iac-association: Refreshing state... [id=rtbassoc-071ca02810081968f]
+    aws_instance.iac-instance: Refreshing state... [id=i-0b68dbb75d51d276a]
+    aws_eip.iac-eip: Refreshing state... [id=eipalloc-064438dbccc0252dd]
+
+    Changes to Outputs:
+    + instance_id         = "i-0b68dbb75d51d276a"
+    + instance_private_ip = "10.0.1.50"
+
+    You can apply this plan to save these new output values to the Terraform state, without changing any real infrastructure.
+
+    Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+    Outputs:
+
+    eip_public_ip = "52.192.134.177"
+    instance_id = "i-0b68dbb75d51d276a"
+    instance_private_ip = "10.0.1.50"
+    ```
+
+</Steps>

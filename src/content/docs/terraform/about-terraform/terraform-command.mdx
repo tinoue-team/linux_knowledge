@@ -1,11 +1,11 @@
 ---
-title: terraform コマンド
+title: Terraform コマンド
 description: Terraform のコマンドリスト
 tags:
     - "Terraform"
 sidebar:
     # このリンクのカスタムラベルを設定します
-    label: terraform コマンド
+    label: Terraform コマンド
     # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
     order: 2
     # このリンクにバッジを追加します
@@ -147,6 +147,28 @@ terraform [global options] <subcommand> [args]
             "-lock-timeout=0s",
             [
                 "状態ロックの再試行期間を設定します。デフォルトでは再試行が行われますが、タイムアウトを設定して特定の期間後に失敗させることができます。",
+            ].join("<br/>"),
+        ],
+        [
+            "-compact-warnings",
+            ["エラーを伴わない警告がある場合、要約メッセージのみを含むよりコンパクトな形式で表示します。"].join(
+                "<br/>"
+            ),
+        ],
+        ["-input=<boolean>", ["true のとき、変数が直接設定されていない場合、入力を求めます。"].join("<br/>")],
+        ["-parallelism=n", ["同時に実行する操作の数を制限します。デフォルトは `10` "].join("<br/>")],
+        [
+            "-target=resource",
+            [
+                "対象とするリソースを指定します。操作はこのリソースとその依存関係に限定されます。このフラグは複数回使用できます。 ",
+            ].join("<br/>"),
+        ],
+        ["-var 'foo=bar'", ["Terraformの設定で変数を設定します。このフラグは複数回設定できます。"].join("<br/>")],
+        [
+            "-var-file=foo",
+            [
+                "ファイルからTerraformの設定変数を設定します。",
+                "terraform.tfvars または .auto.tfvars ファイルが存在する場合、自動的に読み込まれます。",
             ].join("<br/>"),
         ],
     ]}
