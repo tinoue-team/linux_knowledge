@@ -1,6 +1,17 @@
 ---
 title: Mermaid コンポーネントの修正
 description: Mermaid コンポーネントをテーマに合わせて変更
+tags:
+    - "Astro"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Mermaid コンポーネントの修正
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
 ---
 
 import { Steps } from "@astrojs/starlight/components";
@@ -108,18 +119,13 @@ export default function ThemeReact({ chart }: { chart: string }) {
     // const randomMessage = () => messages[Math.floor(Math.random() * messages.length)];
 
     // const [greeting, setGreeting] = useState(messages[0]);
-    const [theme, setTheme] = useState(
-        document.documentElement.dataset.theme || "light"
-    );
+    const [theme, setTheme] = useState(document.documentElement.dataset.theme || "light");
 
     useEffect(() => {
         // コールバック関数を定義
         const observerCallback = (mutationsList: MutationRecord[]) => {
             for (const mutation of mutationsList) {
-                if (
-                    mutation.type === "attributes" &&
-                    mutation.attributeName === "data-theme"
-                ) {
+                if (mutation.type === "attributes" && mutation.attributeName === "data-theme") {
                     const newTheme = document.documentElement.dataset.theme;
                     setTheme(newTheme || "light");
                 }

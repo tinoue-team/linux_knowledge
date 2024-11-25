@@ -1,6 +1,9 @@
 ---
 title: IPsec
 description: IPsec (Internet Protocol secure) は、公衆ネットワーク上で送信されるデータの安全性を保つために使用される通信セキュリティ確保の規格。
+tags:
+    - "Linux"
+    - "Network"
 sidebar:
     # このリンクのカスタムラベルを設定します
     label: IPsec
@@ -13,18 +16,19 @@ sidebar:
 ---
 
 ## IPsec とは
-[IPsecとは？IPsec VPNの仕組み | Cloudflare](https://www.cloudflare.com/ja-jp/learning/network-layer/what-is-ipsec/)
 
-[VPNとは？ | Cloudflare](https://www.cloudflare.com/ja-jp/learning/access-management/what-is-a-vpn/)
+[IPsec とは？IPsec VPN の仕組み | Cloudflare](https://www.cloudflare.com/ja-jp/learning/network-layer/what-is-ipsec/)
+
+[VPN とは？ | Cloudflare](https://www.cloudflare.com/ja-jp/learning/access-management/what-is-a-vpn/)
 
 IPsec (Internet Protocol secure) は、公衆ネットワーク上で送信されるデータの安全性を保つために使用される通信セキュリティ確保の規格。
-VPN 接続を確立させるために使用され、パケットの送信元の認証。IPパケットの暗号化などの機能を持つ。 
+VPN 接続を確立させるために使用され、パケットの送信元の認証。IP パケットの暗号化などの機能を持つ。
 VPN 接続を確立することで、VPN クライアントと VPN サーバー間の通信はインターネットサービスプロバイダー（ISP）を通過するが、
 すべてのデータが暗号化されているので、プロバイダーがユーザーの行動履歴を見ることができなくなる。
 
 ### 参考
 
-[【Linux】OSSでVPNを構築する【IPsec】 - Qiita](https://qiita.com/dan-go/items/3ee70e9ea195bbb9e3c5)
+[【Linux】OSS で VPN を構築する【IPsec】 - Qiita](https://qiita.com/dan-go/items/3ee70e9ea195bbb9e3c5)
 
 ### 構成するプロトコル
 
@@ -32,18 +36,17 @@ VPN 接続を確立することで、VPN クライアントと VPN サーバー�
 
 認証機能。HMAC (Hash-based Message Authentication Code) を利用してデータの安全性の確認と送信元の認証を行い、パケットが改竄されていないかと、送信してきた相手が正しいのかを確認する。HMAC で使用できるアルゴリズムには MD5 、SHA-1 などがある。
 
-- パケットの暗号化は不可
-- プロトコル画面は 51
+-   パケットの暗号化は不可
+-   プロトコル画面は 51
 
 #### ESP (Encapusulated Security Payload)
 
 ペイロード部に対して暗号化を行うことができる。
 
-- HMAC を利用してデータの安全性の確認と送信元の認証を行い、パケットが改竄されていないかと、送信してきた相手が正しいのかを確認する。
-- 
+-   HMAC を利用してデータの安全性の確認と送信元の認証を行い、パケットが改竄されていないかと、送信してきた相手が正しいのかを確認する。
+-
 
 #### IKE (Internet Key Exchange)
-
 
 ## 仕組み
 
@@ -61,21 +64,19 @@ VPN 接続を確立することで、VPN クライアントと VPN サーバー�
 
 送受信するデータを暗号化してランダムな文字列に置き換えること。カプセル化したデータが漏洩しても、第三者による解読が困難になる。
 
-
 :::info[その他にも]
 
-認証の方式としてはキーペアによるものもあるが、SSOなどの多要素認証を含めることでよりセキュアな通信を確立することになる。
+認証の方式としてはキーペアによるものもあるが、SSO などの多要素認証を含めることでよりセキュアな通信を確立することになる。
 :::
 
-
-VPN によって確立されたネットワーク間の接続は暗号化されている。その通信を実現するためにIPsec がある。通信の暗号化には SSL/TLS の方式があるが、それらは OSI 参照モデルとは別のレイヤーのもので、IPsec のほうが低層のレイヤーとなる。
+VPN によって確立されたネットワーク間の接続は暗号化されている。その通信を実現するために IPsec がある。通信の暗号化には SSL/TLS の方式があるが、それらは OSI 参照モデルとは別のレイヤーのもので、IPsec のほうが低層のレイヤーとなる。
 
 IPsec での接続には、以下の手順がある
 
 1. 鍵交換
-    
-    鍵(データの暗号化、複合化に利用するランダムな文字列)、主に公開鍵と秘密鍵のペアを利用し、クライアントが作成したキーペアの公開鍵をVPNサーバーに保存し、データを暗号化して送信を行う
-    
+
+    鍵(データの暗号化、複合化に利用するランダムな文字列)、主に公開鍵と秘密鍵のペアを利用し、クライアントが作成したキーペアの公開鍵を VPN サーバーに保存し、データを暗号化して送信を行う
+
 2. パケットヘッダーとトレーラー
 3. 認証
 4. 暗号化

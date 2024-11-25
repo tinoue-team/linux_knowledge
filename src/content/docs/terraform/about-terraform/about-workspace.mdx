@@ -1,0 +1,56 @@
+---
+title: Terraform のワークスペース
+description: ワークスペースの利用用途。.tfstate ファイルを環境によって使い分ける。
+tags:
+    - "Terraform"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Terraform のワークスペース
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 1
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+### Terraform とは
+
+<LinkPreview url="https://envader.plus/article/221#Terraform%E3%81%AB%E3%81%8A%E3%81%91%E3%82%8Bworkspace%E3%81%A8%E3%81%AF%EF%BC%9F" />
+
+Terraform の tfstate ファイルは、Terraform によって管理されるインフラリソースの実際の状態を JSON 形式で保存したファイル。現在のリソースの状態が保存されている。
+`terraform apply` は実行されるたびに、このファイルを参照・更新し、構築したいインフラの状態と現在のインフラの状態との差分を判断し実行される。
+
+### Terraform の主要な構成要素
+
+Terraform により現在のリソースを管理、操作していく中で重要な二つの構成要素がある。
+それが、コアとプロバイダです。
+
+#### コア
+
+コアの役割は以下となる。
+
+-   tf ファイルの読み取り
+-   tfstate ファイルに現在のリソースの状態を書き込む
+
+<Steps>
+
+    1. コアが tf ファイルを読み取り、設定したいリソースを知る
+
+    1. tfstate
+    ファイルを読み取り、設定するリソースの状態を書き込む
+
+    1. tfstate を元にリソースを変更することをプロバイダに依頼
+
+</Steps>
+
+#### プロバイダ
+
+プロバイダはコアと実際に構築したいサービスとの架け橋のような役割を果たす。
+Terraform がサポートするクラウドサービスやその他のサービスとの間で、API を介して具体的な操作をプロバイダが行う。
