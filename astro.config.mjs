@@ -58,11 +58,16 @@ export default defineConfig({
                         },
                         {
                             label: 'Component',
+                            collapsed: true,
                             autogenerate: { directory: 'astro-starlight/component' },
                         },
                         {
                             label: 'CSS',
                             autogenerate: { directory: 'astro-starlight/css' },
+                        },
+                        {
+                            label: '要件',
+                            autogenerate: { directory: 'astro-starlight/requirement' },
                         },
                     ],
                 },
@@ -79,10 +84,12 @@ export default defineConfig({
                             items: [
                                 {
                                     label: 'Mail について',
+                                    collapsed: true,
                                     autogenerate: { directory: 'linux/posts/mail' },
                                 },
                                 {
                                     label: 'ネットワーク について',
+                                    collapsed: true,
                                     autogenerate: { directory: 'linux/posts/network' },
                                 },
                             ],
