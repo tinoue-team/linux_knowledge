@@ -50,10 +50,10 @@ export default defineConfig({
             },
             sidebar: [
                 {
-                    label: 'astro-starlight',
+                    label: 'Astro Starlight',
                     items: [
                         {
-                            label: 'guide',
+                            label: 'ガイド',
                             autogenerate: { directory: 'astro-starlight/guide' },
                         },
                         {
