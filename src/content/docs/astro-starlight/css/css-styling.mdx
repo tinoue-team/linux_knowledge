@@ -1,0 +1,72 @@
+---
+title: CSSとスタイリング
+description: カスタム CSS と Tailwind の利用
+tags:
+    - "Astro"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: CSSとスタイリング
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { Steps } from "@astrojs/starlight/components";
+
+## カスタム CSS を適用
+
+Starlight に適用されているスタイルをカスタマイズする。
+
+<Steps>
+
+    1. css ファイルを作成
+
+        ```css title="src/styles/custom.css"
+        :root {
+            --sl-content-width: 50rem;
+            --sl-text-5xl: 3.5rem;
+        }
+        ```
+
+    1. customCss の配列にファイルのパスを追加
+
+        ````js ins={10-11}
+        // astro.config.mjs
+        import { defineConfig } from 'astro/config';
+        import starlight from '@astrojs/starlight';
+
+        export default defineConfig({
+            integrations: [
+                starlight({
+                    title: 'カスタムCSSを設定したドキュメント',
+                    customCss: [
+                        // カスタムCSSファイルへの相対パス
+                        './src/styles/custom.css',
+                    ],
+                }),
+            ]
+        })
+
+</Steps>
+
+[Starlight が利用しているカスタムプロパティ](https://github.com/withastro/starlight/blob/main/packages/starlight/style/props.css)
+
+## Tailwind CSS
+
+### インストール
+
+```bash
+pnpm astro add tailwind
+```
+
+:::note
+Starlight の Tailwind プラグインは以下の設定を適用
+
+-   Tailwind の dark:バリアントを Starlight のダークモードと連携するように設定される
+-   UStarlight の UI で Tailwind のテーマカラーとフォントを使用する
+-   Tailwind の Preflight リセットスタイルを無効化した上で、Tailwind のボーダーユーティリティクラスに必要な Preflight の必須部分のみ有効化
+
+:::

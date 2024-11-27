@@ -1,0 +1,81 @@
+---
+title: Code
+description: Code コンポーネントの紹介
+tags:
+    - "Astro"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Code
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { Code } from "@astrojs/starlight/components";
+// import { Table } from "webcoreui/astro";
+
+## 概要
+
+`<Code>`コンポーネントは、シンタックスハイライトされたコードをレンダリングする。
+Markdown のコードブロックを使用せずに、ファイルやデータベース、API から取得したデータを表示する場合に便利です。
+
+## 使用方法
+
+> 参考
+>
+> -   https://expressive-code.com/key-features/text-markers/#usage-in-the-code-component
+> -   https://expressive-code.com/key-features/code-component/
+
+```mdx
+import { Code } from "@astrojs/starlight/components";
+
+{/* exampleCode が外部データとして利用する部分 */}
+export const exampleCode = `console.log('これはファイルやCMSから来る可能性がある！');`;
+export const fileName = "example.js";
+export const highlights = ["ファイル", "CMS"];
+
+<Code code={exampleCode} lang="js" title={fileName} mark={highlights} />
+```
+
+> 下記は、上のコードを利用して出力されたコードブロック
+
+export const exampleCode = `console.log('これはファイルやCMSから来る可能性がある！');`;
+export const fileName = "example.js";
+export const highlights = ["ファイル", "CMS"];
+
+<Code code={exampleCode} lang="js" title={fileName} mark={highlights} />
+
+### プロジェクト内のファイルをインポートして表示
+
+code プロパティにファイルのパスを渡して、その内容をコードブロックに表現する
+
+```mdx title="src/content/docs/example.mdx"
+import { Code } from "@astrojs/starlight/components";
+import importedCode from "/src/env.d.ts?raw";
+
+<Code code={importedCode} lang="ts" title="src/env.d.ts" />
+```
+
+> プレビュー
+
+import importedCode from "/src/env.d.ts?raw";
+
+<Code code={importedCode} lang="ts" title="src/env.d.ts" />
+
+## プロパティ一覧(編集中)
+
+https://expressive-code.com/key-features/code-component/#available-props
+
+| prop   | type                  | description                            | must |
+| :----- | :-------------------- | :------------------------------------- | :--- |
+| `code` | `string`              | コードブロックのプレーンテキストの内容 | ○    |
+| `lang` | `string \| undefined` | default: undefined                     | ○    |
+| `code` | `string`              | コードブロックのプレーンテキストの内容 | ○    |
+| `code` | `string`              | コードブロックのプレーンテキストの内容 | ○    |
+| `code` | `string`              | コードブロックのプレーンテキストの内容 | ○    |
+| `code` | `string`              | コードブロックのプレーンテキストの内容 | ○    |
+| `code` | `string`              | コードブロックのプレーンテキストの内容 | ○    |
+| `code` | `string`              | コードブロックのプレーンテキストの内容 | ○    |

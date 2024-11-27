@@ -18,32 +18,71 @@
     .sl-markdown-content h3:not(:where(.not-content *)) {
         @apply text-2xl
             font-semibold
-            text-accent-600
+            text-accent-500
             pl-2
             py-2
             mb-2
-            /* bg-gray-500 */
-            border-l-accent-600
+            /* 左 */
             border-s-4
+            border-l-accent-600
+            /* 上 */
+            border-t
+            border-t-white/10
+            /* 右 */
+            border-r
+            border-r-emerald-900/15
+            /* 下 */
+            border-b
+            border-b-stone-500/15
             rounded
-            shadow-mbump;
-        /* box-shadow: 2px 2px 10px var(--sl-color-black),
-            -2px -2px 10px var(--sl-color-gray-4); */
-
-        /* text-shadow: -1px -1px 1px var(--accent-900), 1px 1px var(--accent-200); */
+            shadow-sbump;
+        text-shadow: var(--text-shadow);
     }
     .sl-markdown-content h4:not(:where(.not-content *)) {
-        @apply text-xl font-semibold text-accent-600 mb-2;
+        @apply text-xl
+            font-semibold
+            text-accent-600
+            mb-2
+            p-2
+            /* 左 */
+            border-s-4
+            border-l-accent-600
+            rounded-l-md
+            shadow-sbump;
+        text-shadow: var(--text-shadow);
     }
     .sl-markdown-content h5:not(:where(.not-content *)) {
-        @apply text-lg font-semibold text-accent-800 mb-1;
+        @apply text-lg
+            font-semibold
+            text-accent-600
+            mb-1;
     }
 
     .sl-markdown-content code:not(:where(.not-content *)) {
-        @apply text-base bg-slate-800 p-1 rounded text-accent-200;
+        @apply text-base
+            bg-slate-800
+            p-1
+            rounded
+            text-accent-200;
+    }
+
+    .sl-markdown-content code {
+        @apply text-base
+            bg-slate-800
+            p-1
+            rounded
+            text-accent-200;
     }
 
     .sl-markdown-content a:not(:where(.not-content *)) {
         color: var(--sl-color-text);
+    }
+
+    .expressive-code .frame pre {
+        @apply shadow-s-depressed bg-gray-600;
+    }
+
+    .sl-markdown-content code {
+        @apply shadow-2xs-depressed bg-gray-600 px-2 py-1;
     }
 }

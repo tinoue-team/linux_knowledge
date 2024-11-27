@@ -1,0 +1,142 @@
+---
+title: state
+description: 高度な状態管理を行います。状態ファイルの操作や修正を行う際に使用します。
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: state
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 説明
+
+### 解説
+
+Terraform の状態ファイル（ステートファイル）を操作するための高度なコマンドであり、サブコマンドを使用して特定のタスクを実行します。
+
+コマンドの構造と出力は、`grep` や `awk` などの一般的な Unix ユーティリティでうまく動作するように特別に調整されています。
+より高度な状態タスクを実行するには、これらのツールを使用することをお勧めします。
+
+### 構文
+
+```bash
+terraform [global options] state <subcommand> [options] [args]
+```
+
+### `<subcommand>`
+
+このコマンドには高度な状態管理のためのサブコマンドがある。
+これらのサブコマンドを使うことで、Terraform の状態を切り刻むことができる。
+これは高度なケースで必要になることがあります。
+安全のため、状態を変更するすべての状態管理コマンドは、変更を行う前に状態のタイムスタンプ付きバックアップを作成します。
+
+<Table
+    caption=""
+    columns={["subcommand", "説明"]}
+    data={[
+        ["list", "state 内リソースをリストアップ"],
+        ["mv", "ステート内のアイテムを移動"],
+        ["pull", "現在のステートを取得し、標準出力に出力"],
+        ["push", "ローカルのステートファイルからリモートステートを更新"],
+        ["replace-provider", "ステート内のプロバイダーを置換"],
+        ["rm", "ステートからインスタンスを削除"],
+        ["show", "ステート内のリソースを表示"],
+    ]}
+/>
+
+<Tabs>
+    <TabItem label="list">
+    ステート内のリソースを一覧表示します。現在Terraformが管理しているリソースのリストを取得できます。
+
+    ```bash frame=none
+    terraform state list
+    ```
+    </TabItem>
+
+    <TabItem label="mv">
+    ステート内のアイテムを新しいアドレスに移動します。リソースやモジュールのリファクタリング時に使用します。
+
+    ```bash frame=none
+    terraform state mv [旧リソースアドレス] [新リソースアドレス]
+    ```
+    </TabItem>
+
+    <TabItem label="pull">
+    現在の状態を取得し、標準出力に出力します。状態ファイルの内容を確認したい場合に使用します。
+
+    ```bash frame=none
+    terraform state pull > terraform.tfstate
+    ```
+    </TabItem>
+
+    <TabItem label="push">
+    ローカルの状態ファイルをリモートの状態に反映します。
+    ただし、最新の Terraform バージョンでは非推奨または使用が制限されている場合があります。
+
+    ```bash frame=none
+    terraform state push terraform.tfstate
+    ```
+    </TabItem>
+
+    <TabItem label="replace-provider">
+    ステート内の特定のプロバイダーを別のプロバイダーに置換します。
+    プロバイダーの名前変更やフォークしたプロバイダーへの移行時に使用します。
+
+    ```bash frame=none
+    terraform state replace-provider [旧プロバイダー] [新プロバイダー]
+    ```
+    </TabItem>
+
+    <TabItem label="rm">
+    ステートからリソースを削除します。Terraformの管理下からリソースを外したい場合に使用します。
+
+    ```bash frame=none
+    terraform state rm [リソースアドレス]
+    ```
+    </TabItem>
+
+    <TabItem label="show">
+    ステート内の特定のリソースの詳細情報を表示します。リソースの属性や状態を確認できます。
+
+    ```bash frame=none
+    terraform state show [リソースアドレス]
+    ```
+    </TabItem>
+
+</Tabs>
+
+### 主な用途
+
+-   **リソースのリネームや移動**: リソースの名前変更やモジュールの階層変更に伴って、状態ファイル内のリソースを移動することができます
+-   **リソースの削除**: 状態ファイルからリソースを削除し、Terraform の管理から除外できます。
+-   **状態ファイルの取得と更新**: リモートに保存された状態ファイルを取得（pull）したり、ローカルの状態ファイルをリモートに反映（push）することができます。
+-   **プロバイダーの置換**: 状態ファイル内で使用されているプロバイダーを別のものに置換することができます。
+
+:::note[使用上の注意]
+
+-   **高度な操作**: terraform state コマンドは高度な操作であり、誤った使用はインフラストラクチャの管理に問題を引き起こす可能性があります。使用する際は十分に注意し、必ずバックアップを確認してください。
+-   **バージョン管理**: 状態ファイルをバージョン管理システムに含めるべきではありませんが、バックアップや変更の履歴を適切に管理することが重要です。
+-   **チームでの協調**: チームで作業している場合、状態ファイルの操作は他のメンバーの作業に影響を与える可能性があります。操作前にチーム内で共有し、必要なロックや同期を行ってください。
+
+:::
+
+## Sample
+
+```bash frame="none"
+terraform state list
+```
+
+```bash frame="none"
+# 特定のリソースを削除
+terraform state rm aws_instance.example
+```

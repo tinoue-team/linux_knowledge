@@ -1,0 +1,27 @@
+---
+title: fmt
+description: Terraform の設定ファイルを標準的なスタイルに再フォーマットします。コードの整形に使用します。
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: fmt
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+```bash frame="none"
+terraform fmt
+```
+
+```bash frame="none"
+# ファイルがフォーマット済みかチェック
+terraform fmt -check
+
+# フォーマットの差分を表示する
+terraform fmt -diff
+```

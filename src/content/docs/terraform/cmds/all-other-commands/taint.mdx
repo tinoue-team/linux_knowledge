@@ -1,0 +1,21 @@
+---
+title: taint
+description: リソースインスタンスの
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: taint
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+リソースインスタンスを完全に機能していないとマークします。次回の apply でそのリソースが再作成されます。
+
+```bash frame="none"
+terraform taint aws_instance.example
+```

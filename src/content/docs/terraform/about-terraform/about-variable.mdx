@@ -1,0 +1,283 @@
+---
+title: 変数
+description: Terraform の変数についての利用方法
+tags:
+    - "Terraform"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: 変数
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 1
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 変数の利用
+
+### 変数の使用方法
+
+直接同じ値を何度も書くような冗長な記述を減らしていく目的で利用する。
+
+変数の使用方法は大きく 2 つある
+
+-   `terraform apply` の実行時に引数として渡す
+-   変数定義ファイル(.tfvars)によって渡す
+
+### terraform apply の実行時に引数として渡す
+
+<Steps>
+1. **variable セクションを定義**
+
+    まず、tf ファイル内に variable セクションを用意
+
+    > variable セクションの定義
+
+    ```tf
+    variable "variable_name" {
+        description = "xxx"
+        type = string
+        default = 既定値
+    }
+    ```
+
+    <Table
+        caption=""
+        columns={["コマンド", "説明"]}
+        data={[
+            ["description", ["変数の説明"].join("<br/>")],
+            ["type", ["変数の型を指定する、string など"].join("<br/>")],
+            ["default", ["値が設定されなかった場合の既定値"].join("<br/>")],
+        ]}
+    />
+
+    :::caution[variable セクションを参照する]
+    xxx .tf というファイルがあった場合、その中で変数を参照している場合、同階層の xxx.tf に記述されているものを参照する。
+
+    ```
+    .
+    ├── 00_subnet.tf # 参照
+    ├── 00_vpc.tf # 参照
+    └── 99_variable.tf # 定義
+    ```
+
+    00_vpc.tf が参照するファイルは 00_subnet.tf、99_variable.tf です。そのため、00_vpc.tf 内で変数を参照するときに、二つのファイルに宣言がなければ参照エラーとなる。
+    他のパスから渡す方法は モジュールなどでリソースを参照する時に同時に変数を渡す方法がある。
+
+    :::
+
+    ```tf title="99_variable.tf"
+    variable "subnet_prefix" {
+        description = "cidr block for the subnet"
+        # default     = "10.0.1.0/24"
+    }
+    ```
+
+1. **変数を参照する**
+
+    ```tf title="00_subnet.tf"
+    variable "subnet_prefix" {
+        description = "xxx"
+    }
+
+    #4 サブネット作成
+    resource "aws_subnet" "iac-subnet" {
+        vpc_id            = aws_vpc.iac-vpc.id
+        cidr_block        = var.subnet_prefix
+        availability_zone = "ap-northeast-1a"
+        tags = {
+            Name = "iac-subnet"
+        }
+    }
+    ```
+
+    変数を使用する部分で、`var` プロパティで呼び出す。
+
+1. **`terraform apply` の実行**
+
+    変数の定義部分で、default 値を定義せずに、apply を実行
+
+    - **Enter a value で対話インターフェースによって渡す値を求められる**
+
+        ```bash frame=none
+        terraform apply
+        var.subnet_prefix
+            cidr block for the subnet
+
+            Enter a value: 10.0.1.0/24
+
+        ```
+
+        :::caution
+        削除時(destroy)も変数の値が求められるが、こちらは任意の値でも可
+        :::
+
+    - **apply コマンドの引数で変数の値を指定する**
+
+        ```bash frame=none
+        terraform apply -var "subnet_prefix=10.0.1.0/24" -auto-approve
+        ```
+
+</Steps>
+
+### 変数定義ファイル(.tfvars)によって渡す
+
+<Steps>
+1. .tf ファイルの同階層に拡張子 .tfvars を作成する。
+
+    ```tfvars title="network.tfvars"
+    subnet_prefix = "10.0.1.0/24"
+    ```
+
+1. `apply` に `-var-file` オプションで変数ファイルを指定する。
+
+    ```bash frame=none
+    terraform apply -var-file network.tfvars -auto-approve
+    ```
+
+    :::note[削除時にも変数を渡す]
+
+    ```bash frame=none
+    terraform destroy -var-file iac.tfvars -auto-approve
+    ```
+
+    default 値があると破棄するときの値を対話形式で指定する必要がなくなる
+
+    :::
+
+</Steps>
+
+## 応用
+
+### 実践的な `.tfvars` ファイルを構成する
+
+#### 分類方法
+
+##### 環境別の管理
+
+-   例: `dev.tfvars`, `staging.tfvars`, `prod.tfvars`
+-   各環境固有の設定を明確に分離できます。
+
+##### 情報の種類による分類
+
+-   例: `network.tfvars`, `database.tfvars`, `app_config.tfvars`
+-   関連する設定をグループ化し、管理しやすくなります。
+
+##### セキュリティの向上
+
+-   例: `secrets.tfvars` (gitignore に追加)
+-   機密情報を分離し、バージョン管理から除外できます。
+
+##### 柔軟な適用
+
+-   `terraform apply -var-file=<ファイル名>.tfvars` コマンドで、必要なファイルのみを適用できます。
+
+##### 可読性と保守性の向上
+
+-   小さな単位で管理することで、変更の追跡や更新が容易になります。
+
+#### 実装例
+
+```
+project/
+│
+├── main.tf        # インフラストラクチャを構成のメインとなるファイル
+├── variables.tf   # 変数を定義する
+├── outputs.tf     # 実行の際の出力内容を定義する
+│
+├── environments/       # 環境別の管理
+│   ├── dev.tfvars
+│   ├── staging.tfvars
+│   └── prod.tfvars
+│
+├── configs/            # 情報の種類による分類
+│   ├── network.tfvars
+│   └── database.tfvars
+│
+└── secrets/            # セキュリティのための管理
+        └── api_keys.tfvars  # .gitignoreに追加
+
+```
+
+このような構造を使用する場合、以下のように terraform を実行できる
+
+```bash frame=none
+terraform apply \
+    -var-file=environments/dev.tfvars \
+    -var-file=configs/network.tfvars \
+    -var-file=configs/database.tfvars \
+    -var-file=secrets/api_keys.tfvars
+```
+
+この方法を採用することで、設定の管理がより体系的になり、異なる環境や設定の組み合わせを柔軟に扱えるようになります。ただし、ファイルが多くなりすぎると管理が複雑になる可能性もあるため、プロジェクトの規模や要件に応じて適切なバランスを取ることが重要です。
+
+#### セキュリティの向上
+
+セキュリティのための管理方法の例として、プロバイダにアクセスするための機密情報を tfvars で渡すようにする。また、.secret 配下のファイルは git などのバージョン管理をしないようにすることで、セキュリティ対策となる。
+
+```tf title="project/main.tf"
+provider "aws" {
+    region     = var.aws_region
+    access_key = var.aws_access_key
+    secret_key = var.aws_secret_key
+}
+```
+
+```tfvars title="project/vars/dev/.secret/secret.tfvars"
+aws_region     = "ap-northeast-1"
+aws_access_key = <アクセスキーIDの値>
+aws_secret_key = <シークレットアクセスキーの値>
+```
+
+#### リスト・リストオブジェクトを渡す
+
+##### リスト
+
+.tfvars でリストを指定
+
+```tfvars
+subnet_prefix = ["10.0.1.0/24", "10.0.2.0/24"]
+```
+
+変数の参照時にリストのインデックスで指定
+
+```tf
+#4 サブネット作成
+resource "aws_subnet" "iac-subnet1" {
+    vpc_id            = aws_vpc.iac-vpc.id
+    cidr_block        = var.subnet_prefix[0]
+    availability_zone = "ap-northeast-1a"
+    tags = {
+        Name = "iac-subnet1"
+    }
+}
+```
+
+##### リストオブジェクト
+
+オブジェクト型の値をリストで用意
+
+```tfvars
+subnet_prefix = [{cidr_block = "10.0.1.0/24", name = "iac-subnet1"}, {cidr_block = "10.0.2.0/24", name = "iac-subnet2"}]
+```
+
+変数の参照には
+
+```tf
+#4 サブネット作成
+resource "aws_subnet" "iac-subnet1" {
+    vpc_id            = aws_vpc.iac-vpc.id
+    cidr_block        = var.subnet_prefix[0].cidr_block
+    availability_zone = "ap-northeast-1a"
+    tags = {
+        Name = var.subnet_prefix[0].name
+    }
+}
+```
+
+terraform で上記のように resouce セクション、tfvars ファイルを用意した時、variables セクションを用意してください

@@ -15,8 +15,11 @@
         "astrojs",
         "biomejs",
         "Datetime",
+        "jschardet",
         "linuledge",
+        "mbump",
         "preact",
+        "sbump",
         "tailwindcss",
         "tsconfigs",
         "turso"

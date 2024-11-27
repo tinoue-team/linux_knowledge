@@ -1,0 +1,175 @@
+---
+title: Terraform コマンド
+description: Terraform のコマンドリスト
+tags:
+    - "Terraform"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Terraform コマンド
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## コマンド一覧
+
+```bash
+terraform [global options] <subcommand> [args]
+```
+
+## subcommand
+
+### 主要なワークフローコマンド
+
+<Table
+    caption=""
+    columns={["コマンド", "説明"]}
+    data={[
+        ["[init](/terraform/cmds/main-commands/init/)", ["プロバイダにアクセスするプラグインなどを用意"].join("<br/>")],
+        ["[validate](/terraform/cmds/main-commands/validate/)", ["設定が有効かどうかをチェックする"].join("<br/>")],
+        ["[plan](/terraform/cmds/main-commands/plan/)", ["プロバイダに tf ファイルの検証を行う"].join("<br/>")],
+        ["[apply](/terraform/cmds/main-commands/apply/)", ["インフラストラクチャの生成と更新"].join("<br/>")],
+        [
+            "[destroy](/terraform/cmds/main-commands/destroy/)",
+            ["tf によって作成されたリソースを破棄する"].join("<br/>"),
+        ],
+    ]}
+/>
+
+### 一般的でないコマンドや高度なコマンド
+
+<Table
+    caption=""
+    columns={["コマンド", "説明"]}
+    data={[
+        [
+            "[console](/terraform/cmds/all-other-commands/console/)",
+            ["インタラクティブなコマンドプロンプトで Terraform 式を試す"].join("<br/>"),
+        ],
+        [
+            "[fmt](/terraform/cmds/all-other-commands/fmt/)",
+            ["標準スタイルでコンフィギュレーションを再フォーマットする"].join("<br/>"),
+        ],
+        [
+            "[force-unlock](/terraform/cmds/all-other-commands/force-unlock/)",
+            ["現在のワークスペースのスタックしたロックを解除する"].join("<br/>"),
+        ],
+        [
+            "[get](/terraform/cmds/all-other-commands/get/)",
+            ["リモートのTerraformモジュールをインストールまたはアップグレードする"].join("<br/>"),
+        ],
+        [
+            "[graph](/terraform/cmds/all-other-commands/graph/)",
+            ["操作ステップの Graphviz グラフを生成する"].join("<br/>"),
+        ],
+        [
+            "[import](/terraform/cmds/all-other-commands/import/)",
+            ["既存のインフラをTerraformリソースに関連付ける"].join("<br/>"),
+        ],
+        ["[login](/terraform/cmds/all-other-commands/login/)", ["リモートホストの認証情報の取得と保存"].join("<br/>")],
+        [
+            "[logout](/terraform/cmds/all-other-commands/logout/)",
+            ["リモートホストのローカルに保存された認証情報を削除する"].join("<br/>"),
+        ],
+        ["[metadata](/terraform/cmds/all-other-commands/metadata/)", ["メタデータ関連コマンド"].join("<br/>")],
+        ["[output](/terraform/cmds/all-other-commands/output/)", ["ルートモジュールからの出力値を表示"].join("<br/>")],
+        [
+            "[providers](/terraform/cmds/all-other-commands/providers/)",
+            ["この設定に必要なプロバイダーを表示する"].join("<br/>"),
+        ],
+        [
+            "[refresh](/terraform/cmds/all-other-commands/refresh/)",
+            ["リモートシステムに合わせて状態を更新"].join("<br/>"),
+        ],
+        [
+            "[show](/terraform/cmds/all-other-commands/show/)",
+            ["現在の状態または保存されたプランを表示する"].join("<br/>"),
+        ],
+        ["[state](/terraform/cmds/all-other-commands/state/)", ["高度な状態管理"].join("<br/>")],
+        [
+            "[taint](/terraform/cmds/all-other-commands/taint/)",
+            ["リソースインスタンスを完全に機能しないものとしてマークする"].join("<br/>"),
+        ],
+        [
+            "[test](/terraform/cmds/all-other-commands/test/)",
+            ["Terraform モジュールの統合テストを実行する"].join("<br/>"),
+        ],
+        [
+            "[untaint](/terraform/cmds/all-other-commands/untaint/)",
+            ["リソースインスタンスから'tainted'(汚染された)状態を取り除く"].join("<br/>"),
+        ],
+        [
+            "[version](/terraform/cmds/all-other-commands/version/)",
+            ["現在のTerraformのバージョンを表示する"].join("<br/>"),
+        ],
+        ["[workspace](/terraform/cmds/all-other-commands/workspace/)", ["ワークスペースの管理"].join("<br/>")],
+    ]}
+/>
+
+### global options
+
+必要であれば、サブコマンドの直前に使用する
+
+<Table
+    caption=""
+    columns={["Option", "説明"]}
+    data={[
+        ["-chdir=DIR", ["指定されたサブコマンドを実行する前に、別の作業ディレクトリに切り替える。"].join("<br/>")],
+        ["-help", ["このヘルプ出力、または指定したサブコマンドのヘルプを表示する。"].join("<br/>")],
+        ["-version", ["'version' サブコマンドのエイリアス"].join("<br/>")],
+    ]}
+/>
+
+### 共通オプション
+
+サブコマンド内で利用されるが、共通で使用できるオプション
+
+<Table
+    caption=""
+    columns={["Option", "説明"]}
+    data={[
+        ["-no-color", ["出力に色を含めないようにします。ログファイルへの出力やパイプ処理時に有用です。"].join("<br/>")],
+        [
+            "-lock=false",
+            [
+                "状態ロックを無効にして操作を実行したい場合に使用",
+                "他のユーザーが同じワークスペースで操作を行っている場合に競合が発生する可能性がある",
+            ].join("<br/>"),
+        ],
+        [
+            "-lock-timeout=0s",
+            [
+                "状態ロックの再試行期間を設定します。デフォルトでは再試行が行われますが、タイムアウトを設定して特定の期間後に失敗させることができます。",
+            ].join("<br/>"),
+        ],
+        [
+            "-compact-warnings",
+            ["エラーを伴わない警告がある場合、要約メッセージのみを含むよりコンパクトな形式で表示します。"].join(
+                "<br/>"
+            ),
+        ],
+        ["-input=<boolean>", ["true のとき、変数が直接設定されていない場合、入力を求めます。"].join("<br/>")],
+        ["-parallelism=n", ["同時に実行する操作の数を制限します。デフォルトは `10` "].join("<br/>")],
+        [
+            "-target=resource",
+            [
+                "対象とするリソースを指定します。操作はこのリソースとその依存関係に限定されます。このフラグは複数回使用できます。 ",
+            ].join("<br/>"),
+        ],
+        ["-var 'foo=bar'", ["Terraformの設定で変数を設定します。このフラグは複数回設定できます。"].join("<br/>")],
+        [
+            "-var-file=foo",
+            [
+                "ファイルからTerraformの設定変数を設定します。",
+                "terraform.tfvars または .auto.tfvars ファイルが存在する場合、自動的に読み込まれます。",
+            ].join("<br/>"),
+        ],
+    ]}
+/>

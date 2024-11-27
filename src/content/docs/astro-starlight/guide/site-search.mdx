@@ -1,0 +1,150 @@
+---
+title: サイト内検索
+description: Pagefind による全文検索機能
+tags:
+    - "Astro"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: サイト内検索
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { Steps } from "@astrojs/starlight/components";
+
+## 検索結果からコンテンツを隠す
+
+### ページを除外する
+
+検索インデックスからページを除外するには、ページのフロントマターに`pagefind: false`を追加します。
+
+```md title="src/content/docs/not-indexed.md" ins={3}
+---
+title: 検索結果から隠したいコンテンツ
+pagefind: false
+---
+```
+
+### ページの一部を除外する
+
+Pagefind は、data-pagefind-ignore 属性をもつ要素内のコンテンツを無視します。
+
+以下の例では、最初の段落は検索結果に表示されますが、`<div>`の中身は表示されません。
+
+```md title="src/content/docs/partially-indexed.md" /data-pagefind-ignore/
+---
+title: 部分的にインデックスされるページ
+---
+
+このテキストは検索で見つかります。
+
+<div data-pagefind-ignore>
+
+このテキストは検索結果から隠されます。
+
+</div>
+```
+
+## その他の検索プロバイダ
+
+### [Algolia DocSearch](https://docsearch.algolia.com/)
+
+Pagefind の代わりに Algolia DocSearch を使いたい場合は、
+公式の Starlight DocSearch プラグインを使うことができる
+
+<Steps>
+
+    1. `@astrojs/starlight-docsearch` をインストール
+        ```bash
+        pnpm add @astrojs/starlight-docsearch
+        ```
+
+    1. `astro.config.mjs` で
+    Starlight の `plugins` 設定に DocSearch を追加し、
+    Algolia の `appId` 、`apiKey` 、`indexName` を渡す
+        ```js title="astro.config.mjs" ins={3, 9-15}
+        import { defineConfig } from 'astro/config';
+        import starlight from '@astrojs/starlight';
+        import starlightDocSearch from '@astrojs/starlight-docsearch';
+
+        export default defineConfig({
+            integrations: [
+                starlight({
+                    title: 'DocSearchを使ったサイト',
+                    plugins: [
+                        starlightDocSearch({
+                            appId: 'YOUR_APP_ID',
+                            apiKey: 'YOUR_SEARCH_API_KEY',
+                            indexName: 'YOUR_INDEX_NAME',
+                        }),
+                    ],
+                }),
+            ],
+        });
+        ```
+
+</Steps>
+
+このように設定を更新すると、サイトの検索バーはデフォルトの検索モーダルではなく、
+Algolia のモーダルを開く
+
+### DocSearch UI を翻訳する
+
+DocSearch はデフォルトで英語の UI 文字列のみを提供しています。
+Starlight の組み込みの国際化の仕組みを使って、モーダルの UI を翻訳
+
+<Steps>
+    1. `src/content/config.ts` で、Starlight の i18n コンテンツコレクション定義を DocSearch スキーマにより拡張
+        ```ts title="src/content/config.ts" ins={3} "{ extend: docSearchI18nSchema() }"
+        import { defineCollection } from 'astro:content';
+        import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
+        import { docSearchI18nSchema } from '@astrojs/starlight-docsearch/schema';
+
+        export const collections = {
+            docs: defineCollection({ schema: docsSchema() }),
+            i18n: defineCollection({
+                type: 'data',
+                schema: i18nSchema({ extend: docSearchI18nSchema() }),
+            }),
+        };
+        ```
+    1. `src/content/i18n/` の json ファイルに翻訳を追加
+        DocSearchで使われる英語のデフォルト
+        ```json
+        {
+            "docsearch.searchBox.resetButtonTitle": "Clear the query",
+            "docsearch.searchBox.resetButtonAriaLabel": "Clear the query",
+            "docsearch.searchBox.cancelButtonText": "Cancel",
+            "docsearch.searchBox.cancelButtonAriaLabel": "Cancel",
+
+            "docsearch.startScreen.recentSearchesTitle": "Recent",
+            "docsearch.startScreen.noRecentSearchesText": "No recent searches",
+            "docsearch.startScreen.saveRecentSearchButtonTitle": "Save this search",
+            "docsearch.startScreen.removeRecentSearchButtonTitle": "Remove this search from history",
+            "docsearch.startScreen.favoriteSearchesTitle": "Favorite",
+            "docsearch.startScreen.removeFavoriteSearchButtonTitle": "Remove this search from favorites",
+
+            "docsearch.errorScreen.titleText": "Unable to fetch results",
+            "docsearch.errorScreen.helpText": "You might want to check your network connection.",
+
+            "docsearch.footer.selectText": "to select",
+            "docsearch.footer.selectKeyAriaLabel": "Enter key",
+            "docsearch.footer.navigateText": "to navigate",
+            "docsearch.footer.navigateUpKeyAriaLabel": "Arrow up",
+            "docsearch.footer.navigateDownKeyAriaLabel": "Arrow down",
+            "docsearch.footer.closeText": "to close",
+            "docsearch.footer.closeKeyAriaLabel": "Escape key",
+            "docsearch.footer.searchByText": "Search by",
+
+            "docsearch.noResultsScreen.noResultsText": "No results for",
+            "docsearch.noResultsScreen.suggestedQueryText": "Try searching for",
+            "docsearch.noResultsScreen.reportMissingResultsText": "Believe this query should return results?",
+            "docsearch.noResultsScreen.reportMissingResultsLinkText": "Let us know."
+        }
+        ```
+
+</Steps>

@@ -1,0 +1,26 @@
+---
+title: console
+description: インタラクティブなコマンドプロンプトで Terraform 式を試すことができる
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: console
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+## 説明
+
+インタラクティブなコマンドプロンプトで Terraform 式を試すことができます。変数やリソースの値を確認する際に便利です。
+
+```bash frame="none"
+terraform console
+# 対話モードが開始される
+
+> aws_instance.example.public_ip
+```

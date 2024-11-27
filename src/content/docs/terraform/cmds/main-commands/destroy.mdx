@@ -1,0 +1,42 @@
+---
+title: destroy
+description: 以前に作成されたインフラを削除する。
+tags:
+    - "Terraform commands"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: destroy
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+## 説明
+
+### 解説
+
+Terraform コマンドで管理しているインフラを削除する。
+
+`terraform apply -destroy` のエイリアスコマンド
+
+このコマンドは、`terraform plan` コマンドで受け付けるプランのカスタマイズオプションの多くも受け付ける。
+これらのオプションの詳細については `terraform plan -help`
+
+### 構文
+
+```bash frame=none
+terraform [global options] destroy [options]
+```
+
+## Sample
+
+```bash frame="none"
+terraform destroy
+```
+
+```bash frame="none"
+terraform destroy -auto-approve
+```

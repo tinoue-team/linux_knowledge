@@ -1,0 +1,1264 @@
+---
+title: sed
+description: テキストの修正。ファイルの編集など
+tags:
+    - "Linux"
+    - "テキスト処理"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: sed
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## `sed` コマンドの基本的な動作
+
+`sed` は、ストリームエディタ（Stream Editor）として機能し、以下のような操作を行います。
+
+-   **入力の修正**: 指定されたコマンドに従って、入力テキストを編集します。
+-   **出力の生成**: 修正されたテキストを標準出力に出力します。
+-   **ファイルの編集**: ファイルを直接編集（インプレース編集）することも可能です。
+
+指定されたファイルや標準入力からデータを読み取り、
+指定されたコマンドリストに従って入力を修正し、その結果を標準出力に書き出します。
+`sed` は主にテキストの置換、削除、挿入などの操作に使用され、
+スクリプトやパイプライン内での自動化に非常に便利です。
+
+### 入力データを処理する手順
+
+1. **パターンスペースへのコピー**
+
+    入力行（改行文字を除く）がパターンスペースにコピーされます。ただし、D コマンドなどでパターンスペースに何かが残っている場合はこの限りではありません。
+
+1. **編集コマンドの適用**
+
+    指定されたすべての編集コマンドが、パターンスペースに対して順番に適用されます。
+
+1. **出力へのコピー**
+
+    編集されたパターンスペースの内容が標準出力にコピーされ、改行文字が追加されます。
+
+1. **パターンスペースへの削除**
+
+    パターンスペースがクリアされ、次の入力行の処理に移ります。
+
+このサイクルが入力データのすべての行に対して繰り返されます。
+
+:::note[パターンスペースとホールドスペース]
+
+-   **パターンスペース**
+
+    現在処理中の行が一時的に保存される領域です。編集コマンドはこのパターンスペース上で実行されます。
+
+-   **ホールドスペース**
+
+        一時的にデータを保存しておくための領域で、後続の編集コマンドでデータを再利用することができます。
+        例えば、特定のパターンに一致した行をホールドスペースに保存し、後で参照することが可能です。
+
+    :::
+
+## 具体的な使用方法
+
+`sed` は編集コマンドを引数として渡し、対象のテキストの修正を行います。
+
+### 単一コマンド
+
+単一のコマンドを `sed` の最初の引数として直接指定する
+
+```bash frame=none
+echo "this is apple" | sed 's/apple/banana/'
+# this is banana
+```
+
+指定したファイル内のテキスト置換を行う
+
+```bash frame=none
+cat sample.txt
+apple
+banana
+grape
+
+sed 's/grape/葡萄/' sample.txt
+apple
+banana
+葡萄
+```
+
+sample.txt の内容が置換された訳ではなく、
+あくまで sample.txt のファイル内のテキストをもとに変換した内容を出力している。
+
+:::note
+ファイルを直接編集するには 後述する `-i` オプションを利用してください。
+
+```bash frame=none
+sed -i '' 's/grape/葡萄/' sample.txt
+
+# 置換実行後に確認
+cat sample.txt
+apple
+banana
+葡萄
+```
+
+:::
+
+`sed` コマンドは、オプションでアドレス（行番号やパターン）を指定し、その後に関数と必要な引数を続けます。
+
+```bash
+# 1行目から10行目までの範囲で old を new に置換
+sed 1,10s/old/new/g input.txt
+```
+
+#### ホールドスペースの使用
+
+現在の行をホールドスペースに保存し、ホールド行と実行結果の行を一緒に出力
+
+```bash
+cat sample3.txt
+foo
+apple
+foo
+banana
+
+sed 'h; s/foo/bar/; H; g' sample3.txt
+foo
+bar
+apple
+apple
+foo
+bar
+banana
+banana
+```
+
+### -i オプションで直接編集
+
+`-i` オプションをつけることで、先ほどまでの標準出力結果を直接ファイルに編集を加えることができる。  
+また、不用意な編集をしないように、バックアップをとることを意識してください。
+
+バックアップを作成せずに直接編集
+
+```bash frame=none
+sed -i 's/grape/葡萄/' sample.txt
+
+# Mac OS の場合は、-i オプションに空の文字列を指定する必要がある
+sed -i '' 's/grape/葡萄/' sample.txt
+cat sample.txt
+apple
+banana
+葡萄
+```
+
+#### バックアップを作成して修正
+
+```bash frame=none
+sed -i.bak 's/apple/林檎/' sample.txt
+
+ll
+total 24
+-rw-r--r--  1 t_inoue  staff    21B 11 17 03:30 sample.txt
+-rw-r--r--  1 t_inoue  staff    20B 11 17 03:28 sample.txt.bak
+-rw-r--r--  1 t_inoue  staff    24B 11 17 03:05 sample2.txt
+
+cat sample.txt
+林檎
+banana
+葡萄
+```
+
+### -e オプションを利用して複数処理
+
+`-e` オプションは複数の編集コマンドを指定する時に利用される。
+
+基本的な構文
+
+```bash frame=none
+sed -e 'command1' -e 'command2' file
+```
+
+#### 複数の置換を同時に行う
+
+```bash frame=none
+cat sample.txt
+apple
+banana
+grape
+
+# 'apple' を '林檎' に、'grape' を '葡萄' に置換
+sed -e 's/apple/林檎/g' -e 's/grape/葡萄/g' sample.txt
+林檎
+banana
+葡萄
+```
+
+```bash frame=none
+cat sample2.txt
+apple
+apple
+grape
+grape
+
+# 'apple' を '林檎' に、'grape' を '葡萄' に置換
+sed -e 's/apple/林檎/g' -e 's/grape/葡萄/g' sample2.txt
+林檎
+林檎
+葡萄
+葡萄
+```
+
+#### エラーログなどを出力補助
+
+```bash frame=none
+# 'ERROR' を含む行を大文字に変換し、'DEBUG' を含む行を削除
+sed -e '/ERROR/s/.*/\U&/' -e '/DEBUG/d' log.txt
+```
+
+#### `;` を使用して一つの引数にする
+
+```bash frame=none
+sed -e 's/apple/林檎/g; s/grape/葡萄/g' sample2.txt
+林檎
+林檎
+葡萄
+葡萄
+```
+
+#### 実践的な利用を考察
+
+1.  ログファイルの出力例
+
+    ```bash frame=none
+    # エラー行を強調し、デバッグ行を削除し、空行を削除
+    sed -e 's/ERROR/**_ ERROR _**/g' \
+        -e '/DEBUG/d' \
+        -e '/^$/d' \
+        log.txt
+
+    ```
+
+    条件付き置換
+
+    ```bash frame=none
+    # 'ERROR' を含む行のみで 'warning' を 'WARN' に置換
+    sed -e '/ERROR/{s/warning/WARN/g}' \
+        -e '/DEBUG/d' \
+        log.txt
+    ```
+
+1.  設定ファイルの編集
+
+    ```bash frame=none
+    # コメントを削除し、特定の設定値を変更
+    sed -e '/^#/d' \
+        -e 's/port=.*/port=8080/' \
+        -e 's/host=.*/host=localhost/' \
+        config.ini
+    ```
+
+1.  テキストの整形
+
+    ```bash frame=none
+    # 先頭と末尾の空白を削除し、複数の空白を1つに圧縮
+    sed -e 's/^[ \t]*//' \
+        -e 's/[ \t]*$//' \
+        -e 's/[ \t]\+/ /g' \
+        text.txt
+    ```
+
+1.  HTML タグの処理
+    ```bash frame=none
+    # 特定のタグを置換し、空のタグを削除
+    sed -e 's/<div>/<section>/g' \
+        -e 's/<\/div>/<\/section>/g' \
+        -e 's/<[^>]*>//g' \
+        webpage.html
+    ```
+1.  アドレス範囲を使用した編集
+
+    ```bash frame=none
+    # 特定の行範囲で異なる処理を適用
+    sed -e '1,10s/foo/bar/g' \
+        -e '11,20s/hello/world/g' \
+        -e '21,$d' \
+        file.txt
+    ```
+
+1.  パターンマッチングと置換の組み合わせ
+
+    ```bash frame=none
+    # 複数の条件での処理
+    sed -e '/pattern1/s/old/new/g' \
+        -e '/pattern2/i\INSERT THIS LINE' \
+        -e '/pattern3/a\APPEND THIS LINE' \
+        input.txt
+    ```
+
+1.  CSV ファイルの処理
+
+    ```bash frame=none
+    # カンマをタブに変換し、引用符を削除し、空行を削除
+    sed -e 's/,/\t/g' \
+        -e 's/"//g' \
+        -e '/^$/d' \
+        data.csv
+    ```
+
+1.  プログラムコードの整形
+
+    ```bash frame=none
+    # インデントを標準化し、末尾の空白を削除し、空行を正規化
+    sed -e 's/^[ ]*//g' \
+        -e 's/[ \t]*$//g' \
+        -e '/^$/N;/^\n$/D' \
+        code.js
+    ```
+
+1.  特殊文字のエスケープ
+    ```bash frame=none
+    # パスやURLを含む文字列の置換
+    sed -e 's/\/old\/path/\/new\/path/g' \
+        -e 's/http:\/\//https:\/\//g' \
+        config.txt
+    ```
+
+### -f オプションで sed スクリプトファイルを使用する
+
+> 基本的な構文
+
+```bash frame=none
+sed -f script_file input_file
+```
+
+#### 手順を踏まえた具体例
+
+1. sed スクリプトファイルを作成
+
+```ini title="commands.sed"
+# commands.sed の内容
+s/old/new/g
+/pattern/d
+s/another/replace/g
+```
+
+1. このスクリプトを sed の引数で使用して実行する
+
+```bash frame=none
+sed -f commands.sed input.txt
+```
+
+#### より複雑な処理を行うスクリプト
+
+```bash frame=none
+# process.sed
+# 空行を削除
+/^$/d
+
+# 行頭の空白を削除
+s/^[ \t]*//
+
+# コメント行を削除
+/^#/d
+
+# 特定のパターンを含む行を変換
+/ERROR/s/ERROR/ALERT/g
+```
+
+使用方法
+
+```bash frame=none
+sed -f process.sed log.txt
+```
+
+#### 主な特徴と注意点:
+
+1. **スクリプトファイルの利点**:
+
+    - 複数の sed コマンドを整理して保存できる
+    - 再利用が容易
+    - 複雑な処理を見やすく管理できる
+
+1. **スクリプトファイルの書き方**:
+
+    - 1 行に 1 つのコマンド
+    - コメントは # で始める
+    - 空行は無視される
+
+1. よく使用される組み合わせ:
+
+    ```bash
+    # 変更をファイルに保存
+    sed -f script.sed input.txt > output.txt
+
+    # 元ファイルを直接編集 (-i オプション)
+    sed -i -f script.sed input.txt
+
+    # バックアップを作成して編集
+    sed -i.bak -f script.sed input.txt
+    ```
+
+1. デバッグとテスト
+
+    ```bash
+    # 詳細な実行情報を表示
+    sed -n -f script.sed input.txt
+
+    # 変更内容を確認してから適用
+    sed -f script.sed input.txt | diff input.txt -
+    ```
+
+#### 実践的な使用例
+
+##### ログファイル処理スクリプト
+
+```ini title="log_process.sed"
+# log_process.sed
+# タイムスタンプのフォーマット変更
+s/\([0-9]\{4\}\)-\([0-9]\{2\}\)-\([0-9]\{2\}\)/\3\/\2\/\1/g
+
+# エラーレベルの強調
+s/ERROR/*** ERROR ***/g
+
+# デバッグ行の削除
+/DEBUG/d
+
+# 空行の削除
+/^$/d
+```
+
+```bash
+sed -f log_process.sed app.log > processed.log
+```
+
+##### 設定ファイル処理スクリプト
+
+```bash title="config_process.sed"
+# コメント行を削除
+/^#/d
+
+# 空行を削除
+/^$/d
+
+# 値の更新
+s/port=.*/port=8080/
+s/host=.*/host=localhost/
+
+# 空白の正規化
+s/[[:space:]]\+/ /g
+```
+
+```bash
+sed -f config_process.sed config.ini > new_config.ini
+```
+
+:::caution
+
+-   コマンドの順序
+
+    複数の編集コマンドを指定する場合、コマンドの順序が結果に影響を与えるため、意図した順序でコマンドを指定することが重要です。
+
+-   インプレース編集のリスク
+
+    `i` や `I` オプションを使用してファイルをインプレースで編集する際は、元のファイルのバックアップを取ることを推奨します。
+    これにより、誤った編集操作によるデータの損失を防ぐことができます。
+
+-   正規表現の理解
+
+    `sed` の強力な機能を最大限に活用するためには、正規表現の理解が不可欠です。
+    特に、基本的な正規表現（BRE）と拡張正規表現（ERE）の違いを理解し、適切なオプション（`-E` または `-r`）を使用することが重要です。
+
+:::
+
+## Sed アドレス
+
+### アドレスの種類
+
+`sed` コマンドでは、特定の行や行範囲に対して編集コマンドを適用するために、アドレスを指定します。
+アドレスを使用することで、ファイル全体ではなく特定の部分だけを効率的に処理することが可能です。アドレスには以下の 3 種類があります。
+
+<Table
+    caption=""
+    columns={["種類名", "形式", "ex.", "動作内容"]}
+    data={[
+        [
+            "行番号アドレス",
+            "単純な数値",
+            "`5`",
+            ["`5` は5行目を指す。", "指定した行番号に対応する行に対してコマンドを適用"].join("<br/>"),
+        ],
+        [
+            "最後の行アドレス",
+            "ドル記号 ($)",
+            "`$`",
+            [
+                "`$` はファイルの最後の行を指す。",
+                "入力の最後の行（または -i オプション使用時は現在のファイルの最後の行）に対してコマンドを適用",
+            ].join("<br/>"),
+        ],
+        [
+            "コンテキストアドレス（正規表現）",
+            "デリミタで囲まれた正規表現",
+            "`/pattern/`",
+            [
+                "`/pattern/` は 'pattern' にマッチする行を指す。",
+                "デリミタの後に `I` を付けると、大文字小文字を区別せずにマッチします（例：`/pattern/I`）。",
+            ].join("<br/>"),
+        ],
+    ]}
+/>
+
+### アドレスを使った指定方法
+
+```bash frame=none
+# アドレスなし
+# すべての行に対してコマンドを適用。全行の "foo" を "bar" に置換
+sed 's/foo/bar/'
+
+# 1つのアドレス
+# 指定したアドレスにマッチする行に対してコマンドを適用。
+# 5行目の "foo" を "bar" に置換
+sed '5s/foo/bar/'
+```
+
+#### 2 つのアドレス
+
+範囲指定。最初のアドレスにマッチする行から、次にマッチする 2 番目のアドレスまでの行に対してコマンドを適用させる。
+
+形式: `アドレス1,アドレス2`
+
+```bash frame=none
+# 3行目から7行目までの "foo" を "bar" に置換
+sed '3,7s/foo/bar/'
+
+# fruits.txt 内の 1 ~ 5 行目内で apple を orange に置換
+sed '1,5s/apple/orange/' fruits.txt
+```
+
+:::caution[注意]
+
+-   2 番目のアドレスが 1 番目のアドレスよりも前の行番号の場合、1 番目の行だけが選択されます。
+-   `+` を使用して 2 番目のアドレスを相対的に指定することも可能です。
+
+    ```bash frame=none
+    # 5 行目から 2 行後の 7 行目までの範囲に適用されます。
+    sed '5,+2s/foo/bar/'
+    ```
+
+-   コンテキストアドレスを 2 番目に使用する場合、`sed` は 1 番目のアドレスにマッチした行の後から 2 番目のアドレスを探し始めます。
+    2 番目のアドレスが最初のマッチした行に再度マッチしない点に注意が必要です。
+
+:::
+
+```bash frame=none
+# 100行目以降の行で「TODO」を「DONE」に置換
+sed '100,$s/TODO/DONE/' tasks.txt
+```
+
+#### 感嘆符 `!` の使用
+
+特定のアドレスにマッチしない行に対してコマンドを適用  
+**形式**: `address!command`  
+**例**:
+
+-   `sed '/pattern/!s/foo/bar/'` は "pattern" にマッチしない行の "foo" を "bar" に置換します
+
+##### 範囲指定と感嘆符の組み合わせ
+
+```bash frame=none
+sed '/BEGIN/,/END/!s/foo/bar/' file.txt
+```
+
+file.txt の "BEGIN" から "END" までの範囲以外の行の "foo" を "bar" に置換
+
+#### コンテキストアドレス
+
+##### 正規表現にマッチする行にのみ適用
+
+```bash frame=none
+# 行の先頭が "start" で大文字小文字のは区別しない "I" で
+# マッチする行の foo -> bar で置換
+sed '/^start/I s/foo/bar/' file.txt
+
+# start から次の end までの範囲で foo を bar に置換
+sed '/start/,/end/s/foo/bar/' file.txt
+```
+
+## Sed 正規表現
+
+`sed` で使用される正規表現は、デフォルトでは基本正規表現(BRE)です。(詳細は `re_format(7)`を参照)。
+しかし、`-E` フラグ指定することで、拡張正規表現(ERE)を使用することも可能です。
+
+`sed` には正規表現に対して以下の２つの拡張があります。
+
+1. **コンテキストアドレスにおけるデリミタの柔軟性**
+
+    コンテキストアドレスでは、バックスラッシュ（“\”）や改行文字以外の任意の文字を正規表現のデリミタとして使用できます。
+    デリミタがスラッシュ（`/`）でない場合、開きデリミタの前にはバックスラッシュを付ける必要があります。
+    例えば、コンテキストアドレス `\xabcx` は `/abc/` と同等です。
+    また、正規表現内のデリミタ文字の前にバックスラッシュを置くと、その文字はリテラルとして扱われます。
+    例えば、コンテキストアドレス `\xabc\xdefx` では、RE デリミタは “x” であり、2 つ目の “x” はそのまま文字として解釈されるため、正規表現は “abcxdef” となります。
+
+1. **改行文字のマッチ**
+
+    エスケープシーケンス `\n` は、パターンスペース内に埋め込まれた改行文字にマッチします。
+    ただし、アドレスや置換コマンド内でリテラルな改行文字を使用することはできません。
+
+    特別な機能：最後に使用された正規表現の再利用
+    `sed` の正規表現には、最後に使用された正規表現をデフォルトとして再利用する特別な機能があります。
+    正規表現が空の場合、つまりデリミタ文字だけが指定されている場合、最後に使用された正規表現が代わりに使用されます。
+    最後の正規表現とは、アドレスや置換コマンドの一部として使用された最後の正規表現を指し、これはコンパイル時ではなく実行時に決定されます。
+    例えば、コマンド `/abc/s//XXX/` はパターン “abc” を “XXX” に置換します。
+
+### 拡張正規表現
+
+#### 基本正規表現（BRE）と拡張正規表現（ERE）
+
+`sed` のデフォルトの基本正規表現(BRE)、拡張正規表現(ERE)は、
+より多くのメタキャラクターや機能を提供し、複雑なパターンマッチングを可能にする。
+`-E` オプションを使用することで、`sed` に拡張正規表現を使用させることができる。
+
+```bash frame=none
+sed -E 's/(foo)+/bar/' file.txt
+```
+
+上記のコマンドでは、`(foo)+` という ERE を使用して、foo が 1 回以上連続する部分を bar に置換します。
+
+```bash frame=none
+# 正規表現を使用して、「apple」または「banana」を「fruit」に置換します。
+sed -E 's/(apple|banana)/fruit/g' fruits.txt
+```
+
+#### デリミタの柔軟性
+
+##### カスタムデリミタの使用
+
+通常、`sed` の正規表現(BRE)では`/`がデリミタとして使用されますが、コンテキストアドレスでは他の文字をデリミタとして使用することができます。  
+これにより、パターン内に `/` を含む場合でもデリミタの競合を避けることができます。
+
+```bash frame=none
+# '|' をデリミタとして使用し、/usr/bin を含む行を削除します
+sed '\|/usr/bin|d' file.txt
+```
+
+##### エスケープによるリテラル文字の扱い
+
+デリミタ自体をパターンの一部として扱いたい場合、デリミタ文字の前に`\`を付けることでリテラルとして解釈させることができます。  
+`#` をデリミタとして使用し、path/to/file にマッチする行の foo を bar に置換します
+
+```bash frame=none
+sed '\#path/to/file#s/foo/bar#' file.txt
+```
+
+#### 改行文字のマッチ
+
+`\n` を使用することで、パターンスペース内の改行文字にマッチさせることができます。
+ただし、アドレスや置換コマンド内で直接改行文字を使用することはできません。
+
+```bash frame=none
+sed 's/foo\nbar/baz/' file.txt
+```
+
+foo と bar の間に改行がある場合にそれを baz に置換する
+
+#### 最後に使用された正規表現の再利用
+
+空の正規表現の利用  
+正規表現が空の場合、`sed` は直前に使用された正規表現を再利用します。
+これにより、同じパターンに対して複数のコマンドを連続して適用する際に便利です。
+
+```bash frame=none
+sed '/error/s//WARNING/' logfile.txt
+```
+
+`/error/` にマッチする行の error を WARNING に置換します。`s//WARNING/` の
+部分で空の正規表現が使用されているため、直前の `/error/` が再利用されます。
+
+## Sed 関数
+
+### アドレスの数と関数の適用範囲
+
+各関数には許容されるアドレスの数が決まっており、これにより関数が適用される行や行範囲が制御されます
+
+<Table
+    caption=""
+    columns={["アドレス指定", "説明"]}
+    data={[
+        ["`[0addr]`", ["アドレスなし。", "入すべての行に対して関数が適用されます。"].join("<br/>")],
+        ["`[1addr]`", ["1つのアドレス。", "指定したアドレスにマッチする行に対して関数が適用されます。"].join("<br/>")],
+        [
+            "`[2addr]`",
+            [
+                "2つのアドレス。",
+                "範囲指定として機能し、開始アドレスから終了アドレスまでの行に対して関数が適用されます。",
+            ].join("<br/>"),
+        ],
+    ]}
+/>
+
+### 関数一覧
+
+1.  `r file` [1addr]
+
+    指定した `file` の内容を標準出力にコピーし、次の入力行の読み込み前に挿入します。
+    `file` が読み取れない場合は無視されます。
+
+    ```bash frame=none
+    sed '/pattern/r insert.txt' file.txt
+    ```
+
+    "pattern" を含む行の後に insert.txt の内容を挿入します。
+
+1.  `w file` [2addr]
+
+    パターンスペースの内容を指定した file に追加します。
+
+    ```bash frame=none
+    sed '/pattern/w output.txt' file.txt
+    ```
+
+    "pattern" を含む行を output.txt に書き込みます。
+
+### 標準出力への書き込み(`a\`, `i\`)
+
+1.  `a\ text` [1addr]
+
+    各入力行の読み込みを試みる直前に、指定した text を標準出力に書き込みます
+
+    ```bash frame=none
+    sed '3a\Inserted Line' file.txt
+    ```
+
+    3 行目の後に "Inserted Line" を挿入します
+
+1.  `i\ text`[1addr]
+
+    指定した `text` を標準出力に書き込みます。
+
+    ```bash frame=none
+    sed '2i\Inserted Line' file.txt
+    ```
+
+    2 行目の前に "Inserted Line" を挿入します。
+
+### パターンスペースの削除(`c\`, `d`, `D`)
+
+1.  `c\text`[2addr]
+
+    パターンスペースを削除します。アドレスが 0 または 1 の場合、または 2 アドレス範囲の末尾では、text が標準出力に書き込まれます。
+
+    ```bash frame=none
+    sed '2c\New Line' file.txt
+    ```
+
+    2 行目を "New Line" に置換
+
+1.  `d`[2addr]
+
+    パターンスペースを削除し、次の入力行の処理を開始します。
+
+    ```bash frame=none
+    sed '/pattern/d' file.txt
+    ```
+
+    "pattern" を含む行を削除します。
+
+    ```bash frame=none
+    # known_hosts ファイルの 234 行目を削除
+    sed -i '' '234d' ~/.ssh/known_hosts
+
+    # "ERROR" と "WARNING" に囲まれた部分を削除
+    sed '/ERROR/,/WARNING/d' logs.txt
+    ```
+
+1.  `D`[2addr]
+
+    パターンスペースの先頭から最初の改行文字までを削除し、次の入力行の処理を開始します。
+
+    ```bash frame=none
+    sed 'D' file.txt
+    ```
+
+    パターンスペース内の先頭行を削除します。
+
+### ホールドスペースとパターンスペースの操作
+
+#### ホールドスペース (`h`, `H`, `g`, `G`, `x`):
+
+-   パターンスペースの内容を一時的に保存・追加・取得するために使用される
+-   複数の行や条件付きの編集を行う際に有用です。
+
+```bash frame=none
+sed 'h; s/foo/bar/; H; g' file.txt
+```
+
+現在の行をホールドスペースに保存し、"foo" を "bar" に置換後、ホールドスペースの内容を再度取得して結合します。
+
+1.  `h`[2addr]
+
+    パターンスペースの内容でホールドスペースを置換します。
+
+    ```bash frame=none
+    sed 'h' file.txt
+    ```
+
+    現在の行をホールドスペースに保存します。
+
+1.  `H` [2addr]
+
+    改行文字とパターンスペースの内容をホールドスペースに追加します。
+
+    ```bash frame=none
+    sed 'H' file.txt
+    ```
+
+    パターンスペースの内容をホールドスペースに追加します。
+
+1.  `g`[2addr]
+
+    ホールドスペースの内容でパターンスペースを置換します。
+
+    ```bash frame=none
+    sed 'g' file.txt
+    ```
+
+    ホールドスペースの内容で現在の行を置換します。
+
+1.  `G`[2addr]
+
+    改行文字とホールドスペースの内容をパターンスペースに追加します。
+
+    ```bash frame=none
+    sed 'G' file.txt
+    ```
+
+    パターンスペースの末尾にホールドスペースの内容を追加します。
+
+1.  `x` [2addr]
+
+    パターンスペースとホールドスペースの内容を交換します。
+
+    ```bash frame=none
+    sed 'x' file.txt
+    ```
+
+1.  パターンスペースの内容をホールドスペースに保存し、後で取得
+
+    現在の行をホールドスペースに保存し、"foo" を "bar" に置換後、ホールドスペースの内容を追加で出力します。
+
+    ```bash frame=none
+    sed 'h; s/foo/bar/; G' file.txt
+    ```
+
+### 関数リストの使用
+
+#### `{ function ... function }`
+
+関数リスト `{ function ... function }` を使用することで、特定の条件下で複数の関数を連続して実行することができます。
+これは、条件付きで複数の編集操作をまとめて適用したい場合に便利です。
+
+```bash frame=none
+sed '/pattern/ {
+    s/foo/bar/
+    s/baz/qux/
+}' file.txt
+```
+
+"pattern" にマッチする行に対して、"foo" を "bar" に、さらに "baz" を "qux" に置換します。
+
+1.  `!function` および `!function-list` [2addr]
+
+    アドレスに選択されていない行にのみ関数または関数リストを適用します。
+
+    ```bash frame=none
+    sed '/pattern/!s/foo/bar/' file.txt
+    ```
+
+    "pattern" を含まない行の "foo" を "bar" に置換します。
+
+### 置換`s`と変換`y`
+
+<Table
+    caption=""
+    columns={["置換・変換", "説明"]}
+    data={[
+        [
+            "`s`コマンド",
+            [
+                "特定のパターンを別の文字列に置換する。",
+                "フラグを使用して置換の詳細な制御が可能です",
+                "（例: 全てのマッチを置換する g フラグなど）。",
+            ].join("<br/>"),
+        ],
+        [
+            "`y`コマンド",
+            [
+                "文字ごとの変換を行います。特定の文字を別の文字に一括で置換します。",
+                "`s` コマンドとは異なり、正規表現を使用しません。",
+            ].join("<br/>"),
+        ],
+    ]}
+/>
+
+```bash frame=none
+# 各行のすべての "foo" を "bar" に置換する
+sed 's/foo/bar/g' file.txt
+
+# "a" => "x"、"b" => "y"、"c" => "z" に置換する
+sed 'y/abc/xyz/' file.txt
+```
+
+1.  `s/regular expression/replacement/flags` [2addr]
+
+    パターンスペース内の最初の正規表現のインスタンスを `replacement` に置換します。
+    デリミタとしてスラッシュ以外の文字も使用可能です。
+    `&` はマッチした文字列に置換されますが、バックスラッシュでエスケープすることでリテラルとして扱われます。
+
+    **Flag**:
+
+        - `N`: N 番目のマッチにのみ置換を適用
+        - `g`: 全てのマッチに置換を適用
+        - `p`: 置換が行われた場合、パターンスペースを出力
+        - `w file`: 置換が行われた場合、パターンスペースを `file` に出力
+        - `i` または `I`: 大文字小文字を区別せずにマッチ
+
+    ```bash frame=none
+    sed 's/foo/bar/g' file.txt
+    ```
+
+    各行のすべての "foo" を "bar" に置換します。
+
+1.  `y/string1/string2/` [2addr]
+
+    パターンスペース内の string1 の文字を string2 の対応する文字に置換します。
+    デリミタとしてスラッシュ以外の文字も使用可能です。
+
+    ```bash frame=none
+    sed 'y/abc/xyz/' file.txt
+    ```
+
+    "a" を "x"、"b" を "y"、"c" を "z" に置換します。
+
+### 入出力制御(`p`, `P`, `n`, `N`, `l`, `=`)
+
+#### `p` と `P` コマンド
+
+-   `p`: パターンスペース全体全体を出力
+-   `P`: パターンスペースの先頭行を出力
+
+1.  `p` [2addr]
+
+    パターンスペースを標準出力に書き込みます。
+
+    ```bash frame=none
+    sed -n '/pattern/p' file.txt
+    ```
+
+    "pattern" を含む行を出力します。
+
+    ```bash frame=none
+    # 全行を出力します（-n オプションによりデフォルト出力を抑制）
+    sed -n 'p' file.txt
+
+    # "foo" を "bar" に置換し、置換が行われた行を出力します。
+    sed 's/foo/bar/p' file.txt
+    ```
+
+1.  `P` [2addr]
+
+    パターンスペースの最初の改行文字までを標準出力に書き込みます。
+
+    ```bash frame=none
+    sed 'P' file.txt
+    ```
+
+    パターンスペースの先頭行を出力します。
+
+#### `n` と `N` コマンド
+
+-   `n`: 現在の行を出力し、次の行を読み込みます。
+-   `N`: 次の行をパターンスペースを追加
+
+1.  `n`[2addr]
+
+    デフォルトの出力が抑制されていない場合、パターンスペースを標準出力に書き込み、次の入力行でパターンスペースを置き換えます。
+
+    ```bash frame=none
+    sed 'n' file.txt
+    ```
+
+    現在の行を出力し、次の行を読み込みます。
+
+1.  `N`[2addr]
+
+    次の入力行をパターンスペースに追加し、改行文字で分割します。現在の行番号が変わります。
+
+    ```bash frame=none
+    sed 'N; s/foo/bar/' file.txt
+    ```
+
+    現在と次の行を結合し、"foo" を "bar" に置換します。
+
+#### `l` コマンド
+
+パターンスペースを視覚的に識別しやすい形式で出力する。非表示文字や長い行の表示に便利
+
+1.  `l`[2addr]
+
+    パターンスペースを視覚的に識別しやすい形式で標準出力に書き込みます。  
+    非表示文字は特定のエスケープシーケンスや 3 桁の 8 進数で表示されます。
+
+    ```bash frame=none
+    sed 'l' file.txt
+    ```
+
+    各行を視覚的に表示します。
+
+#### `=` コマンド
+
+現在の行番号を出力します。
+
+1.  `=` [1addr]
+
+    行番号を標準出力に書き込み、改行文字を追加します。
+
+    ```bash frame=none
+    sed '=' file.txt
+    ```
+
+    各行の前に行番号を出力します。
+
+### コメントと無視 (`#`, 空行)
+
+#### `#` コマンド
+
+コメントとして扱われ、行の残り部分は無視されます。
+ただし、ファイルの最初の 2 文字が #n の場合、デフォルト出力が抑制されます（-n オプションと同等）。
+
+1.  `#` [0addr]
+
+    `#` とその後の文字列はコメントとして無視されます。
+    ただし、ファイルの最初の 2 文字が `#n` の場合、デフォルトの出力が抑制されます（`-n` オプションと同等）。
+
+    ```bash frame=none
+    sed '# This is a comment' file.txt
+    ```
+
+    コメント行として無視されます。
+
+#### 空行
+
+1.  空行 [0addr]
+
+    空行は無視されます。
+
+    ```bash frame=none
+    sed '' file.txt
+    ```
+
+    何も変更せず、すべての行を出力します。
+
+### ブランチとラベル(`b`, `t`, `:label`, `q`)
+
+<Table
+    caption=""
+    columns={["ブランチとラベル", "説明"]}
+    data={[
+        [
+            "`b`コマンド",
+            ["指定したラベルにジャンプします。ループや条件付きの処理を作成する際に使用します"].join("<br/>"),
+        ],
+        [
+            "`t`コマンド",
+            [
+                "最後の置換が成功した場合に指定したラベルにジャンプします。",
+                "これにより、条件付きで複数の置換を行うことが可能です。",
+            ].join("<br/>"),
+        ],
+        ["`:label`関数", ["ジャンプ先となるラベルを定義します。実際の処理は行いません。"].join("<br/>")],
+    ]}
+/>
+
+#### 使用方法
+
+```bash frame=none
+# "foo" を "bar" に置換し、置換が成功した場合に再度 :start にジャンプして処理を繰り返します。
+sed ':start; s/foo/bar/; t start' file.txt
+```
+
+1.  `b[label]`[2addr]
+
+    指定した label にブランチ（ジャンプ）します。label が指定されていない場合、スクリプトの末尾にジャンプします。
+
+    ```bash frame=none
+    sed '/error/b end; s/foo/bar/; :end' file.txt
+    ```
+
+    "error" を含む行に対してブランチし、それ以外の行で "foo" を "bar" に置換
+
+1.  `t [label]` [2addr]
+
+    最後の入力行の読み込みや `t` 関数の実行以降に置換が行われた場合に、指定した `label` にブランチします。
+    `label` が指定されていない場合はスクリプトの末尾にブランチします。
+
+    ```bash frame=none
+    sed '/start/,/end/ { s/foo/bar/; t label; } :label' file.txt
+    ```
+
+    "start" から "end" の間で "foo" を "bar" に置換し、置換が行われた場合に label にジャンプします。
+
+1.  `:label` [0addr]
+
+    何も実行せず、`b` や `t` コマンドがブランチできるラベルを保持します。
+
+    ```bash frame=none
+    sed ':start; s/foo/bar/; t start' file.txt
+    ```
+
+    "foo" を "bar" に置換し、置換が成功した場合に :start に戻ります。
+
+1.  `q` [1addr]
+
+    スクリプトの末尾にブランチし、新しいサイクルを開始せずに終了します。
+
+    ```bash frame=none
+    sed '5q' file.txt
+    ```
+
+    5 行目を処理した後に sed を終了します。
+
+## Option list
+
+### 構文
+
+```bash frame=none
+sed [-Ealnru] command [-I extension] [-i extension] [file ...]
+sed [-Ealnru] [-e command] [-f command_file] [-I extension] [-i extension] [file ...]
+```
+
+<Table
+    caption=""
+    columns={["option", "description"]}
+    data={[
+        [
+            "`-E`",
+            [
+                "**(拡張正規表現の使用)**",
+                "正規表現を拡張（Extended Regular Expressions）として解釈します。",
+                "基本的な正規表現（BRE）ではなく、より高度なパターンマッチングが可能です。`re_format(7)` マニュアルページで詳細が説明されています。",
+                "通常、sed は基本的な正規表現（BRE）を使用しますが、`-E` オプションを指定すると拡張正規表現（ERE）が使用され、より複雑なパターンマッチングが可能になります。",
+            ].join("<br/>"),
+        ],
+        [
+            "`-a`",
+            [
+                "**(バックアップファイルの遅延オープン)**",
+                "w 関数で指定されたファイルをデフォルトで処理開始前に作成（または切り詰め）します。",
+                "`-a` オプションを使用すると、関連する `w` 関数を含むコマンドが入力行に適用されるまで各ファイルのオープンを遅延させます。",
+            ].join("<br/>"),
+        ],
+        [
+            "`-e`",
+            [
+                "**(編集コマンドの追加)**",
+                "指定された編集コマンドをコマンドリストに追加します。複数の編集コマンドを順次実行する際に使用します。",
+                "複数の編集コマンドを一つの `sed` 実行で適用したい場合に、各コマンドを `-e` オプションで順次追加します。",
+            ].join("<br/>"),
+        ],
+        [
+            "`-f <command_file>`",
+            [
+                "**(コマンドファイルの使用)**",
+                "指定されたファイル *command_file* に含まれる編集コマンドをコマンドリストに追加します。",
+                "各編集コマンドは別々の行に記述する必要があります。",
+                "*command_file* が `-` の場合、標準入力からコマンドを読み取ります。",
+                "編集コマンドを別のファイルにまとめ、そのファイルを指定して `sed` に読み込ませることができます。",
+                "これにより、複雑な編集操作をスクリプト化することが容易になります。",
+            ].join("<br/>"),
+        ],
+        [
+            "`-I <extention>`",
+            [
+                "**(インプレース編集とバックアップの指定)**",
+                "ファイルをインプレースで編集し、指定された拡張子 *extension* を持つバックアップを保存します。",
+                "拡張子を空にするとバックアップは作成されませんが、ディスク容量が不足した場合などにファイルが破損するリスクがあるため推奨されません。",
+                "`-I` オプションでは、すべてのファイルが連続したアドレス空間内で編集されますが、各ファイルは個別性を保持します。",
+                "ファイルを直接編集し、変更前の状態をバックアップファイルとして保存します。バックアップファイルの拡張子を指定することで、元のファイルを保持しつつ編集を行うことができます。",
+            ].join("<br/>"),
+        ],
+        [
+            "`-i <extention>`",
+            [
+                "**(インプレース編集の独立処理)**",
+                "`-I` と同様にファイルをインプレースで編集しますが、各ファイルを独立して扱います。",
+                "具体的には、各ファイルの行番号が1から始まり、アドレス範囲が各ファイルに限定されます。",
+                "これにより、各ファイルが別々の `sed` インスタンスで編集されているかのように動作します。",
+                "複数ファイルを同時に編集する際により予測可能な動作をします。",
+            ].join("<br/>"),
+        ],
+        [
+            "`-l`",
+            [
+                "**(行バッファリング)**",
+                "出力を行単位でバッファリングします。大きなファイルを処理する際にメモリ使用量を抑えるのに役立ちます。",
+            ].join("<br/>"),
+        ],
+        [
+            "`-n`",
+            [
+                "**(出力の抑制)**",
+                "デフォルトでは、`sed` はすべての入力行を編集後に標準出力にエコーしますが、`-n` オプションを指定するとこの動作が抑制されます。",
+                "これにより、明示的に `p` コマンドなどを使用して出力を制御することができます。",
+            ].join("<br/>"),
+        ],
+        ["`-r`", ["**(GNU `sed` 互換)**", "GNU `sed` との互換性のために `-E` と同じ動作をします。"].join("<br/>")],
+        [
+            "`-u`",
+            [
+                "**(出力の非バッファリング)**",
+                "出力をバッファリングしないことを保証します。リアルタイムでの出力が必要な場合に使用します。",
+                "リアルタイムでのログ出力やパイプライン処理での即時フィードバックが必要な場合に使用。",
+            ].join("<br/>"),
+        ],
+    ]}
+/>
+
+## 環境変数
+
+```
+The COLUMNS, LANG, LC_ALL, LC_CTYPE and LC_COLLATE environment variables affect the execution of sed as described in environ(7).
+```
+
+## EXIT STATUS
+
+The sed utility exits 0 on success, and >0 if an error occurs.
+
+### その他
+
+STANDARDS
+
+The sed utility is expected to be a superset of the IEEE Std 1003.2 (“POSIX.2”) specification.
+
+The -E, -I, -a and -i options, the special meaning of -f -, the prefixing “+” in the second member of an address range, as well as the “I” flag to the address regular
+expression and substitution command are non-standard FreeBSD extensions and may not be available on other operating systems.
+
+#### AUTHORS
+
+Diomidis D. Spinellis dds@FreeBSD.org
+
+#### SEE ALSO
+
+```
+awk(1), ed(1), grep(1), regex(3), re_format(7)
+```
+
+#### REPORTING BUGS
+
+Multibyte characters containing a byte with value 0x5C (ASCII ‘\’) may be incorrectly treated as line continuation characters in arguments to the “a”, “c” and “i” commands.
+Multibyte characters cannot be used as delimiters with the “s” and “y” commands.

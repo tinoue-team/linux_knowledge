@@ -1,0 +1,191 @@
+---
+title: Astroのアダプターについて
+description: 設定ファイルについて
+tags:
+    - "Astro"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Astroのアダプターについて
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+## アダプターとは
+
+server または hybrid モードでデプロイするには、アダプターを追加する必要がある。
+リクエスト時にページを生成するためにサーバーでコードを実行する環境である
+ランタイムが各アダプターで提供される。Vercel, Netlify, Cloudflare など。
+
+## @astrojs/node
+
+このアダプタを使用すると、Astro で hybrid または server でレンダリングされたサイトを
+Node ターゲットにデプロイできます。
+Astro を静的サイトビルダーとして使用している場合は、アダプタは必要ありません。
+
+### Why Astro Node.js
+
+Node.js はサーバーサイドコード用の JavaScript ランタイムです。
+astrojs/node はスタンドアロンモードでも、Express のような
+他の http サーバーのミドルウェアとしても使用できます。
+
+### Installation
+
+Astro add コマンドを使って、SSR を有効にする Node アダプターを
+Astro プロジェクトに追加します。
+これで `@astrojs/node` がインストールされ、
+`astro.config.*` ファイルに適切な変更が 1 ステップで行われます。
+
+```bash
+pnpm astro add node
+```
+
+### 設定
+
+`@astrojs/node` は、アダプタ関数にオプションを渡すことで設定できます。
+以下のオプションが利用可能です：
+
+#### mode
+
+アダプタのビルドが `middelware` モードか `standalone` モードかを制御する。
+
+##### `middelware`
+
+ビルドされた出力を Express.js や Fastify などの他の Node.js サーバーのミドルウェアとして使用できます。
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+import node from "@astrojs/node";
+export default defineConfig({
+    output: "server",
+    adapter: node({
+        mode: "middleware",
+    }),
+});
+```
+
+サーバエントリポイントはデフォルトで `./dist/server/entry.mjs` にビルドされます。
+このモジュールは、Node リクエストとレスポンスオブジェクトを
+サポートする任意のフレームワークで使用できるハンドラ関数をエクスポートします。
+
+-   Express の例
+
+    ```js title="run-server.mjs"
+    import express from "express";
+    import { handler as ssrHandler } from "./dist/server/entry.mjs";
+
+    const app = express();
+    // Change this based on your astro.config.mjs, `base` option.
+    // They should match. The default value is "/".
+    const base = "/";
+    app.use(base, express.static("dist/client/"));
+    app.use(ssrHandler);
+
+    app.listen(8080);
+    ```
+
+-   Fastify
+
+    ```js title="run-server.mjs"
+    import Fastify from "fastify";
+    import fastifyMiddie from "@fastify/middie";
+    import fastifyStatic from "@fastify/static";
+    import { fileURLToPath } from "node:url";
+    import { handler as ssrHandler } from "./dist/server/entry.mjs";
+
+    const app = Fastify({ logger: true });
+
+    await app
+        .register(fastifyStatic, {
+            root: fileURLToPath(new URL("./dist/client", import.meta.url)),
+        })
+        .register(fastifyMiddie);
+    app.use(ssrHandler);
+
+    app.listen({ port: 8080 });
+    ```
+
+-   さらに、Astro.locals や Astro ミドルウェアでアクセスするオブジェクトを渡すこともできる
+
+    ```js title="run-server.mjs"
+    import express from "express";
+    import { handler as ssrHandler } from "./dist/server/entry.mjs";
+
+    const app = express();
+    app.use(express.static("dist/client/"));
+    app.use((req, res, next) => {
+        const locals = {
+            title: "New title",
+        };
+
+        ssrHandler(req, res, next, locals);
+    });
+
+    app.listen(8080);
+    ```
+
+`middelware` モードはファイル配信を行わないことに注意してほしい。
+そのため、HTTP フレームワークを設定する必要があります。
+デフォルトでは、クライアント・アセットは `./dist/client/` に書き込まれます。
+
+##### `standalone`
+
+エントリー・モジュールの実行と同時に自動的に起動するサーバーにビルドします。
+これにより、コードを追加することなく、より簡単にビルドをホストにデプロイすることができます。
+
+`standalone`モードでは、サーバー・エントリポイントが実行されるとサーバーが起動します。
+デフォルトでは `./dist/server/entry.mjs` にビルドされます。 以下で実行できます：
+
+```bash
+node ./dist/server/entry.mjs
+```
+
+`standalone`モードでは、サーバーはページ・ルートと API ルートに加えてファイル・サービングも処理する。
+
+-   HTTPS
+    デフォルトでは、スタンドアロン・サーバーは HTTP を使用する。
+    これは、HTTPS を実行するプロキシサーバーがスタンドアロンサーバーの前にある場合に有効です。
+    スタンドアロン・サーバーで HTTPS を実行する必要がある場合は、
+    SSL キーと証明書を提供する必要があります。
+
+    環境変数 `SERVER_CERT_PATH` と `SERVER_KEY_PATH` を使って、
+    鍵と証明書のパスを渡すことができます。 bash ではこのように渡します：
+
+    ```bash
+    SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
+    ```
+
+-   ランタイム環境変数
+
+    ビルドプロセスの実行時に環境変数を含む .env ファイルが存在する場合、
+    静的ウェブサイトを生成するときと同様に、これらの値は出力にハードコードされます。
+
+    ビルド中、.env ファイルには実行時変数がないはずなので、
+    Astro に実行時に予想されるすべての環境変数を提供しなければならない：
+    `VARIABLE_1=placeholder astro build.`
+    これは、ビルドされたアプリケーションの実行時に実際の値が使用できることを Astro に知らせるものです。
+    プレースホルダーの値はビルドプロセスで無視され、Astro は実行時に提供された値を使用します。
+
+    複数のランタイム変数がある場合は、.env とは別のファイル（`.env.runtime` など）に格納する。
+    以下のコマンドでビルドを開始する：
+
+    ```bash
+    export $(cat .env.runtime) && astro build
+    ```
+
+-   Assets
+    スタンドアロンモードでは、`dist/client/`フォルダ内のアセットがスタンドアロンサーバ経由で提供されます。
+    これらのアセットを CDN にデプロイするかもしれませんが、
+    その場合、サーバーが実際にアセットを提供することはありません。
+    しかし、イントラネットサイトのように、アプリケーションサーバーから静的アセットを直接提供しても問題ない場合もあります。
+
+    `dist/client/_astro/`フォルダ内のアセットは、Astro が構築したものです。
+    これらのアセットにはすべてハッシュ名が付けられているため、長いキャッシュヘッダを付けることができます。
+    内部的には、アダプタはこれらのアセットに対してこのヘッダを追加します：
+
+    ```
+    Cache-Control: public, max-age=31536000, immutable
+    ```

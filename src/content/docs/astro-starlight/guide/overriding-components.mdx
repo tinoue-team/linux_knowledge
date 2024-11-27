@@ -1,0 +1,147 @@
+---
+title: コンポーネントのオーバーライド
+description: コンポーネントのオーバーライド
+tags:
+    - "Astro"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: コンポーネントのオーバーライド
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { Steps } from "@astrojs/starlight/components";
+
+Starlight のデフォルトの内容をオーバーライドする
+
+## いつオーバーライドするか
+
+以下の時に Starlight のデフォルトコンポーネントをオーバーライドすると便利
+
+-   カスタム CSS では不可能な方法で、Starlight の UI の見た目を部分的に変更したい場合
+-   Starlight の UI の動作を部分的に変更したい場合
+-   Starlight の既存の UI に別の UI を追加したい場合
+
+## オーバーライドの方法
+
+<Steps>
+
+1.  オーバーライドしたい [Starlight コンポーネント](https://starlight.astro.build/ja/reference/overrides/)を選択
+
+1.  src/components/ に .astro ファイルで、Astro コンポーネントを作成する
+
+1.  astro.config.mjs の components 設定オプションで、カスタムコンポーネントを使用するよう Starlight に指示します。
+
+    ```js title="astro.config.mjs" {8-10}
+    import { defineConfig } from "astro/config";
+    import starlight from "@astrojs/starlight";
+
+    export default defineConfig({
+        integrations: [
+            starlight({
+                title: "オーバーライドを設定したドキュメント",
+                components: {
+                    // デフォルトの`SocialIcons`コンポーネントをオーバーライドします。
+                    SocialIcons: "./src/components/EmailLink.astro",
+                },
+            }),
+        ],
+    });
+    ```
+
+</Steps>
+
+## 組み込みコンポーネントを再利用する
+
+Starlight のデフォルトの UI コンポーネントを基本的な UI とし、
+保持しながら別の UI を追加することができる。
+
+例、デフォルトの SocialIcons コンポーネントと一緒に、メールリンクをレンダリングする
+カスタムコンポーネントです。
+
+```astro title="src/components/EmailLink.astro" {3, 7}
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+---
+
+<a href="mailto:houston@example.com">メールしてね</a>
+<Default {...Astro.props}><slot /></Default>
+
+```
+
+組み込みコンポーネントをカスタムコンポーネント内でレンダリングする場合、
+
+-   `Astro.props` を `<Default {...Astro.props}>` で展開し、レンダリングに必要なデータを取得している
+-   デフォルトのコンポーネント内に `<slot />` を追加。
+
+## ページデータが使用される
+
+Starlight コンポーネントをオーバーライドすると、カスタム実装側には、
+現在のページのすべてのデータを含む、標準の `Astro.props` オブジェクトが渡される。
+コンポーネント側でそれらの値を使用してレンダリング方法を制御することができる。
+
+Astro コンポーネントのコンポーネントスクリプト内で、ページデータであるページのフロントマターの値を
+`Astro.props.entry.data` として取得できる。
+
+```astro title=""src/components/Title.astro /title/ {4}
+---
+import type { Props } from '@astrojs/starlight/props';
+
+const { title } = Astro.props.entry.data;
+---
+
+<h1 id="_top">{title}</h1>
+
+<style>
+    h1 {
+        font-family: 'Comic Sans';
+    }
+</style>
+
+```
+
+[pageTitle](https://starlight.astro.build/ja/reference/overrides/#pagetitle) を置き換えるコンポーネントが、
+現在のページのタイトルを表示するためにこれを使用している。
+
+## 特定のページのみでのオーバーライド
+
+コンポーネントをオーバライドするとすべてのページに適用されるが、
+Astro.props の値を利用して条件に応じてレンダリングすることで、
+
+-   カスタム UI を表示するタイミング
+-   Starlight のデフォルト UI を表示するタイミング
+
+あるいはまったく別のものを表示するタイミングを決定することができる。
+
+```astro title="src/components/ConditionalFooter.astro"
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Footer.astro';
+
+const isHomepage = Astro.props.slug === '';
+---
+
+{
+    isHomepage ? (
+        <footer>Starlightで作成 🌟</footer>
+    ) : (
+        <Default {...Astro.props}>
+            <slot />
+        </Default>
+    )
+}
+```
+
+Starlight の [Footer](https://starlight.astro.build/ja/reference/overrides/#footer)
+をオーバーライドするコンポーネントの例です。
+ホームページでのみ「Starlight で作成 🌟」と表示し、
+それ以外のすべてのページではデフォルトのフッターを表示します。
+
+条件付きレンダリングの参照
+
+[Astro のテンプレート構文ガイド](https://docs.astro.build/ja/basics/astro-syntax/#%E5%8B%95%E7%9A%84html)

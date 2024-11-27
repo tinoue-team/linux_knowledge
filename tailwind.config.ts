@@ -3,25 +3,26 @@ import type { Config } from 'tailwindcss';
 
 // Generated color palettes
 const accent = {
-    100: 'hsl(65, 100%, 91%)', //--sl-color-accent-high
-    200: 'hsl(65, 100%, 77%)', //--sl-color-accent-high
-    300: 'hsl(65, 95%, 61%)', //--sl-color-accent-high
-    400: 'hsl(65, 90%, 55%)', //--sl-color-accent-high
-    500: 'hsl(58, 95%, 61%)', //--sl-color-accent-high
-    600: 'hsl(65, 70%, 54%)', //--sl-color-accent-high
-    700: 'hsl(65, 79%, 42%)', //--sl-color-accent
-    800: 'hsl(54, 56%, 44%)', // --sl-color-accent-low
-    900: 'hsl(59, 81%, 29%)', //--sl-color-accent-high
+    100: 'var(--accent-100)',
+    200: 'var(--accent-200)',
+    300: 'var(--accent-300)',
+    400: 'var(--accent-400)',
+    500: 'var(--accent-500)',
+    600: 'var(--accent-600)',
+    700: 'var(--accent-700)',
+    800: 'var(--accent-800)',
+    900: 'var(--accent-900)',
 };
 const gray = {
-    100: '#f5f6f8',
-    200: '#eceef2',
-    300: '#c0c2c7',
-    400: '#888b96',
-    500: '#545861',
-    700: '#353841',
-    800: '#24272f',
-    900: '#17181c',
+    100: 'var(--color-gray-1)',
+    200: 'var(--color-gray-2)',
+    300: 'var(--color-gray-3)',
+    400: 'var(--color-gray-4)',
+    500: 'var(--color-gray-5)',
+    600: 'var(--color-gray-6)',
+    700: 'var(--color-gray-7)',
+    800: 'var(--color-gray-8)',
+    900: 'var(--color-gray-9)',
 };
 
 export default {
@@ -29,6 +30,9 @@ export default {
     theme: {
         extend: {
             colors: { accent, gray },
+            textShadow: {
+                neon: 'var(--text-shadow)',
+            },
         },
         fontFamily: {
             // 好みのテキストフォント。Starlightはデフォルトでシステムフォントスタックを使用します。
@@ -50,9 +54,30 @@ export default {
             '6xl': '3.2rem',
         },
         boxShadow: {
-            mbump: '2px 2px 10px var(--sl-color-black), -2px -2px 10px var(--sl-color-gray-4)',
-            'mbump-active': '2px 2px 10px var(--accent-700), -2px -2px 10px var(--accent-400)',
+            // depressed
+            '2xs-depressed': 'var(--xxs-depressed)',
+            'xs-depressed': 'var(--xs-depressed)',
+            's-depressed': 'var(--s-depressed)',
+            // bump
+            sbump: 'var(--sbump)',
+            'sbump-active': 'var(--sbump-active)',
+            mbump: 'var(--mbump)',
+            'mbump-active': 'var(--mbump-active)',
+            // distinct
+            'xs-distinct': 'var(--xs-distinct)',
         },
     },
-    plugins: [starlightPlugin()],
+    plugins: [
+        starlightPlugin(),
+        // plugin(function ({matchUtilities, theme}) {
+        //     matchUtilities(
+        //         {
+        //             'text-shadow': value => ({
+        //                 textShadow: value,
+        //             }),
+        //         },
+        //         { values: theme('textShadow') },
+        //     );
+        // })
+    ],
 } satisfies Config;

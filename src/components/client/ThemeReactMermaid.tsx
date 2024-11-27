@@ -93,7 +93,7 @@ export default function ThemeReactMermaid({ src }: { src: string }) {
 
     return (
         <>
-            <div ref={mermaidRef} class='rounded-lg border border-solid p-4'>
+            <div ref={mermaidRef} class='my-4 rounded-lg border border-solid p-4'>
                 {src}
             </div>
             {/* <div
