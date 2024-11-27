@@ -29,6 +29,7 @@ import Table from "@components/Table.astro";
 nslookup 15.0.1.10
 10.1.0.15.in-addr.arpa  name = example.com.
 ```
+
 :::note[逆引きが設定されていないと]
 
 逆引きが設定されていないと以下のような標準出力が返される。
@@ -41,10 +42,13 @@ nslookup 15.0.1.10
 :::
 
 #### 逆引きの DNS レコードについて
+
 逆引きの対象となる IP アドレスが `15.0.1.10` のようになっていた場合、登録するレコード名はオクテット毎に分けた数字が逆に並ぶ。
+
 ```
 15.0.1.10 → 10.1.0.15
 ```
+
 さらに、末尾に `.in-addr.arpa` を付けた形式が逆引きレコードとなる
 
 ```
@@ -52,6 +56,7 @@ nslookup 15.0.1.10
 ```
 
 ### AWS で逆引き用ホストゾーンを作成
+
 利用する回線の帯域に応じて、ホストゾーンのドメイン名が変わってくる。
 ドメイン名はサブネットによって変更される。
 
@@ -59,22 +64,13 @@ nslookup 15.0.1.10
     caption=""
     columns={["サブネット", "ドメイン名"]}
     data={[
-        [
-            "/32 ~ /24",
-            "`1.0.15.in-addr.arpa`"
-        ],
-        [
-            "/23 ~ /16",
-            "`0.15.in-addr.arpa`"
-        ],
-        [
-            "/15 ~ /8",
-            "`15.in-addr.arpa`"
-        ],
+        ["/32 ~ /24", "`1.0.15.in-addr.arpa`"],
+        ["/23 ~ /16", "`0.15.in-addr.arpa`"],
+        ["/15 ~ /8", "`15.in-addr.arpa`"],
     ]}
 />
 
-##### CLI でのホストゾーン登録処理
+#### CLI でのホストゾーン登録処理
 
 ```bash frame=none
 # ホストゾーン名をサブネットに合わせて設定
@@ -82,11 +78,12 @@ DOMAIN="0.15.in-addr.arpa"
 COMMENT="目的に応じたコメントを用意する"
 
 HOSTED_ZONE_ID=$(aws route53 create-hosted-zone \
-	--name "$DOMAIN" \
-	--caller-reference "$(date +%s)" \
-	--hosted-zone-config '{"Comment":"'"$COMMENT"'", "PrivateZone":false}' \
-	--query "HostedZone.Id" --output text) && echo "$HOSTED_ZONE_ID"
+    --name "$DOMAIN" \
+    --caller-reference "$(date +%s)" \
+    --hosted-zone-config '{"Comment":"'"$COMMENT"'", "PrivateZone":false}' \
+    --query "HostedZone.Id" --output text) && echo "$HOSTED_ZONE_ID"
 ```
+
 重複したホストゾーンが登録されてしまったら、NS と SOR のレコード以外すべて削除してから、不要になったホストゾーンを削除する。
 
 ### AWS で登録したホストゾーンに逆引きレコードを追加する
@@ -101,13 +98,7 @@ HOSTED_ZONE_ID=$(aws route53 create-hosted-zone \
 <Table
     caption=""
     columns={["レコード名", "タイプ", "値/トラフィックのルーティング先"]}
-    data={[
-        [
-            "10.1.0.15.in-addr.arpa",
-            "PTR",
-            "15-0-1-10.example.com"
-        ],
-    ]}
+    data={[["10.1.0.15.in-addr.arpa", "PTR", "15-0-1-10.example.com"]]}
 />
 
 さらにこれに TTL 値などが追加指定することができる。
@@ -178,12 +169,10 @@ fi
 
 ```
 
-
 正引きの設定が完了して、逆引きのレコード設定が反映されれば、目的の IP の逆引きが行われる。(ほかにも作成したホストゾーンで対応するネームサーバーの指定も変更する必要が出てくきます。)
 
 作成後、`dig` や `nslookup` で逆引きが反映されているか確認する
-```bash
+
+```bash frame=none
 nslookup 15.0.1.10
 ```
-
-
