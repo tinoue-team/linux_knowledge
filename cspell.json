@@ -19,9 +19,11 @@
         "linuledge",
         "mbump",
         "preact",
+        "sakuracloud",
         "sbump",
         "tailwindcss",
         "tsconfigs",
-        "turso"
+        "turso",
+        "Usacloud"
     ]
 }

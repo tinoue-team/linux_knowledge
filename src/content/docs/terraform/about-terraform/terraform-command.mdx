@@ -133,43 +133,64 @@ terraform [global options] <subcommand> [args]
 
 <Table
     caption=""
-    columns={["Option", "説明"]}
+    columns={["Option", "説明", "利用サブコマンド"]}
     data={[
-        ["-no-color", ["出力に色を含めないようにします。ログファイルへの出力やパイプ処理時に有用です。"].join("<br/>")],
+        [
+            "-no-color",
+            ["出力に色を含めないようにします。ログファイルへの出力やパイプ処理時に有用です。"].join("<br/>"),
+            ["`import`"].join("<br/>"),
+        ],
         [
             "-lock=false",
             [
                 "状態ロックを無効にして操作を実行したい場合に使用",
                 "他のユーザーが同じワークスペースで操作を行っている場合に競合が発生する可能性がある",
             ].join("<br/>"),
+            ["`import`"].join("<br/>"),
         ],
         [
             "-lock-timeout=0s",
             [
                 "状態ロックの再試行期間を設定します。デフォルトでは再試行が行われますが、タイムアウトを設定して特定の期間後に失敗させることができます。",
             ].join("<br/>"),
+            ["`import`"].join("<br/>"),
         ],
         [
             "-compact-warnings",
             ["エラーを伴わない警告がある場合、要約メッセージのみを含むよりコンパクトな形式で表示します。"].join(
                 "<br/>"
             ),
+            [""].join("<br/>"),
         ],
-        ["-input=<boolean>", ["true のとき、変数が直接設定されていない場合、入力を求めます。"].join("<br/>")],
-        ["-parallelism=n", ["同時に実行する操作の数を制限します。デフォルトは `10` "].join("<br/>")],
+        [
+            "-input=*boolean*",
+            ["true のとき、変数が直接設定されていない場合、入力を求めます。"].join("<br/>"),
+            ["`import`"].join("<br/>"),
+        ],
+        [
+            "-parallelism=*n*",
+            ["同時に実行する操作の数を制限します。デフォルトは `10` "].join("<br/>"),
+            [""].join("<br/>"),
+        ],
         [
             "-target=resource",
             [
                 "対象とするリソースを指定します。操作はこのリソースとその依存関係に限定されます。このフラグは複数回使用できます。 ",
             ].join("<br/>"),
+            [""].join("<br/>"),
         ],
-        ["-var 'foo=bar'", ["Terraformの設定で変数を設定します。このフラグは複数回設定できます。"].join("<br/>")],
         [
-            "-var-file=foo",
+            "-var 'foo=bar'",
+            ["Terraformの設定で変数を設定します。このフラグは複数回設定できます。"].join("<br/>"),
+            ["`import`"].join("<br/>"),
+        ],
+        [
+            ["-var-file=dir/foo", "-var-file=dir/foo.tfvars"].join("<br/>"),
             [
                 "ファイルからTerraformの設定変数を設定します。",
                 "terraform.tfvars または .auto.tfvars ファイルが存在する場合、自動的に読み込まれます。",
             ].join("<br/>"),
+            ["`import`"].join("<br/>"),
         ],
     ]}
 />

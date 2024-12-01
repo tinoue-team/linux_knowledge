@@ -1,0 +1,52 @@
+---
+title: Terraform module
+description: Terraform の module セクションの利用
+tags:
+    - "Terraform"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Terraform module
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## moudule の利用
+
+<LinkPreview url="https://zenn.dev/not75743/scraps/3bf70102478b5e" />
+
+### module ファイルのディレクトリ管理
+
+<FileTree>
+
+    -   project/
+        -   main.tf # terraform apply の対象となるファイル
+        -   modules/
+            -   s3_bucket/
+                -   main.tf
+                -   variable.tf
+        -   terraform.tfstate # 実行後に生成
+
+</FileTree>
+
+### module セクションの書き方
+
+main.tf 内で直接書いている場合
+
+```tf
+provider "aws" {
+    region = "ap-northeast-1"
+}
+
+module "example_bucket" {
+    source      = "./modules/s3_bucket"
+    bucket_name = "example-bucket-20230519"
+}
+```

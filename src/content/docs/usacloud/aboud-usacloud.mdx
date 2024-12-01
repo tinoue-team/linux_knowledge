@@ -1,0 +1,623 @@
+---
+title: Usacloud について
+description: Usacloud、さくらクラウドの API を利用する
+tags:
+    - "Terraform"
+    - "さくらのクラウド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Usacloud について
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 1
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## インストール
+
+<LinkPreview url="https://docs.usacloud.jp/usacloud/installation/start_guide/" />
+<LinkPreview url="https://knowledge.sakura.ad.jp/10875/" />
+
+```bash frame=none
+# macOS + homebrew
+brew tap sacloud/usacloud; brew install usacloud
+```
+
+```bash frame=none
+# macOS または Linux OS
+curl -fsSL https://github.com/sacloud/usacloud/releases/latest/download/install.sh | bash
+
+# インストールの確認
+which usacloud
+
+usacloud -v
+```
+
+コマンド補完については([completion コマンド](https://docs.usacloud.jp/usacloud/guides/completion/))
+
+## 設定
+
+### API の設定
+
+sacloud を実行するには API にアクセスするために以下の手順を踏む
+
+<LinkPreview url="https://manual.sakura.ad.jp/cloud/api/apikey.html#id3" />
+
+<Steps>
+
+1.  API キーの作成
+
+    ![さくらクラウド API 新規登録](src/assets/2024-11-30_20.14.21.webp)
+
+1.  API キーを追加したいアカウントをクリックし、画面遷移後に "+追加" ボタンがあるのでクリック
+
+    ![さくらクラウド API キー追加](src/assets/2024-11-30_20.20.42.webp)
+
+1.  設定したい内容を入力して、作成を実行
+
+    ![さくらクラウド API キーの設定](src/assets/2024-11-30_20.33.35.webp)
+
+</Steps>
+
+これで、アクセストークンとアクセストークンシークレットが発行されます。
+
+#### プロファイルを設定
+
+`sacloud config` の設定についてはこちら
+
+<LinkPreview url="https://docs.usacloud.jp/usacloud/installation/start_guide/#api" />
+
+設定された値を確認するには、
+
+```bash frame=none
+cat ~/.usacloud/<profile>/config.json
+```
+
+:::note[\<profile\>について]
+
+\<profile\> のデフォルトは default の場合、`~/.usacloud/default/config.json`
+
+```bash frame=none
+# プロファイルが存在しない場合は default プロパティを編集する
+usacloud config
+
+# 名前を指定してプロファイルを作成(example プロファイルを作成)
+usacloud config create example
+```
+
+:::
+
+#### プロファイルで設定できる値
+
+config.json で指定できる値
+
+<LinkPreview url="https://docs.usacloud.jp/usacloud/references/profile/" />
+
+<Table
+    caption="APIキー関連"
+    columns={["プロパティ", "type", "説明"]}
+    data={[
+        ["AccessToken", "string", ["アクセストークン"].join("<br/>")],
+        ["AccessTokenSecret", "string", ["アクセスシークレット"].join("<br/>")],
+        [
+            "[Zones](https://github.com/sacloud/libsacloud/blob/main/v2/sacloud/types/zone.go#L30-L31)",
+            "string[]",
+            [
+                "利用可能なゾーン、省略した場合は以下の値が利用される",
+                "・`tk1a`(東京第 1 ゾーン)",
+                "・`tk1b`(東京第 2 ゾーン)",
+                "・`is1a`(石狩第 1 ゾーン)",
+                "・`is1b`(石狩第 2 ゾーン)",
+                "・`tk1v`(サンドボックスゾーン)",
+            ].join("<br/>"),
+        ],
+    ]}
+/>
+
+<Table
+    caption="Usacloud コマンド動作関連"
+    columns={["プロパティ", "type", "説明"]}
+    data={[
+        [
+            "ArgumentMatchMode",
+            "string",
+            [
+                "操作対象リソースを引数で指定するコマンドでのリソース名と引数の比較方法(有効な値: `partial`(部分一致)/`exact`(完全一致))",
+            ].join("<br/>"),
+        ],
+        [
+            "DefaultOutputType",
+            "string",
+            ["デフォルトのアウトプットタイプ(有効な値: `table`/`json`/`yaml`)"].join("<br/>"),
+        ],
+        [
+            "DefaultQueryDriver",
+            "string",
+            ["各コマンドの`--query`を処理するデフォルトのドライバ(有効な値: `jmespath`/`jq`)"].join("<br/>"),
+        ],
+        ["NoColor", "bool", ["ANSIエスケープシーケンスによる色つけを無効化"].join("<br/>")],
+        ["ProcessTimeoutSec", "int", ["コマンド全体の実行タイムアウトまでの秒数"].join("<br/>")],
+    ]}
+/>
+
+<Table
+    caption="API動作関連"
+    columns={["プロパティ", "type", "説明"]}
+    data={[
+        ["AcceptLanguage", "string", ["リクエスト時のAccept-Languageヘッダ"].join("<br/>")],
+        ["RetryMax", "int", ["さくらのクラウドAPIが `423` / `503` を返した際のリトライ回数"].join("<br/>")],
+        [
+            "RetryWaitMin",
+            "int",
+            ["さくらのクラウド API が `423` / `503` を返した際のリトライ間隔(最小) (単位:秒)"].join("<br/>"),
+        ],
+        [
+            "RetryWaitMax",
+            "int",
+            ["さくらのクラウド API が `423` / `503` を返した際のリトライ間隔(最大) (単位:秒)"].join("<br/>"),
+        ],
+        ["StatePollingTimeout", "int", ["起動待ちなどのポーリング処理でのタイムアウト (単位:秒)"].join("<br/>")],
+        ["StatePollingInterval", "int", ["起動待ちなどのポーリング処理でのポーリング間隔 (単位:秒)"].join("<br/>")],
+        ["HTTPRequestTimeout", "int", ["さくらのクラウド API リクエスト時のHTTPタイムアウト (単位:秒)"].join("<br/>")],
+        [
+            "HTTPRequestRateLimit",
+            "int",
+            ["さくらのクラウドAPIリクエスト時の 1 秒あたりのリクエスト上限数"].join("<br/>"),
+        ],
+        ["APIRootURL", "string", ["さくらのクラウドAPIのルートURL"].join("<br/>")],
+        ["DefaultZone", "string", ["グローバルリソースAPIを呼ぶ際に指定するゾーン"].join("<br/>")],
+    ]}
+/>
+
+<Table
+    caption="デバッグ関連"
+    columns={["プロパティ", "type", "説明"]}
+    data={[
+        ["TraceMode", "string", ["空でない場合は標準エラーにHTTPトレースログを出力"].join("<br/>")],
+        ["FakeMode", "bool", ["フェイクモードの有効化"].join("<br/>")],
+        ["FakeStorePath", "string", ["フェイクモードでのファイルストアパス"].join("<br/>")],
+    ]}
+/>
+
+## usacloud
+
+### コマンドの基本構文
+
+```bash frame=none
+usacloud <操作対象のリソース> <コマンド> [コマンドオプション] [引数]
+usacloud [グローバルオプション] <コマンド> <サブコマンド> [オプション] [引数] [フラグ]
+usacloud [コマンド]
+```
+
+#### 実行例
+
+```bash frame=none
+#------------------------------------------------------------------------------
+# サーバー(server)に対する一覧表示コマンド(ls)の場合の例
+#------------------------------------------------------------------------------
+
+# 基本的な使い方(オプション/引数なし)
+usacloud server ls
+
+# グローバルオプションあり
+usacloud --zone tk1a server ls
+
+# オプション(短い形式)
+usacloud server ls -q
+
+# オプション(長い形式)
+usacloud server ls --quiet
+
+# オプションは=を明示してもOK
+usacloud server ls --name=foovar
+```
+
+### 利用可能なコマンド
+
+<Table
+    caption=""
+    columns={["<コマンド>", "説明"]}
+    data={[
+        ["completion", "補完スクリプトを生成"],
+        ["config", "設定ファイル/プロファイルの管理コマンド"],
+        ["help", "任意のコマンドのヘルプを表示"],
+        ["iaas", "IaaSのサブコマンド"],
+        ["rest", "さくらのクラウドAPIを直接呼び出す"],
+        ["update-self", "Usacloud を最新の安定版に更新"],
+        ["version", "バージョン情報を表示"],
+        ["web-accelerator", "Webアクセラレータのサブコマンド"],
+    ]}
+/>
+
+<Tabs syncKey="instance-action-change">
+    <TabItem label="completion">
+        #### completion
+        シェル（bash、zshなど）の自動補完スクリプトを生成します。これにより、コマンド入力時にタブ補完が利用可能になります。
+
+        ```bash frame=none
+        # bash用の補完スクリプトを生成
+        usacloud completion bash
+        ```
+    </TabItem>
+
+    <TabItem label="config">
+        #### config
+        設定ファイルやプロファイルの管理コマンド。
+        APIキーの設定やプロファイルの切り替えなどを行います。
+
+        ```bash frame=none
+        # プロファイルの一覧表示
+        usacloud config list
+
+        # <profile> 名を指定して新規にプロファイルを作成
+        usacloud config create <profile>
+        ```
+    </TabItem>
+
+    <TabItem label="help">
+        #### help
+        任意のコマンドやサブコマンドのヘルプを表示
+
+        ```bash frame=none
+        # iaas コマンドのヘルプを表示
+        usacloud help iaas
+        ```
+    </TabItem>
+
+    <TabItem label="iaas">
+        #### iaas
+        クラウドのIaaSリソースを操作するためのサブコマンド群。
+        サーバーやディスク、ネットワークなどの管理を行います。
+
+        ##### 利用可能なサブコマンド
+
+
+
+
+        ##### sample
+
+        ```bash frame=none
+        # サーバー一覧を表示
+        usacloud iaas server list
+
+        # ディスクを作成
+        usacloud iaas disk create
+
+        # iaas を指定しなくても
+        # サーバに対する操作の場合
+        usacloud server [...]
+
+        # スイッチに対する操作の場合
+        usacloud switch [...]
+        ```
+    </TabItem>
+
+    <TabItem label="rest">
+        #### rest
+        さくらのクラウド API を直接呼び出すためのコマンド。
+        高度な操作や未対応の API を利用する際に使用します。
+
+        ```bash frame=none
+        # サーバー情報を取得
+        usacloud rest get /server
+        ```
+    </TabItem>
+
+    <TabItem label="update-self">
+        #### update-self
+        usacloud 自身を最新の安定版に更新する。
+
+        ```bash frame=none
+        sacloud update-self
+        ```
+    </TabItem>
+
+    <TabItem label="version">
+        #### version
+        usacloud のバージョン情報を表示
+
+        ```bash frame=none
+        # バージョンを確認
+        sacloud version
+        ```
+    </TabItem>
+
+    <TabItem label="web-accelerator">
+        #### web-accelerator
+        Webアクセラレータのリソースを操作するためのサブコマンド群
+
+        ```bash frame=none
+        # サイト一覧を表示
+        sacloud web-accelerator site list
+
+        # 証明書を更新
+        sacloud web-accelerator certificate update
+        ```
+    </TabItem>
+
+</Tabs>
+
+### グローバルオプション (フラグ)
+
+<Table
+    caption=""
+    columns={["<フラグ>", "type", "説明"]}
+    data={[
+        ["[--config(--profile)](#--config)", "string", "保存された認証情報の名前"],
+        ["[--token](#--token)", "string", "さくらのクラウドAPIを呼び出す際に使用するAPIトークン"],
+        ["[--secret](#--secret)", "string", "さくらのクラウドAPIを呼び出す際に使用するAPIシークレットトークン"],
+        ["--zones", "string", "実行する地域(ゾーン)名"],
+        ["--no-color", "", "ANSIカラー出力を無効化"],
+        ["--trace", "", "API呼び出しのトレースログを有効化"],
+        ["--fake", "", "フェイクAPIドライバーを有効化"],
+        ["--fake-store", "string", "フェイクAPIドライバーで使用されるファイルストアのパス"],
+        ["--process-timeout-sec", "int", "コマンド実行がタイムアウトするまでの秒数"],
+        [
+            "--argument-match-mode",
+            "string",
+            [
+                "操作対象のリソースを識別する際に、引数とリソース名を比較する方法を指定",
+                "オプション: [partial/exact]",
+            ].join("<br/>"),
+        ],
+        ["-v, --version", "", "バージョン情報を表示"],
+        ["-h, --help", "", "usacloud のヘルプを表示"],
+    ]}
+/>
+
+#### `--config`
+
+エイリアスは `--profile`
+
+usacloud 実行するプロファイルの指定を行う。
+
+```bash frame=none
+# example プロファイルでの API アクセス設定を利用する
+usacloud --profile example server ls
+
+# 利用可能なプロファイルを確認する
+usacloud config list
+```
+
+#### `--token`
+
+さくらのクラウドの API トークンを指定
+
+通常この値は `~/.usacloud/[current-profile-nane]/config.json` の値が利用されます。
+環境変数 `SAKURACLOUD_ACCESS_TOKEN` での指定、またはコマンド実行時の `--token` の指定でこれらの設定を上書き可能です。
+
+#### `--secret`
+
+さくらのクラウドの API シークレットを指定
+
+通常この値は `~/.usacloud/[current-profile-nane]/config.json` の値が利用されます。
+環境変数 `SAKURACLOUD_ACCESS_TOKEN_SECRET` での指定、またはコマンド実行時の `--secret` の指定でこれらの設定を上書き可能です。
+
+#### フェイク API ドライバー
+
+実際の API を呼び出さずにコマンドのテストを行うための機能。  
+`--fake` フラグを指定し、必要に応じて `--fake-store` でデータの保存先を指定。
+
+### 共通オプション
+
+#### `--output-type` | `--out`
+
+出力形式選択する。指定可能な値は以下
+
+-   `table`: テーブル形式
+-   `json`: JSON 形式
+-   `yaml`: YAML 形式
+
+#### `--quit` | `-q`
+
+ID のみ出力します(このオプションは --out と併用できない) 。
+
+#### `--format` | `--fmt`
+
+出力フォーマットを go 言語の text/template 形式で指定
+
+```bash frame=none
+usacloud server ls --format "ID is {{.ID}}, Name is {{.Name}}"
+```
+
+#### `--query` | `--query-driver`
+
+JMESPath または jq で抽出の条件を実行する。
+
+##### JMESPath での抽出
+
+```bash frame=none
+usacloud server list --query "[].Name"
+```
+
+```txt title="output"
+[
+    "server1",
+    "server2",
+    "server3"
+]
+```
+
+##### JQ での抽出
+
+```bash frame=none
+usacloud server list --query-driver jq --query ".[].Name"
+```
+
+```txt title="output"
+"server1"
+"server2"
+"server3"
+```
+
+#### `--zone`
+
+実行対象のゾーンの指定。
+
+```bash frame=none
+usacloud server list --zone is1a
+
+# 全ゾーンに一括操作する
+# 全ゾーンのサーバを一覧表示
+usacloud server list --zone=all
+
+# 全ゾーンのサーバのうち、名称にexampleを含むサーバをシャットダウン
+usacloud server shutdown --zone=all example
+
+# 全ゾーンにサーバ作成
+usacloud server create --name example ... --zone=all
+```
+
+#### `--parameters`
+
+コマンドに渡すパラメータを JSON または、JSON を記述したファイルパスを指定する
+
+```bash frame=none
+# 文字列で指定する例
+usacloud server list --parameters '{"Names": ["example"]}'
+
+# ファイルパスで指定する例
+cat example.json
+{
+    "Names": ["example"]
+}
+
+usacloud server list --parameters example.json
+```
+
+JSON ファイルは `--example` で記述例を確認できる。
+
+```bash frame=none
+usacloud server list --example
+```
+
+```json title="output"
+{
+    "Zone": "is1a",
+    "Count": 0,
+    "From": 0,
+    "Names": null,
+    "Tags": null
+}
+```
+
+#### `--example`
+
+パラメータ例の出力を行う。
+
+```bash frame=none
+usacloud switch create --example
+```
+
+```json tittle="output"
+{
+    "Zone": "tk1a | tk1b | is1a | is1b | tk1v",
+    "Name": "example",
+    "Description": "example",
+    "Tags": ["tag1=example1", "tag2=example2"],
+    "IconID": 123456789012
+}
+```
+
+通常は、ファイルなどに保存した上で編集して利用する。
+
+```bash frame=none
+# パラメータ例をファイルに出力
+usacloud switch create --example > parameters.json
+# --example の内容から編集
+vi parameters.json
+# 利用
+usacloud switch create --parameters parameters.json
+```
+
+#### `-y` | `--assumeyes`
+
+コマンド実行時の対話型ダイアログに `y` または `yes` を入力する
+
+### ID、名称、タグでの指定
+
+特定のリソースに対するコマンドの場合、ID、名称、またはタグを引数にとります。
+
+-   ID とタグの場合は**完全一致**
+-   名称の場合は(デフォルトでは)**部分一致**
+
+それぞれの一致条件でのリソースが操作対象となります。
+
+:::note[Info]
+
+グローバルオプション `--argument-match-mode` または
+プロファイル `ArgumentMatchMode` に `exact` を指定することで引数と名称を完全一致させることができます。
+
+:::
+
+:::caution[Warning]
+
+複数リソースの一括操作に対応していないコマンドの場合、対象が複数となる指定はエラーとなります。
+
+:::
+
+```bash frame=none
+#------------------------------------------------------------------------------
+# 以下のリソースが存在する場合の例
+#------------------------------------------------------------------------------
+usacloud server ls
++--------------+---------+-----+--------+---------------+--------+
+|      ID      |  NAME   | CPU | MEMORY |   IPADDRESS   | STATUS |
++--------------+---------+-----+--------+---------------+--------+
+| 000000000011 | Test1-1 | 1   | 1024MB | 192.0.2.11/24 | up     |
+| 000000000021 | Test2-1 | 1   | 1024MB | 192.0.2.21/24 | up     |
+| 000000000031 | Test3-1 | 1   | 1024MB | 192.0.2.31/24 | up     |
+| 000000000032 | Test3-2 | 1   | 1024MB | 192.0.2.32/24 | up     |
++--------------+---------+-----+--------+---------------+--------+
+
+#------------------------------------------------------------------------------
+# 部分一致(例1)
+#------------------------------------------------------------------------------
+usacloud server boot Test # 名称にTestを含むもの
+
+Target resource IDs => [
+    000000000011,
+    000000000021,
+    000000000031,
+    000000000032
+]
+Are you sure you want to boot?(y/n) [n]:
+
+#------------------------------------------------------------------------------
+# 部分一致(例2)
+#------------------------------------------------------------------------------
+usacloud server boot Test3 # 名称にTest3を含むもの
+
+Target resource IDs => [
+    000000000031,
+    000000000032
+]
+Are you sure you want to boot?(y/n) [n]:
+```
+
+#### サブコマンド `read` / `list` の使い分け
+
+リソースの情報を参照するためのサブコマンドとして list と read の使い分け方を説明します。
+
+<Table
+    caption=""
+    columns={["subcommand", "複数件ヒットを許容", "対象リソースの指定方法"]}
+    data={[
+        ["read", "複数件ヒットした場合はエラー", "対象リソースの指定は引数で行う"],
+        ["list", "複数件ヒットしてもエラーとならない", "対象リソースの指定はフラグ(オプション)で行う"],
+    ]}
+/>
+
+read は他のコマンドとの組み合わせて利用可能になっています。
+
+例: アイコンを名前で検索し、ID をスイッチ作成のパラメータに渡す(アイコンが複数ヒットしたらエラーとなる)
+
+```bash frame=none
+usacloud switch create --icon-id=$(usacloud icon read -q example)
+```

@@ -18,9 +18,7 @@ import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
 import LinkPreview from "@components/LinkPreview.astro";
 import Table from "@components/Table.astro";
 
-## 基本
-
-### Terraform とは
+## tfstate とは
 
 <LinkPreview url="https://envader.plus/article/221#Terraform%E3%81%AB%E3%81%8A%E3%81%91%E3%82%8Bworkspace%E3%81%A8%E3%81%AF%EF%BC%9F" />
 
@@ -54,3 +52,143 @@ Terraform により現在のリソースを管理、操作していく中で重�
 
 プロバイダはコアと実際に構築したいサービスとの架け橋のような役割を果たす。
 Terraform がサポートするクラウドサービスやその他のサービスとの間で、API を介して具体的な操作をプロバイダが行う。
+
+例えば、AWS の EC2 インスタンスを作成する場合、コアから依頼を受けた内容を元に具体的なリソースの変更を行うのは AWS プロバイダが行う
+
+プロバイダはサポートするクラウドサービスごとに定期的にバージョンアップが行われる。
+プロバイダのバージョンが更新されることで、新しいサービスやリソースを Terraform で利用できるようになる。
+
+## tfstate ファイル
+
+tfstate ファイルはクラウド上に構築されたリソースの現在の状態を記録したファイルで、JSON 形式で記述されている。
+`terraform apply` コマンドを実行すると、デフォルトでは terraform.tfstate というファイルがコマンドを実行したディレクトリへ作成される。
+
+<Table
+    caption="tfstate ファイルの主要要素"
+    columns={["プロパティ", "説明"]}
+    data={[
+        ["version", ["ex. `4`", "状態ファイルのバージョン。Terraformの内部で互換性の維持に利用される。"].join("<br/>")],
+        ["terraform_version", ["ex. `1.9.5`", "使用している Terraform 自体のバージョン"].join("<br/>")],
+        ["serial", ["ex. `17`", "状態ファイルの更新回数。状態変更されるたびにインクリメントされる。"].join("<br/>")],
+        [
+            "lineage",
+            [
+                "ex. `956bb49b-25e3-f000-bafe-9a374a372662`",
+                "状態ファイルのユニークな値(UUID)。バックエンドでの状態管理に使う",
+            ].join("<br/>"),
+        ],
+        ["outputs", ["ex. `{}`", "Terraform の出力変数を保持するオブジェクト"].join("<br/>")],
+        [
+            "resources",
+            ["ex. `[...]`", "Terraform によって管理されているリソースのリスト", "各リソースの詳細な情報"].join("<br/>"),
+        ],
+        ["check_results", ["ex. ``", ""].join("<br/>")],
+    ]}
+/>
+
+### resources の詳細
+
+`resources` 配列には、Terraform が管理する各リソースの情報がオブジェクト型で格納されている。
+
+```json
+"resources": [
+    {
+        "module": "",
+        "mode": "",
+        "type": "",
+        "name": "",
+        "provider": "",
+        "instances": [
+            {
+                // このリソースのスキーマバージョン。Terraform のプロバイダーや
+                // リソースのスキーマの変更に対応するために使用されます。
+                // 最初のバージョンは `1`、リソーススキーマが更新された場合、`2` となる。
+                "schema_version": 1,
+
+                // リソースの属性をキーと値のペアで保持しています。
+                // ここにはリソースの状態や設定値が含まれます。
+                "attributes": {
+                    "id": "<リソースの一意な識別子>",
+                    "name": "<リソース名>",
+                    "tags": "<リソースに付与されたタグ>"
+                    // その他にリソース固有のプロパティ
+                    // インスタンスの AMI ID、サブネット ID など
+                },
+                // 機密情報を扱うプロパティリスト。
+                // パスワードやシークレットキーなど、機密情報を含むプロパティが指定される。
+                "sensitive_attributes": ["password", "private_key"],
+                // Terraform 内部で使用するデータをエンコードした文字列
+                // このフィールドは Terraform の動作に必要な情報を含んでおり、直接編集や解読は推奨されません。
+                // (ex. Base64 でエンコードされたデータ)
+                "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+                // このリソースが依存している他のリソースのリスト
+                // Terraform はこの情報を使用して、リソースの作成や削除の順序を決定する依存関係を設定
+                "dependencies": [
+                    "module.vpc.aws_vpc.main", // VPC リソースに依存している
+                    ""
+                ]
+            }
+        ]
+    },
+    {
+        // その他のリソース
+    }
+]
+```
+
+<Table
+    caption="リソースオブジェクトのプロパティ"
+    columns={["プロパティ", "説明"]}
+    data={[
+        [
+            "module",
+            [
+                "ex. `module.vpc`, `module.subnet`",
+                "リソースが属しているモジュールのパス、モジュールを使用していない場合は空文字列",
+            ].join("<br/>"),
+        ],
+        [
+            "mode",
+            [
+                "リソースのモードを示します。",
+                "・`managed`: Terraformによって管理されているリソース",
+                "・`data`: Terraformのデータソース（外部データの参照）",
+            ].join("<br/>"),
+        ],
+        [
+            "type",
+            [
+                "ex. `aws_instance`、`aws_security_group`、`aws_vpc`",
+                "リソースの種類を示します。これはプロバイダーに依存。",
+                "`aws_instance`: AWS の EC2 インスタンス",
+                "・`google_compute_network`: Google Cloudのネットワークリソース",
+            ].join("<br/>"),
+        ],
+        [
+            "name",
+            [
+                "Terraform 設定内で定義されたリソースの論理名。",
+                "リソースブロックで指定した名前に対応。",
+                '`resource "aws_instance" "web_server" { ... }` のように定義された場合、`web_server`',
+            ].join("<br/>"),
+        ],
+        [
+            "provider",
+            [
+                "このリソースが使用しているプロバイダーを示す。",
+                "例",
+                '・`"provider["registry.terraform.io/hashicorp/aws"]"`: AWSプロバイダーを使用',
+                '・`"provider["registry.terraform.io/hashicorp/google"]"`: GCP プロバイダーを使用 ',
+            ].join("<br/>"),
+        ],
+        [
+            "instances",
+            [
+                "このリソースが使用しているプロバイダーを示す。",
+                "例",
+                '・`"provider["registry.terraform.io/hashicorp/aws"]"`: AWSプロバイダーを使用',
+                '・`"provider["registry.terraform.io/hashicorp/google"]"`: GCP プロバイダーを使用 ',
+            ].join("<br/>"),
+        ],
+    ]}
+/>

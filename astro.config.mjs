@@ -97,6 +97,10 @@ export default defineConfig({
                     ],
                 },
                 {
+                    label: 'Usacloud',
+                    autogenerate: { directory: 'usacloud' },
+                },
+                {
                     label: 'Terraform',
                     items: [
                         {
@@ -106,6 +110,10 @@ export default defineConfig({
                         {
                             label: 'AWS プロバイダ',
                             autogenerate: { directory: 'terraform/aws-provider-services' },
+                        },
+                        {
+                            label: 'さくらクラウド プロバイダ',
+                            autogenerate: { directory: 'terraform/sakuracloud-provider-services' },
                         },
                         {
                             label: 'Terraform コマンド',
