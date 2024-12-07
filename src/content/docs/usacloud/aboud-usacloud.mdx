@@ -430,6 +430,35 @@ usacloud server ls --format "ID is {{.ID}}, Name is {{.Name}}"
 
 JMESPath または jq で抽出の条件を実行する。
 
+> 構文
+
+```bash frame=none
+usacloud <リソース名> <コマンド> --query="<query>" [--query-driver=<"jmespath"|"jq">] [ID or Name or Tags]
+```
+
+<Table
+    columns={["Option", "説明"]}
+    data={[
+        ["--query", "JMESPath または jq に渡すクエリ(expression)"],
+        ["--query-driver", "--queryを処理するドライバーの指定、jmespath(デフォルト) または jq が指定可能"],
+    ]}
+/>
+
+:::note[プロファイル DefaultQueryDriver]
+
+プロファイルの DefaultQueryDriver を指定することで --query-driver を省略した場合に利用するドライバーを指定可能です。
+
+```bash frame=none
+export SAKURACLOUD_DEFAULT_QUERY_DRIVER=jq
+
+usacloud server list --query ".[].Name"
+"server1"
+"server2"
+"server3"
+```
+
+:::
+
 ##### JMESPath での抽出
 
 ```bash frame=none

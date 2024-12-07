@@ -133,6 +133,19 @@ export default defineConfig({
                         },
                     ],
                 },
+                {
+                    label: 'Ansible',
+                    items: [
+                        {
+                            label: 'Ansible の基本',
+                            autogenerate: { directory: 'ansible/about-ansible' },
+                        },
+                        {
+                            label: 'Ansible コマンド',
+                            autogenerate: { directory: 'ansible/cmds' },
+                        },
+                    ],
+                },
             ],
             // カスタム 404 ページを利用するか
             // disable404Route: true,

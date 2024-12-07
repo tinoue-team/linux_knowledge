@@ -1,0 +1,184 @@
+---
+title: Ansible の導入
+description: Ansible の基本的な内容を包括
+tags:
+    - "Ansible"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Ansible の導入
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 1
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## インストール
+
+<LinkPreview url="https://docs.ansible.com/" />
+<LinkPreview url="https://formulae.brew.sh/formula/ansible" />
+
+### インストール方法
+
+<Tabs syncKey="ansible">
+    <TabItem label="MacOS">
+        ```bash frame=none
+        brew install ansible
+
+        # インストール後 ansible コマンドの実行確認
+        ansible --version
+        ```
+    </TabItem>
+
+    <TabItem label="Linux(Debian)">
+        ```bash frame=none
+
+
+        # インストール後 ansible コマンドの実行確認
+        ansible --version
+        ```
+    </TabItem>
+
+    <TabItem label="Linux(RHEP)">
+        ```bash frame=none
+
+
+        # インストール後 ansible コマンドの実行確認
+        ansible --version
+        ```
+    </TabItem>
+
+</Tabs>
+
+## Ansible の仕組み
+
+### 概要
+
+Ansible はリモートシステムの管理を自動化し、システムの望ましい状態を制御するサービス
+
+![Ansible の仕組み](src/assets/2024-09-17_22.26.15.webp)
+
+<MermaidChart
+    chart={`
+    graph LR
+
+    %% ************************************ 宣言
+
+    %% キュー
+    subgraph Master Node
+        Inventory[インベントリファイル<br> /etc/ansible/hosts <br> /etc/hosts]
+        Playbook[Playbook ファイル <br> yaml]
+        ansible((Ansible<br>サービス))
+    end
+
+    subgraph Target Host
+        node1[(ターゲットノード<br>①)]
+        node2[(ターゲットノード<br>②)]
+        node3[(ターゲットノード<br>③)]
+    end
+
+    %% ************************************ 関連
+    Inventory --- ansible
+    Playbook --- ansible
+
+    ansible -.-> node1
+    ansible -.-> node2
+    ansible -.-> node3
+
+
+    `}
+
+/>
+
+#### Ansible の主要なコンポーネント
+
+<Table
+    caption=""
+    columns={["ノード", "説明"]}
+    data={[
+        [
+            "Control(制御)ノード",
+            [
+                "Ansibleがインストールされたシステム。",
+                "コントロールノード上で `ansible` や `ansible-inventory` などの Ansible コマンドを実行する。",
+            ].join("<br/>"),
+        ],
+        [
+            "Inventory (在庫)",
+            [
+                "論理的に整理された管理ノードのリスト。",
+                "コントロールノード上にインベントリを作成し、Ansible へのホストのデプロイを記述します。",
+            ].join("<br/>"),
+        ],
+        ["Managed (管理) ノード", ["Ansible が制御するリモート・システム（ホスト）。管理されるホスト"].join("<br/>")],
+    ]}
+/>
+
+##### ターゲットホストに `hostname` コマンドを実行する
+
+> 構文
+
+```bash frame=none
+ansible <target-host> -m <モジュール> -a '実行コマンド'
+```
+
+```bash frame=none
+ansible localhost -m shell -a 'hostname'
+[WARNING]: No inventory was parsed, only implicit localhost is available
+localhost | CHANGED | rc=0 >>
+MacBook-Air.local
+```
+
+初回、インベントリファイルがない場合は警告が表示されます。
+そのため、インベントリファイルとして、「/etc/ansible/hosts」を作成する
+
+```bash frame=none
+sudo mkdir /etc/ansible
+
+sudo vi /etc/ansible/hosts
+```
+
+以下のように編集
+
+```ini title="/etc/ansible/hosts"
+[localhost]
+127.0.0.1 ansible_connection=local
+```
+
+```bash frame=none
+ansible localhost -m shell -a 'hostname'
+[WARNING]: Platform darwin on host 127.0.0.1 is using the discovered Python interpreter at /opt/homebrew/bin/python3.12, but future installation of another Python interpreter could
+change the meaning of that path. See https://docs.ansible.com/ansible-core/2.17/reference_appendices/interpreter_discovery.html for more information.
+127.0.0.1 | CHANGED | rc=0 >>
+MacBook-Air.local
+```
+
+### ansible コマンド
+
+<Table
+    caption=""
+    columns={["オプション", "説明"]}
+    data={[
+        [
+            "Control(制御)ノード",
+            [
+                "Ansibleがインストールされたシステム。",
+                "コントロールノード上で `ansible` や `ansible-inventory` などの Ansible コマンドを実行する。",
+            ].join("<br/>"),
+        ],
+        [
+            "Inventory (在庫)",
+            [
+                "論理的に整理された管理ノードのリスト。",
+                "コントロールノード上にインベントリを作成し、Ansible へのホストのデプロイを記述します。",
+            ].join("<br/>"),
+        ],
+        ["Managed (管理) ノード", ["Ansible が制御するリモート・システム（ホスト）。管理されるホスト"].join("<br/>")],
+    ]}
+/>
