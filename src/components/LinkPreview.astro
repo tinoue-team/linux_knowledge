@@ -74,6 +74,12 @@ async function fetchOGTags(url: string): Promise<OGData> {
         // 4. バッファを適切なエンコーディングでデコードし、OGタグを抽出
         const ogData = extractOGTags(bufferData, charset);
 
+        // '/' パス対策
+        if (ogData.image?.startsWith('/')) {
+            const domain = new URL(url).origin;
+            ogData.image = domain + ogData.image;
+        }
+
         return ogData;
     } catch (error) {
         console.error('OGタグの取得に失敗しました:', error);
@@ -105,6 +111,7 @@ const ogData = await fetchOGTags(url);
             border
             border-white/10
             hover:border-white/80
+            max-h-28
             ">
             <div class="flex-1 p-3">
                 <h5>{ogData.title ? sanitizeAndDecodeHtml(ogData.title) : 'タイトルが取得できませんでした'}</h5>
