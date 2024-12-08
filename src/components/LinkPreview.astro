@@ -1,6 +1,6 @@
 ---
 import type { OGData } from '@/type';
-import { extractOGTags, sanitizeAndDecodeHtml } from '@/utils/htmlUtils';
+import { extractOGTags, getFaviconUrl, sanitizeAndDecodeHtml } from '@/utils/htmlUtils';
 import { parse } from 'node-html-parser';
 
 import iconv from 'iconv-lite';
@@ -8,11 +8,12 @@ import jschardet from 'jschardet';
 
 interface Props {
     url: string;
+    type?: 'card' | 'inline';
 }
 
-const { url } = Astro.props;
+const { url, type = 'card' } = Astro.props;
 
-async function fetchOGTags(url: string): Promise<OGData> {
+async function fetchLinkInfo(url: string): Promise<[OGData, string]> {
     try {
         const response = await fetch(url);
 
@@ -24,6 +25,7 @@ async function fetchOGTags(url: string): Promise<OGData> {
 
         // 1. HTTPヘッダーからcharsetを取得
         const contentType = response.headers.get('content-type');
+
         if (contentType) {
             const matches = contentType.match(/charset=([^;]+)/i);
             if (matches !== null) {
@@ -40,16 +42,19 @@ async function fetchOGTags(url: string): Promise<OGData> {
             const rootForCharset = parse(utf8Html);
 
             const metaCharset = rootForCharset.querySelector('meta[charset]');
+
             if (metaCharset) {
                 if (typeof metaCharset.getAttribute('charset') !== 'undefined') {
                     charset = metaCharset.getAttribute('charset')?.toLowerCase() as string;
                 }
             } else {
-                const metaContentType = rootForCharset.querySelector(
-                    'meta[http-equiv="Content-Type"]',
-                );
+                const metaContentType =
+                    rootForCharset.querySelector('meta[http-equiv="Content-Type"]') ??
+                    rootForCharset.querySelector('meta[http-equiv="content-type"]');
+
                 if (metaContentType) {
                     const content = metaContentType.getAttribute('content') || '';
+
                     const matchesMeta = content.match(/charset=([^;]+)/i);
                     if (matchesMeta) {
                         if (matchesMeta[1]) {
@@ -72,22 +77,18 @@ async function fetchOGTags(url: string): Promise<OGData> {
         }
 
         // 4. バッファを適切なエンコーディングでデコードし、OGタグを抽出
-        const ogData = extractOGTags(bufferData, charset);
+        const ogData = extractOGTags(bufferData, charset, url);
+        // 5. favicon を取得
+        const faviconUrl = getFaviconUrl(bufferData, charset, url);
 
-        // '/' パス対策
-        if (ogData.image?.startsWith('/')) {
-            const domain = new URL(url).origin;
-            ogData.image = domain + ogData.image;
-        }
-
-        return ogData;
+        return [ogData, faviconUrl];
     } catch (error) {
         console.error('OGタグの取得に失敗しました:', error);
-        return {};
+        return [{}, ''];
     }
 }
 
-const ogData = await fetchOGTags(url);
+const [ogData, faviconUrl] = await fetchLinkInfo(url);
 ---
 
 <style>
@@ -95,39 +96,57 @@ const ogData = await fetchOGTags(url);
 </style>
 
 {ogData.title ? (
-    <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="rounded-lg flex my-4 no-underline hover:bg-neutral-950/60"
-    >
-        <div class="
-            flex
-            w-full
-            astro-ggf2imng
-            shadow-mbump
-            hover:shadow-mbump-active
-            rounded-lg
-            border
-            border-white/10
-            hover:border-white/80
-            max-h-28
-            ">
-            <div class="flex-1 p-3">
-                <h5>{ogData.title ? sanitizeAndDecodeHtml(ogData.title) : 'タイトルが取得できませんでした'}</h5>
-                {ogData.description && <p>{sanitizeAndDecodeHtml(ogData.description)}</p>}
-                <span class="url">{ogData.siteName || new URL(url).hostname}</span>
+    type == 'card' ? (
+        <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rounded-lg flex my-4 no-underline hover:bg-neutral-950/60"
+        >
+            <div class="
+                flex
+                w-full
+                astro-ggf2imng
+                shadow-mbump
+                hover:shadow-mbump-active
+                rounded-lg
+                border
+                border-white/10
+                hover:border-white/80
+                max-h-28
+                ">
+                <div class="flex flex-col flex-1 p-2">
+                    <h5>{ogData.title ? sanitizeAndDecodeHtml(ogData.title) : 'タイトルが取得できませんでした'}</h5>
+                    {ogData.description && <p class="text-sm flex-1" style="margin-top: 0;">{sanitizeAndDecodeHtml(ogData.description)}</p>}
+                    <span class="flex text-sm">
+                        <img
+                            src={faviconUrl}
+                            class="w-4 h-4 min-w-4 mr-1 object-contain"
+                        />
+                        {new URL(url).hostname}
+                    </span>
+                </div>
+                {ogData.image && (
+                    <img
+                        src={ogData.image}
+                        alt="thumbnail"
+                        class="w-1/3 rounded-r-lg object-cover"
+                        style="margin: 0; color: var(--color-gray-4)"
+                    />
+                )}
             </div>
-            {ogData.image && (
-                <img
-                    src={ogData.image}
-                    alt="thumbnail"
-                    class="w-1/3 rounded-r-lg object-cover"
-                    style="margin: 0; color: var(--color-gray-4)"
-                />
-            )}
-        </div>
-    </a>
+        </a>
+    ) : (
+        <span class="inline-flex">
+            <img
+                src={faviconUrl}
+                class="w-4 h-4 min-w-4 mr-1 object-contain"
+            />
+            <a href={url} target="_blank">
+                {ogData.title ? sanitizeAndDecodeHtml(ogData.title) : 'タイトルが取得できませんでした'}
+            </a>
+        </span>
+    )
 ) : (
     <p>プレビューを表示できませんでした。</p>
 )}
