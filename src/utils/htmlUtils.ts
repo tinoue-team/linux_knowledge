@@ -109,7 +109,14 @@ export function getFaviconUrl(bufferData: Buffer, charset: string, url: string):
 
     // '/' パス対策
     if (iconHref?.startsWith('/')) {
-        faviconPath = domain + iconHref;
+        faviconPath = `${domain}${iconHref}`;
+    }
+
+    // この段階で、http から始まる favicon url になっていない時、引数の url の最後の '/' セグメントを削除する
+    if (!faviconPath.startsWith('http')) {
+        const parsedUrl = new URL(url);
+        parsedUrl.pathname = parsedUrl.pathname.replace(/\/[^/]+$/, '');
+        faviconPath = `${parsedUrl.toString()}/${iconHref}`;
     }
 
     return faviconPath;
