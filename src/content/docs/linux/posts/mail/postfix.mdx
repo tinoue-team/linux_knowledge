@@ -501,7 +501,203 @@ Postfix の設定は、/etc.postfix ディレクトリ以下の main.cf と mast
 -   main.cf は MTA としての基本設定ファイル
 -   master.cf は、Postfix を構成する各種デーモンの設定ファイル
 
-### main.cf の設定
+### main.cf の設定値
+
+#### `compatibility_level`
+
+compatibility_level は、Postfix が main.cf と master.cf の設定に使用するデフォルトの設定を決定します。これらのデフォルトは時間とともに変化します。
+システム管理者が main.cf や master.cf に後方互換性のあるデフォルト設定を永続化する必要があるかどうかを判断するまでは、Postfix は後方互換性のあるデフォルト設定を使用し、それらの古い後方互換性のあるデフォルト設定を使用している場所をログに記録します。
+このレビューが完了したら、RELEASE_NOTES ファイルで推奨されているように、以下の compatibility_level 設定を更新する。
+以下のレベルは（アップグレードではなく）新規インストールで使用すべきものです。
+
+#### `queue_directory`
+
+queue_directory は Postfix のキューの場所を指定します。これは chroot で動作する Postfix デーモンのルートディレクトリでもあります。さまざまな UNIX システムでの Postfix chroot 環境の設定については、 examples/chroot-setup のファイルを参照
+
+#### `command_directory`
+
+すべての postXXX コマンドの格納場所を指定 `command_directory = /usr/sbin`
+
+#### `daemon_directory`
+
+Postfix デーモン・プログラム（すなわち master.cf ファイルにリストされているプログラム）の場所を指定。このディレクトリは root が所有する必要があります。
+
+#### `data_directory`
+
+data_directory パラメータは Postfix が書き込み可能なデータファイル (キャッシュ、乱数) の場所を指定します。
+このディレクトリは mail_owner アカウントが所有していなければなりません (以下を参照)。
+
+#### `mail_owner`
+
+Postfix のキューおよびほとんどの Postfix デーモン・プロセスの所有者を指定。 ユーザ ID やグループ ID を他のアカウントと共有しておらず、システム上の他のファイルやプロセスを所有していないユーザアカウントの名前を指定します。 特に、nobody や daemon は指定しないでください。専用ユーザーを使用してください。
+
+#### `default_privs`
+
+外部ファイルまたはコマンドへの配信にローカル配信エージェントが使用するデフォルトの権限を指定します。
+これらの権限は、受信者のユーザ・コンテキストがない場合に使用されます。特権ユーザや postfix の所有者を指定しないでください。
+
+#### `soft_bounce`
+
+soft_bounce パラメータはテスト用の限定的なセーフティネットを提供します。
+soft_bounce が有効な場合、バウンスするメールはキューに残ります。
+このパラメータはローカルで生成されるバウンスを無効にし、SMTP サーバが( 5xx 応答を 4xx 応答に変更することで)メールを永久に拒否することを防ぎます。
+しかし、soft_bounce はアドレスの書き換えミスやメールのルーティングミスを防ぐものではありません。
+
+#### `myhostname`
+
+このメール・システムのインターネット・ホスト名を指定します。デフォルトでは、gethostname() からの完全修飾ドメイン名を使用します。
+myhostname は、他の多くの設定パラメータのデフォルト値として使用される。
+
+#### `mydomain`
+
+ローカルのインターネット・ドメイン名を指定する。
+デフォルトでは、$myhostname から最初の要素を除いたものが使用される。
+mydomain は、他の多くの設定パラメータのデフォルト値として使用される。
+
+#### `myorigin`
+
+ローカルに投稿されたメールの送信元ドメインを指定します。デフォルトは $myhostname で、小規模なサイトではこれで十分です。 
+複数のマシンでドメインを運用している場合は、(1)これを$mydomain に変更し、(2)ドメイン全体のエイリアスデータベースをセットアップして、
+各ユーザーのエイリアスをuser@that.users.mailhost。
+
+送信者と受信者のアドレスの一貫性を保つために、myorigin は、@domain 部分を持たない受信者アドレスに付加されるデフォルトのドメイン名も指定します。
+Debian GNU/Linux 特有: ファイル名を指定すると、そのファイルの最初の行が 名前として使われます。 Debian のデフォルトは /etc/mailname です。
+
+#### `inet_interfaces`
+
+メール・システムがメールを受信するネットワーク・インターフェース・アドレスを指定する。 デフォルトでは、マシンのすべてのアクティブなインタフェースを要求します。このパラメータは、user@[ip.address] へのメールの配送も制御します。
+
+プロキシまたはネットワーク・アドレス・トランスレータ経由で転送されるネットワーク・アドレスについては、proxy_interfaces パラメータも参照してください。
+
+:::caution[注意]
+このパラメータが変更された場合は、Postfix を停止/起動する必要があります。
+:::
+
+#### `proxy_interfaces`
+
+このメール・システムがプロキシまたはネットワーク・アドレス変換ユニットによってメールを受信するネットワーク・インタフェース・アドレスを指定します。この設定は inet_interfaces パラメータで指定したアドレス・リストを拡張します。
+システムが他のドメインのバックアップ MX ホストである場合、プロキシ/NAT アドレスを指定する必要があります。そうしないと、プライマリ MX ホストがダウンしたときにメール配信ループが発生します。
+
+#### `mydestination`
+
+このマシンが最終宛先とみなすドメインのリストを指定します。
+これらのドメインは、local_transport パラメータ設定で指定された配信エージェントにルーティングされる。デフォルトでは、/etc/passwd と/etc/aliases またはそれに相当するもので、すべての受信者を検索する UNIX 互換の配送エージェントです。
+
+デフォルトは `$myhostname + localhost.$mydomain + localhost` です。 メールドメインゲートウェイでは、`$mydomain` も含める必要があります。
+
+バーチャル・ドメインの名前は指定しないでください - これらのドメインは別の場所で指定されます (VIRTUAL_README を参照)。
+
+このマシンがバックアップ MX ホストとなるドメイン名は指定しないでください。
+これらの名前は SMTP サーバーの relay_domains 設定で指定するか、
+面倒であれば permit_mx_backup を使用してください（STANDARD_CONFIGURATION_README を参照）。
+
+メール・システムがメールを受信するインタフェース（inet_interfaces パラメータを参照）の
+user@[the.net.work.address]宛のメールの最終宛先は、常にローカル・マシンになります。
+
+ホスト名またはドメイン名、/file/name または type:table パターンのリストをカンマまたは空白で区切って指定します。
+file/name パターンはその内容で置き換えられ、type:table パターンは、
+名前がルックアップ・キーにマッチしたときにマッチします（右辺は無視されます）。
+次の行を空白で始めることで、長い行を続けることができる。
+
+See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
+以下のセクション「 REJECTING MAIL FOR UNKNOWN LOCAL USERS (不明なローカルユーザーのメールを拒否する)」も参照のこと。
+
+#### `local_recipient_maps`
+
+$mydestination、$inet_interfaces または $proxy_interfaces に対して
+ローカルなユーザの名前またはアドレスをすべて含むルックアップ・テーブルをオプションで指定します。
+このパラメータが定義されている場合、SMTP サーバは不明なローカル・ユーザのメールを拒否します。
+このパラメータはデフォルトで定義されています。
+SMTP サーバのローカル受信者チェックをオフにするには、以下のように指定します。
+
+#### `unknown_local_recipient_reject_code`
+
+受信者ドメインが `$mydestination` または `${proxy,inet}_interfaces` にマッチし、`$local_recipient_maps` が空でなく、受信者アドレスまたはアドレスのローカル・パートが見つからない場合の SMTP サーバの応答コードを指定します。
+
+デフォルトの設定は 550（メールを拒否する）ですが、local_recipient_maps の設定に問題がないことが確認できるまでは、450（後で再試行する）から始めた方が安全です。
+
+#### `mynetworks_style`
+
+The mynetworks parameter specifies the list of "trusted" SMTP clients that have more privileges than "strangers".
+
+In particular, "trusted" SMTP clients are allowed to relay mail through Postfix. See the smtpd_recipient_restrictions parameter in postconf(5).
+
+You can specify the list of "trusted" network addresses by hand or you can let Postfix do it for you (which is the default).
+
+By default (mynetworks_style = host), Postfix "trusts" only the local machine.
+
+Specify "mynetworks_style = subnet" when Postfix should "trust" SMTP clients in the same IP subnetworks as the local machine. On Linux, this works correctly only with interfaces specified with the "ifconfig" or "ip" command.
+
+Specify "mynetworks_style = class" when Postfix should "trust" SMTP clients in the same IP class A/B/C networks as the local machine. Don't do this with a dialup site - it would cause Postfix to "trust" your entire provider's network. Instead, specify an explicit mynetworks list by hand, as described below.
+
+Specify "mynetworks_style = host" when Postfix should "trust" only the local machine.
+
+#### `mynetworks`
+
+Alternatively, you can specify the mynetworks list by hand, in which case Postfix ignores the mynetworks_style setting.
+
+Specify an explicit list of network/netmask patterns, where the mask specifies the number of bits in the network part of a host address.
+
+You can also specify the absolute pathname of a pattern file instead of listing the patterns here. Specify type:table for table-based lookups (the value on the table right-hand side is not used).
+
+#### `relay_domains`
+
+The relay_domains parameter restricts what destinations this system will relay mail to.  
+See the smtpd_relay_restrictions and smtpd_recipient_restrictions descriptions in postconf(5) for detailed information.
+
+By default, Postfix relays mail
+
+-   from "trusted" clients (IP address matches $mynetworks, or is SASL authenticated) to any destination,
+-   from "untrusted" clients to destinations that match $relay_domains or subdomains thereof, except addresses with sender-specified routing.
+
+The default relay_domains value is empty.
+
+In addition to the above, the Postfix SMTP server by default accepts mail
+that Postfix is final destination for:
+
+-   destinations that match $inet_interfaces or $proxy_interfaces,
+-   destinations that match $mydestination
+-   destinations that match $virtual_alias_domains,
+-   destinations that match $virtual_mailbox_domains.
+    These destinations do not need to be listed in $relay_domains.
+
+Specify a list of hosts or domains, /file/name patterns or type:name
+lookup tables, separated by commas and/or whitespace. Continue
+long lines by starting the next line with whitespace. A file name
+is replaced by its contents; a type:name table is matched when a
+(parent) domain appears as lookup key.
+NOTE: Postfix will not automatically forward mail for domains that
+list this system as their primary or backup MX host. See the
+permit_mx_backup restriction description in postconf(5).
+
+#### `relayhost`
+
+The relayhost parameter specifies the default host to send mail to when no entry is matched in the optional transport(5) table.
+When no relayhost is given, mail is routed directly to the destination.
+
+On an intranet, specify the organizational domain name.
+If your internal DNS uses no MX records, specify the name of the intranet gateway host instead.
+
+In the case of SMTP, specify a domain, host, host:port, [host]:port, [address] or [address]:port; the form [host] turns off MX lookups.
+
+If you're connected via UUCP, see also the default_transport parameter.
+
+#### `relay_recipient_maps`
+
+The relay_recipient_maps parameter specifies optional lookup tables with all addresses in the domains that match $relay_domains.
+
+If this parameter is defined, then the SMTP server will reject mail for unknown relay users. This feature is off by default.
+
+The right-hand side of the lookup tables is conveniently ignored. In the left-hand side, specify an @domain.tld wild-card, or specify a user@domain.tld address.
+
+#### `in_flow_delay`
+
+The in_flow_delay configuration parameter implements mail input flow control. This feature is turned on by default, although it still needs further development (it's disabled on SCO UNIX due to an SCO bug).
+
+A Postfix process will pause for $in_flow_delay seconds before accepting a new message, when the message arrival rate exceeds the message delivery rate. With the default 100 SMTP server process limit, this limits the mail inflow to 100 messages a second more than the number of messages delivered per second.
+Specify 0 to disable the feature. Valid delays are 0..10.
+
+#### `smtp_helo_name`
 
 ### master.cf の設定
 
