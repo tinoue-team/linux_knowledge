@@ -119,6 +119,25 @@ terraform は Iac と呼ばれるツールの一種で、インフラの構成�
 
 </FileTree>
 
+### TF ファイル
+
+#### .tf ファイルの基本構文
+
+aws プロバイダを利用した時の例
+
+```tf title="xxx.tf"
+provider "" {
+    region = ""
+    access_key = ""
+    secret_key = ""
+}
+
+resource "<provider>_<resource_type>" "name" {
+    key1 = "value1"
+    key2 = "value2"
+}
+```
+
 ### ロックファイル(.lock.hcl)
 
 プロバイダのプラグインをインストールした際のプラグインリストを記載したファイル

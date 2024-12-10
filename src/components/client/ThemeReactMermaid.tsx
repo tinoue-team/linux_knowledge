@@ -23,7 +23,7 @@ export default function ThemeReactMermaid({ src }: { src: string }) {
                 securityLevel: 'loose', // SVG レンダリングの制限を緩和
                 themeVariables: {
                     // テーマに基づいたスタイルを定義
-                    fontSize: '28px',
+                    fontSize: '14px',
                     dark: {
                         background: '#333',
                         nodeBackground: '#555',

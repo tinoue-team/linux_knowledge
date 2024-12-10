@@ -1,0 +1,60 @@
+---
+title: Terraform 関数
+description: Terraform 構文の中で、利用できる関数の説明
+tags:
+    - "Terraform"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Terraform 関数
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 10
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 解説
+
+### 参考
+
+<LinkPreview url="https://developer.hashicorp.com/terraform/language/functions" />
+- <LinkPreview url="https://zenn.dev/terraform_jp/articles/terraform-functions" type="inline" />
+- <LinkPreview url="https://qiita.com/moko_Swallows/items/e19e8eb553fa7d565bcf" type="inline" />
+
+### element
+
+element 関数は、指定されたインデックスにあるリスト内の要素を返します。主にリストから値を取得する際に使用されます。この関数を空のリストで使用すると、エラーが発生します。
+
+#### syntax
+
+```tf
+element(LIST, INDEX)
+```
+
+##### LIST
+
+[required]  
+要素を検索する対象のリスト。リストは、順序付けされた値のコレクション
+
+##### INDEX
+
+[required]  
+LIST から取得したい要素のインデックス（0 から始まる整数）番号。
+INDEX が LIST の範囲外の場合、エラー
+
+#### sample
+
+```tf
+variable "example_list" {
+    default = ["a", "b", "c"]
+}
+
+output "example_element" {
+    value = element(var.example_list, 1)
+}
+```

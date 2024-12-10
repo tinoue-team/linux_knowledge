@@ -14,7 +14,7 @@ sidebar:
     #     variant: tip
 ---
 
-import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
 import LinkPreview from "@components/LinkPreview.astro";
 import Table from "@components/Table.astro";
 
@@ -42,12 +42,69 @@ terraform [global options] workspace
     ]}
 />
 
-```bash frame="none"
-terraform workspace list
+### workspace コマンドのフロー
 
-# 新しいワークスペースの作成
-terraform workspace new dev
+<Steps>
 
-# ワークスペースの切り替え
-terraform workspace select dev
-```
+1.  **現在の Terraform プロジェクトのワークスペースを確認**
+
+    ```bash frame=none
+    terraform workspace list
+    # まだ何も作成していないと default のみ (* で現在の workspace をマークしている)
+    * default
+    ```
+
+1.  **新しいワークスペースの作成**
+
+    たとえば、環境毎にインフラストラクチャの状態を管理することを考え、'dev' というワークスペースを作成する
+
+    ```bash frame="none"
+    # 新しいワークスペースの作成
+    terraform workspace new dev
+    ```
+
+    この作成と同時に、プロジェクトのルート階層に terraform.tfstate.d というディレクトリが作成され、  
+    その中に 'dev' ディレクトリが作成される。
+
+1.  **ワークスペースにおけるインフラストラクチャの実行を行う**
+
+    ```bash frame="none"
+    terraform apply \
+        -var-file=vars/dev/.secret/secret.tfvars \
+        -var-file=vars/dev/network/vpc.tfvars \
+        -var "tag_name_prefix=project-dev"
+    ```
+
+    インフラストラクチャの作成を実行すると、dev の配下に tfstate ファイルが作成される
+
+    <FileTree>
+
+        - project/
+            - main.tf
+            - terraform.tfstate.d/ # 個別で作成されたワークスペースの tfstate が格納される
+                - dev/
+                    - terraform.tfstate
+            - terraform.tfstate # default のワークスペース
+
+    </FileTree>
+
+1.  **違うワークスペースが存在する場合は以下のように切り替えることができる**
+
+    ```bash frame="none"
+    # 現在のワークスペースを確認
+    terraform workspace list
+    default
+    * dev
+    prod
+    # ワークスペースの切り替え
+    terraform workspace select prod
+    ```
+
+</Steps>
+
+#### 参考
+
+-   <LinkPreview
+        url="https://envader.plus/article/221#Terraform%E3%81%AB%E3%81%8A%E3%81%91%E3%82%8Bworkspace%E3%81%A8%E3%81%AF%EF%BC%9F"
+        type="inline"
+    />
