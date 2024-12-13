@@ -156,7 +156,6 @@ export default defineConfig({
             applyBaseStyles: false,
         }),
     ],
-    output: 'hybrid',
     adapter: netlify(),
     // adapter: isProd ? netlify() : '',
     // 特定のパターンのページを事前レンダリング
