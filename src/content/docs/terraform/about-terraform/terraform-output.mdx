@@ -21,11 +21,23 @@ import Table from "@components/Table.astro";
 ## output セクション
 
 <LinkPreview url="https://developer.hashicorp.com/terraform/language/values/outputs" />
+- <LinkPreview url="https://hitolog.blog/2021/10/17/terraform-module/" type="inline" />
+- <LinkPreview url="https://qiita.com/kyntk/items/2cdd38c2438ac257ac4e" type="inline" />
 
 ### 説明
 
 インフラストラクチャの作成に関する情報について、作成結果の出力値を利用する。
 現在の tfstate に記載されている output セクションの値を表示するには [`terraform ouput`](/terraform/cmds/all-other-commands/output)
+
+#### 構文
+
+```tf
+output "出力時の名前" {
+    value = インフラ名.リソース名.プロパティ
+}
+```
+
+value は一つしか定義できないため、出力したい値があれば、再度、同様に出力したい値を記述する
 
 ### 基本的なフロー
 

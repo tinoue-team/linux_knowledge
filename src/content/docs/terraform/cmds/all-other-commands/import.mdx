@@ -81,11 +81,20 @@ terraform import aws_instance.example i-12345678
     ]}
 />
 
+## import ブロックを利用する
+
+-   <LinkPreview url="https://dev.classmethod.jp/articles/terraform-import-twoway/" type="inline" />
+-   <LinkPreview url="https://dev.classmethod.jp/articles/terraform-import-command-and-import-block/" type="inline" />
+-   <LinkPreview url="https://cross-black777.hatenablog.com/entry/2017/07/24/235614" type="inline" />
+    tf ファイルの import ブロックを利用して、リソースを tfstate にインポートする{" "}
+
 ## Sample
 
 <LinkPreview url="https://dev.classmethod.jp/articles/terraform-import-twoway/" />
 
-### AWS EC2 インスタンスの import
+### `import` の使用例
+
+#### AWS EC2 インスタンスの import
 
 <Steps>
 
@@ -146,9 +155,33 @@ Terraform の現在の作業スペース内のすべての管理対象リソー�
 
 -   ステートからの削除
 
-        ```bash frame=none
-        terraform state rm resource_type.resource_name
-        ```
-        ステートからリソースを削除すると、Terraform はそのリソースを管理しなくなりますが、実際のリソースはそのまま残る。
+    ```bash frame=none
+    terraform state rm resource_type.resource_name
+    ```
+
+    ステートからリソースを削除すると、Terraform はそのリソースを管理しなくなりますが、実際のリソースはそのまま残る。
 
 :::
+
+#### AWS IAM ユーザーを import
+
+##### 手順
+
+<Steps>
+
+    1. 予め AWS で IAM ユーザーを作成している(今回は Alice という IAM ユーザを用意)
+    1. resource を定義
+        ```tf
+        resource "aws_iam_user" "alice" {
+            name = "Alice"
+        }
+        ```
+        name が必須パラメータで指定している
+
+    1. IAM ユーザーを import
+        ```bash frame=none
+        terraform import aws_iam_user.alice Alice
+        ```
+        tfstate にリソースが管理される
+
+</Steps>

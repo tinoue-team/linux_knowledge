@@ -134,7 +134,7 @@ terraform [global options] plan [options]
         [
             "-out=path",
             [
-                "プランファイルを指定されたパスに書き込みます。これは `apply` コマンドへの入力として使用できます。",
+                "プランファイルを指定されたパスに書き込みます(ファイルはバイナリファイル)。これは `apply` コマンドへの入力として使用できます。",
             ].join("<br/>")
         ],
         [
@@ -158,6 +158,9 @@ terraform [global options] plan [options]
 ```bash frame="none"
 terraform plan
 
-# プランの保存
-terraform plan -out=output.txt
+# プランの保存(.out は慣習)
+terraform plan -out=plan.out -var-file hoge.tfvars
+
+# -out で作成された plan ファイルを元に apply を実行
+terraform apply plan.out
 ```

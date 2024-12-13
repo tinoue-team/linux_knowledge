@@ -14,11 +14,14 @@ sidebar:
     #     variant: tip
 ---
 
-import { LinkCard, Tabs, TabItem, FileTree } from "@astrojs/starlight/components";
+import { LinkCard, Tabs, TabItem, FileTree, Steps } from "@astrojs/starlight/components";
 import LinkPreview from "@components/LinkPreview.astro";
 import Table from "@components/Table.astro";
 
 ## moudule の利用
+
+module セクションは、source プロパティを指定することで、tf ファイルから別の tf ファイルを呼び出すことができる。
+module として利用する tf ファイル自体は通常の resource セクションと書き方は同じ。
 
 <LinkPreview url="https://zenn.dev/not75743/scraps/3bf70102478b5e" />
 
@@ -48,5 +51,318 @@ provider "aws" {
 module "example_bucket" {
     source      = "./modules/s3_bucket"
     bucket_name = "example-bucket-20230519"
+}
+```
+
+### module 間で値を受け渡す
+
+たとえば、ネットワーク構成のリソースである vpc の作成が行われ、そのリソース ID を参照して、 EC2 インスタンスを作成するなどが一般的によくあるケースです。  
+Terraform の実行で行うと以下の流れとなります。
+
+<Steps>
+
+    1. ルート階層の main.tf を実行
+
+    1. main.tf から module セクションを利用して、VPC の resource セクションをもとにネットワークリソースを作成
+
+    1. VPC ID が output セクションによって出力される
+
+    1. ouput された VPC ID の値を参照して EC2 を作成する
+
+</Steps>
+
+<FileTree>
+
+-   .
+    -   main.tf # module セクションを定義(必要であれば、output セクションなどを定義する)
+    -   provider.tf # AWS などの cloud 接続情報を定義
+    -   variables.tf # variables セクションを定義
+    -   sample.tfvars # 必要な変数の値を定義
+    -   module/ # 呼び出される module の resource を定義
+        -   ec2/
+            -   \_output.tf
+            -   \_variable.tf
+            -   resource.tf
+        -   vpc/
+            -   \_output.tf
+            -   \_variable.tf
+            -   resource.tf
+
+</FileTree>
+
+#### main.tf
+
+```tf
+# vpcモジュールを呼び出す
+module "vpc" {
+    source      = "./module/vpc"
+    system      = var.system
+    env         = var.env
+    cidr_vpc    = var.vpc_cidr
+    cidr_public = var.cidr_public
+}
+
+# ec2モジュールを呼び出す
+module "ec2" {
+    source       = "./module/ec2"
+    system       = var.system
+    env          = var.env
+    vpc_id       = module.vpc.vpc_id
+    subnets      = module.vpc.subnets
+    myip         = var.myip
+    instance_cnt = var.instance_cnt
+    ami          = var.ami
+    type         = var.type
+    key_name     = var.key_name
+}
+```
+
+#### variables.tf と tfvars
+
+##### variables.tf
+
+```tf
+variable "system" {
+    description = "タグに使用するこの基盤のシステム名称(任意)"
+    type        = string
+}
+variable "env" {
+    description = "タグに使用する環境の名称(dev|stg|prd)"
+    default     = "dev"
+    type        = string
+}
+variable "myip" {
+    description = "セキュリティグループで許可する自分の IP"
+    type        = string
+}
+variable "instance_cnt" {
+    description = "作成するインスタンスの数"
+    type        = number
+}
+variable "ami" {
+    description = "作成するインスタンスの ami"
+    type        = string
+}
+variable "type" {
+    description = "作成するインスタンスのタイプ"
+    type        = string
+}
+variable "key_name" {
+    description = "インスタンスに紐付けるキーペア"
+    type        = string
+}
+variable "vpc_cidr" {
+    description = "VPC の CIDR ブロック"
+    type        = string
+}
+variable "cidr_public" {
+    description = "サブネットの CIDR ブロック"
+    type        = list(string)
+}
+```
+
+##### sample.tfvars
+
+```tf
+system       = "sample"
+env          = "dev"
+myip         = "125.14.138.0/24"
+instance_cnt = 2
+ami          = "ami-0701e21c502689c31"
+type         = "t2.micro"
+key_name     = "cloud01-key"
+vpc_cidr     = "10.100.0.0/16"
+cidr_public = [
+    "10.100.10.0/24",
+    "10.100.11.0/24",
+    "10.100.12.0/24"
+]
+
+```
+
+#### module/ec2
+
+##### module/ec2/resource.tf
+
+```tf
+
+resource "aws_security_group" "sg-ec2" {
+    name        = "tf-sample-module-sg-http"
+    description = "Allow HTTP inbound traffic"
+    vpc_id      = var.vpc_id
+    ingress {
+        from_port       = 80
+        to_port         = 80
+        protocol        = "tcp"
+        security_groups = [aws_security_group.sg-elb.id]
+        cidr_blocks     = [var.myip]
+    }
+
+    ingress {
+        from_port   = 22
+        to_port     = 22
+        protocol    = "tcp"
+        cidr_blocks = [var.myip]
+    }
+
+
+    egress {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    tags = {
+        Name = "${var.env}-${var.system}-sg-http"
+        Cost = "${var.system}"
+    }
+}
+
+resource "aws_security_group" "sg-elb" {
+    name        = "tf-sample-module-sg-elb"
+    description = "Allow HTTP inbound traffic"
+    vpc_id      = var.vpc_id
+    ingress {
+        from_port   = 80
+        to_port     = 80
+        protocol    = "tcp"
+        cidr_blocks = [var.myip]
+    }
+    egress {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    tags = {
+        Name = "${var.env}-${var.system}-sg-http"
+        Cost = "${var.system}"
+    }
+}
+
+resource "aws_instance" "ec2" {
+    count         = var.instance_cnt
+    ami           = var.ami
+    instance_type = var.type
+    key_name      = var.key_name
+    vpc_security_group_ids = [
+        "${aws_security_group.sg-ec2.id}"
+    ]
+    subnet_id                   = element(var.subnets.*.id, count.index % length(var.subnets))
+    associate_public_ip_address = "true"
+    tags = {
+        Name = "${var.env}-${var.system}-web"
+        Cost = "${var.system}"
+    }
+}
+```
+
+##### module/ec2/\_variable.tf
+
+```tf
+variable "system" {}
+variable "env" {}
+variable "vpc_id" {}
+variable "myip" {}
+variable "instance_cnt" {}
+variable "subnets" {}
+variable "ami" {}
+variable "type" {}
+variable "key_name" {}
+```
+
+##### module/ec2/\_output.tf
+
+```tf
+output "sg-elb" {
+    value = aws_security_group.sg-elb.id
+}
+
+output "pub_instances" {
+    value = aws_instance.ec2
+}
+```
+
+#### module/vpc
+
+##### module/vpc/resource.tf
+
+```tf
+# get availability_zones list.
+# For reference: availability_zone = data.aws_availability_zones.available.names[0]　
+data "aws_availability_zones" "available" {
+    state = "available"
+}
+
+# vpcの作成
+resource "aws_vpc" "vpc" {
+    # variable.tfで定義した"cidr_vpc"の値を参照
+    cidr_block           = var.cidr_vpc
+    instance_tenancy     = "default"
+    enable_dns_hostnames = true
+    tags = {
+        Name = "${var.env}-${var.system}-vpc"
+        Cost = "${var.system}"
+    }
+}
+resource "aws_internet_gateway" "igw" {
+    vpc_id = aws_vpc.vpc.id
+    tags = {
+        Name = "${var.env}-${var.system}-igw"
+        Cost = "${var.system}"
+    }
+}
+
+resource "aws_subnet" "public" {
+    # lengthはterraformで用意された関数で配列の長さを返します
+    count      = length(var.cidr_public)
+    vpc_id     = aws_vpc.vpc.id
+    cidr_block = element(var.cidr_public, count.index)
+    # azはdataブロックで取得した配列を参照します。
+    availability_zone = data.aws_availability_zones.available.names[count.index % length(var.cidr_public)]
+    tags = {
+        Name = "${var.env}-${var.system}-pub-${count.index + 1}"
+        Cost = "${var.system}"
+    }
+}
+
+resource "aws_route_table" "public" {
+    vpc_id = aws_vpc.vpc.id
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.igw.id
+    }
+    tags = {
+        Name = "${var.env}-${var.system}-pub-rt"
+        Cost = "${var.system}"
+    }
+}
+
+resource "aws_route_table_association" "public" {
+    count          = length(var.cidr_public)
+    subnet_id      = element(aws_subnet.public.*.id, count.index)
+    route_table_id = aws_route_table.public.id
+}
+
+```
+
+##### module/vpc/\_variable.tf
+
+```tf
+variable "system" {}
+variable "env" {}
+variable "cidr_vpc" {}
+variable "cidr_public" {}
+```
+
+##### module/vpc/\_output.tf
+
+```tf
+output "vpc_id" {
+    value = aws_vpc.vpc.id
+}
+
+output "subnets" {
+    value = aws_subnet.public
 }
 ```

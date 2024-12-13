@@ -14,7 +14,7 @@ sidebar:
     #     variant: tip
 ---
 
-import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
 import LinkPreview from "@components/LinkPreview.astro";
 import Table from "@components/Table.astro";
 
@@ -136,7 +136,79 @@ terraform [global options] state <subcommand> [options] [args]
 terraform state list
 ```
 
-```bash frame="none"
-# 特定のリソースを削除
-terraform state rm aws_instance.example
+### `rm` の使用例
+
+#### tfstate 内でリソースを管理して外す
+
+##### 手順
+
+<Steps>
+
+    1. **resource セクションを定義**
+
+        ```tf
+        resource "aws_instance" "sample1" {
+        }
+        ```
+
+    1. **すでに作成されている、EC2 インスタンスを tfstate 内で管理する**
+
+        ```bash frame=none
+        terraform import aws_instance.sample1 i-0c9982c9c11841378
+        ```
+
+        terraform.tfstate ファイル内で、リソースの状態のデータが入る。
+
+    1. **ここからさらに、import している状態を外す**
+
+        ```bash frame=none
+        terraform state rm aws_instance.sample1
+        ```
+
+</Steps>
+
+:::note
+`import` した状態で destroy などの操作を行う時には、必須のパラメータ指定が必要となってくるものがある。
+
+```bash frame=none
+terraform destroy
+╷
+│ Error: Missing required argument
+│
+│   with aws_instance.sample1,
+│   on main.tf line 1, in resource "aws_instance" "sample1":
+│    1: resource "aws_instance" "sample1" {
+│
+│ "launch_template": one of `ami,instance_type,launch_template` must be specified
+╵
+╷
+│ Error: Missing required argument
+│
+│   with aws_instance.sample1,
+│   on main.tf line 1, in resource "aws_instance" "sample1":
+│    1: resource "aws_instance" "sample1" {
+│
+│ "instance_type": one of `instance_type,launch_template` must be specified
+╷
+│ Error: Missing required argument
+│
+│   with aws_instance.sample1,
+│   on main.tf line 1, in resource "aws_instance" "sample1":
+│    1: resource "aws_instance" "sample1" {
+│
+│ "ami": one of `ami,launch_template` must be specified
+╵
 ```
+
+resource セクションで必要なパラメータを tfstate の内容から編集
+
+```tf
+resource "aws_instance" "sample1" {
+    ami           = "ami-023ff3d4ab11b2525"
+    instance_type = "t2.micro"
+}
+```
+
+これで `terraform destroy` が実行できる
+
+:::
