@@ -1,0 +1,29 @@
+---
+title: Starlight の基本
+description: Starlight は Astro のさらなる軽量化、環境の負荷についての改良を目指したテーマ
+tags:
+    - "Astro"
+    - "Starlight"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Starlight の基本
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, FileTree, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import EmailLink from "@components/EmailLink.astro";
+import Table from "@components/Table.astro";
+
+<LinkPreview url="https://starlight.astro.build/ja/" />
+<LinkPreview url="https://github.com/withastro/starlight/issues?q=is%3Aissue+is%3Aopen" />
+<LinkPreview url="https://github.com/withastro/starlight/tree/main/packages/starlight/components" />
+
+<EmailLink>
+    <span>kkdkdkdk</span>
+</EmailLink>

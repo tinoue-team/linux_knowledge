@@ -40,7 +40,18 @@ import Table from "@components/Table.astro";
 
         # インストール後 ansible コマンドの実行確認
         ansible --version
+        ansible [core 2.17.4]
+        config file = None
+        configured module search path = ['/Users/t_inoue/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+        ansible python module location = /opt/homebrew/Cellar/ansible/10.4.0/libexec/lib/python3.12/site-packages/ansible
+        ansible collection location = /Users/t_inoue/.ansible/collections:/usr/share/ansible/collections
+        executable location = /opt/homebrew/bin/ansible
+        python version = 3.12.7 (main, Oct  1 2024, 02:05:46) [Clang 15.0.0 (clang-1500.3.9.4)] (/opt/homebrew/Cellar/ansible/10.4.0/libexec/bin/python)
+        jinja version = 3.1.4
+        libyaml = True
         ```
+        更新するには、`brew upgrade ansible`
+
     </TabItem>
 
     <TabItem label="Linux(Debian)">
@@ -69,7 +80,16 @@ import Table from "@components/Table.astro";
 
 Ansible はリモートシステムの管理を自動化し、システムの望ましい状態を制御するサービス
 
-![Ansible の仕組み](src/assets/2024-09-17_22.26.15.webp)
+以下の使用例があります。
+
+-   繰り返しをなくし、ワークフローを簡素化
+-   システム構成の管理と維持
+-   複雑なソフトウェアを継続的に導入する
+-   ダウンタイムゼロのローリングアップデートを実行する
+
+Ansible は Playbook と呼ばれる手順書をもとにターゲットとなるノードの望ましい状態を宣言している。
+
+{/* ![Ansible の仕組み](src/assets/2024-09-17_22.26.15.webp) */}
 
 <MermaidChart
     chart={`
@@ -111,8 +131,9 @@ Ansible はリモートシステムの管理を自動化し、システムの望
         [
             "Control(制御)ノード",
             [
-                "Ansibleがインストールされたシステム。",
+                "Ansibleがインストールされたシステム。Ansible を実行する",
                 "コントロールノード上で `ansible` や `ansible-inventory` などの Ansible コマンドを実行する。",
+                "Python がインストールされたほぼすべての UNIX 系マシンで使用可",
             ].join("<br/>"),
         ],
         [
@@ -122,11 +143,43 @@ Ansible はリモートシステムの管理を自動化し、システムの望
                 "コントロールノード上にインベントリを作成し、Ansible へのホストのデプロイを記述します。",
             ].join("<br/>"),
         ],
-        ["Managed (管理) ノード", ["Ansible が制御するリモート・システム（ホスト）。管理されるホスト"].join("<br/>")],
+        [
+            "Managed (管理) ノード",
+            [
+                "Ansible が制御するリモート・システム（ホスト）。管理されるホスト",
+                "Ansible がインストールされている必要はないが、Ansible によって生成された Python コードを実行するために Python が必要",
+                "対話型 POSIX シェルを使用してノードに SSH 経由で接続できるユーザーアカウントも必要",
+            ].join("<br/>"),
+        ],
     ]}
 />
 
-##### ターゲットホストに `hostname` コマンドを実行する
+1. **入力ファイル読み込み**
+
+    インベントリを元に、どのターゲットに対してメンテナンスを行うか、情報 (IP アドレスなど)を取得する Playbook を元に、ターゲットに対して行うメンテナンス内容(ソフトウェアの追加/変更/削除など)を取得する
+
+1. **メンテナンス**
+
+    1 で取得した情報を元に各ターゲットに対してメンテナンスを行う
+    (Ansible でできるのは、既存のターゲットに対するソフトウェアの変更のみで、ハードウェアに対する変更(メモリ使用量の変更など)はサポートしていない。情報取得、例えばメモリ使用量や OS のバージョン確認などは可能)
+
+### Ansible 冪等性
+
+冪等性とは、Ansible の性質を知る上で重要です。
+
+同じ操作を何度繰り返しても、同じ結果が得られる性質。例えば、マスターからターゲットに対して何かしらの操作を実行した時、実行した結果が必ず期待通りのものになり、実行のたびに結果が変わるべきではない。つまり、Playbook が何度実行されても、システムが同じ状態を維持するため、Ansible は何も変更しないようになっている。
+
+#### 冪等性を担保する仕組み
+
+-   Ansible が同じ結果が得られるように制御をしている
+-   Ansible を一度実行してターゲットにファイルがコピー済みの場合、二度目の実行時はファイルがコピーされているかどうかを判断し、コピー済みであれば、コピー処理はスキップする
+
+#### 冪等性を採用する理由
+
+-   ターゲットの状態を気にして Playbook を書いたり、実行したりする必要がない(手間がかからない)
+-   ターゲットにファイルをコピー済みなら Playbook から、コピー処理を外す、2 回目の実行を控えるなどの記載をする必要がない。
+
+### ターゲットホスト(ノード)に `hostname` コマンドを実行する
 
 > 構文
 
@@ -166,25 +219,3 @@ MacBook-Air.local
 ```
 
 ### ansible コマンド
-
-<Table
-    caption=""
-    columns={["オプション", "説明"]}
-    data={[
-        [
-            "Control(制御)ノード",
-            [
-                "Ansibleがインストールされたシステム。",
-                "コントロールノード上で `ansible` や `ansible-inventory` などの Ansible コマンドを実行する。",
-            ].join("<br/>"),
-        ],
-        [
-            "Inventory (在庫)",
-            [
-                "論理的に整理された管理ノードのリスト。",
-                "コントロールノード上にインベントリを作成し、Ansible へのホストのデプロイを記述します。",
-            ].join("<br/>"),
-        ],
-        ["Managed (管理) ノード", ["Ansible が制御するリモート・システム（ホスト）。管理されるホスト"].join("<br/>")],
-    ]}
-/>

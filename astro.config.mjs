@@ -83,14 +83,54 @@ export default defineConfig({
                             label: '記事',
                             items: [
                                 {
-                                    label: 'Mail について',
+                                    label: 'ハードウェア機器',
                                     collapsed: true,
-                                    autogenerate: { directory: 'linux/posts/mail' },
+                                    autogenerate: { directory: 'linux/posts/hardware' },
+                                },
+                                {
+                                    label: 'OS',
+                                    collapsed: true,
+                                    autogenerate: { directory: 'linux/posts/os' },
+                                },
+                                {
+                                    label: 'リポジトリ・パッケージ',
+                                    collapsed: true,
+                                    autogenerate: { directory: 'linux/posts/repository-package' },
                                 },
                                 {
                                     label: 'ネットワーク について',
                                     collapsed: true,
                                     autogenerate: { directory: 'linux/posts/network' },
+                                },
+                                {
+                                    label: 'システム管理',
+                                    collapsed: true,
+                                    autogenerate: { directory: 'linux/posts/system-manage' },
+                                },
+                                {
+                                    label: 'Webサーバ',
+                                    collapsed: true,
+                                    autogenerate: { directory: 'linux/posts/web-server' },
+                                },
+                                {
+                                    label: 'Mail について',
+                                    collapsed: true,
+                                    autogenerate: { directory: 'linux/posts/mail' },
+                                },
+                                {
+                                    label: 'ログ管理',
+                                    collapsed: true,
+                                    autogenerate: { directory: 'linux/posts/log-manage' },
+                                },
+                                {
+                                    label: 'DNS について',
+                                    collapsed: true,
+                                    autogenerate: { directory: 'linux/posts/dns' },
+                                },
+                                {
+                                    label: 'シェルスクリプト',
+                                    collapsed: true,
+                                    autogenerate: { directory: 'linux/posts/shellscript' },
                                 },
                             ],
                         },
