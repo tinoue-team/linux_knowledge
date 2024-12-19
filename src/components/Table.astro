@@ -79,7 +79,8 @@ if (caption) {
             <tr
                 class=""
             >
-                {columns.map((column, index) => (
+                {columns.map((column) => (
+                // {columns.map((column, index) => (
                     <th
                         set:html={sanitizeAndDecodeHtml(column)}
                         is:raw

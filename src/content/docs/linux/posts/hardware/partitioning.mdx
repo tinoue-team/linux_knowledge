@@ -66,7 +66,7 @@ Linux ではディスク装置を分割して利用している。分割され�
 
 />
 
-![MBR パーティションの分割](src/assets/2024-09-30_8.38.51.webp)
+![MBR パーティションの分割](@assets/linux/posts/hardware/2024-09-30_8.38.51.webp)
 
 :::caution
 
@@ -90,7 +90,7 @@ MBR 方式で利用できるディスクは 最大 2 TiB。それを超える大
 
 GPT 方式の場合には 1 つのディスクに最大 128 個のパーティションを作成することができます。(理論上では、9.4 ZiB (ゼビバイト))プライマリパーティション、拡張パーティション、論理パーティションの区別はない。
 
-![GPT パーティションの分割](src/assets/partition-gpt.webp)
+![GPT パーティションの分割](@assets/linux/posts/hardware/partition-gpt.webp)
 
 :::caution[BIOS/UEFI との関連]
 
@@ -156,7 +156,7 @@ D ドライブを効率よくデータ用ドライブとして利用するため
 
 定義: 実際のハードディスクの保存領域を区切ったもの。プライマリパーティションと拡張パーティションを含む
 
-![物理パーティションの分割](src/assets/partition1.webp)
+![物理パーティションの分割](@assets/linux/posts/hardware/partition1.webp)
 
 #### プライマリパーティション(基本パーティション)
 
@@ -206,17 +206,17 @@ Linux の動作仕様上、ファイルシステム内のディレクトリの�
 
 1. 例えば、パーティション１には OS を保存させ、パーティション 2 は写真データ専用の領域とする
 
-    ![OSとデータの棲み分け1](src/assets/volume-partition1.webp)
+    ![OSとデータの棲み分け1](@assets/linux/posts/hardware/volume-partition1.webp)
 
 1. しかし、OS を別のものにしたいとなった時に、パーティションを分けているとデータには影響しなくて済む
 
-    ![OSとデータの棲み分け2](src/assets/volume-partition2.webp)
+    ![OSとデータの棲み分け2](@assets/linux/posts/hardware/volume-partition2.webp)
 
 #### マルチブート(複数 OS の利用)
 
 1. 一つのハードドライブに複数の OS をインストールすることもできる OS ごとにパーティションを分けて利用する
 
-    ![複数OSの利用](src/assets/partition-multi.webp)
+    ![複数OSの利用](@assets/linux/posts/hardware/partition-multi.webp)
 
 一つのパーティションの使用率が 100 % になってしまっても、一方のパーティションには影響を受けないようになる。パーティションで区切られて、一方のパーティションのファイルシステムが壊れたとしてももう一方には影響は受けないなど、被害を最小限にとどめるために利用されたりする。しかし、ディスク自体が壊れてしまえばパーティションが区切られても被害は止めることはできない。
 
@@ -234,6 +234,6 @@ Linux の動作仕様上、ファイルシステム内のディレクトリの�
 
 パーティションは、物理的に離れた区切られた領域で、ボリュームは論理的に区切られた領域
 
-![パーティションとボリューム](src/assets/volume-partition.webp)
+![パーティションとボリューム](@assets/linux/posts/hardware/volume-partition.webp)
 
 物理的に離れたパーティションを論理的に同じ領域として扱うことをボリュームという。

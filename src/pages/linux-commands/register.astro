@@ -6,7 +6,7 @@ export const prerender = false;
 
 if (Astro.request.method === 'POST') {
     // Parse form data
-    console.log(Astro.request);
+    // console.log(Astro.request);
 
     const formData = await Astro.request.formData();
     const command = formData.get('command');
@@ -14,12 +14,19 @@ if (Astro.request.method === 'POST') {
     const create_author = 'TinoueT';
     const update_author = 'TinoueT';
 
-    if (typeof command === 'string' && typeof description === 'string' && typeof create_author === 'string' && typeof update_author === 'string') {
+    if (
+        typeof command === 'string' &&
+        typeof description === 'string' &&
+        typeof create_author === 'string' &&
+        typeof update_author === 'string'
+    ) {
         // Insert form data into the Command table
         const created_at = new Date();
         const updated_at = new Date();
 
-        await db.insert(Command).values({ command, description, create_author, update_author, created_at, updated_at });
+        await db
+            .insert(Command)
+            .values({ command, description, create_author, update_author, created_at, updated_at });
     }
 }
 

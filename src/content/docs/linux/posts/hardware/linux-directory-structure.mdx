@@ -87,7 +87,7 @@ Linux などの UNIX 系 OS の標準的なディレクトリ構成を定めた�
 
 Linux でハードウェア(接続機器)はファイルで管理されます。デバイスを接続すると、/dev 配下に検出されたデバイスへアクセスするためのファイル(デバイスファイル)が追加される。デバイスファイルは、デバイス(周辺機器)を操作するためのファイルで、udev という仕組みによって自動的に作成されるようになっている。
 
-![OSとデータの棲み分け2](src/assets/2024-09-30_8.30.57.webp)
+![OSとデータの棲み分け2](@assets/linux/posts/hardware/2024-09-30_8.30.57.webp)
 
 例えば、CD/DVD ドライブのデバイスファイルは /dev/sr0 (2 台目は sr1) となる。
 
@@ -99,3 +99,84 @@ Linux でハードウェア(接続機器)はファイルで管理されます。
 ### /proc
 
 Linux カーネルが認識しているデバイス情報の一部は /proc 以下のファイルで確認できる。
+/proc 以下のファイルはファイルとしての実体がない仮想的なファイルです。
+
+```bash
+cat /proc/cpuinfo
+
+processor       : 0
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 1
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 2
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 3
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 4
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 5
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 6
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 7
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+```
+
+/sys ディレクトリは、/proc ディレクトリと同様に仮想的なファイルシステムです。テキストファイルとしてシステム情報にアクセスできます。
+
+/dev/sda1 のサイズを確認してみる。
