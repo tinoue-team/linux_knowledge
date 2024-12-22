@@ -1,0 +1,122 @@
+---
+title: echo
+description: 画面に標準出力させる
+tags:
+    - "Linux"
+    - "bash 組み込みコマンド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: echo
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 説明
+
+```bash frame=none
+echo [-neE] [arg ...]
+```
+
+空白で区切られ、改行が続く引数を出力する。
+リターンステータスは常に 0 である。
+
+xpg_echo シェルオプションを使用すると、echo がデフォルトでこれらのエスケープ文字を展開するかどうかを動的に決定できます。 echo は `--` をオプションの終わりと解釈しません。
+
+echo は以下のエスケープ・シーケンスを解釈する。
+
+-   `\a` … alert (bell)
+-   `\b` … backspace
+-   `\c` … suppress further output
+-   `\e`
+-   `\E` … an escape character
+-   `\f` … form feed
+-   `\n` … new line
+-   `\r` … carriage return
+-   `\t` … horizontal tab
+-   `\v` … vertical tab
+-   `\\` … backslash
+-   `\0nnn` … the eight-bit character whose value is the octal value nnn (zero to three octal digits)
+-   `\xHH` … the eight-bit character whose value is the hexadecimal value HH (one or two hex digits)
+-   `\uHHHH` … the Unicode (ISO/IEC 10646) character whose value is the hexadecimal value HHHH (one to four hex digits)
+-   `\UHHHHHHHH` … the Unicode (ISO/IEC 10646) character whose value is the hexadecimal value HHHHHHHH (one to eight hex digits)
+
+```bash frame="none"
+# 現在実行中のシェルを表示(例. -bash)
+echo $0
+
+# ログインシェルを知る方法(例. /bin/bash)
+echo $SHELL
+
+# シェルの深さを表示 (例. 1 )
+echo $SHLVL
+```
+
+### オプション一覧
+
+<Table
+    columns={["オプション", "説明"]}
+    data={[
+        ["-n", "末尾を改行しない"],
+        ["-e", "引数のバックスラッシュ・エスケープ文字の解釈が有効になる"],
+        ["-E", "エスケープ文字がデフォルトで解釈されるシステムであっても、その解釈を無効にする。"],
+    ]}
+/>
+
+## echo 出力文字に色を指定する
+
+<LinkPreview url="https://qiita.com/ko1nksm/items/095bdb8f0eca6d327233" />
+
+### 出力文字色を指定して echo
+
+```bash frame=none
+# 色定義（ANSIエスケープコード）
+GREEN_BG=$'\e[42m'   # 緑色の背景
+RED_BG=$'\e[41m'     # 赤色の背景
+WHITE_FG=$'\e[97m'   # 白色の文字
+RESET=$'\e[0m'       # 色のリセット
+
+# メッセージの確認
+echo -e "check 'mynetworks_style'"
+if [ "成功条件式" ]; then
+    # 成功ステータスのメッセージ
+    echo -e "${GREEN_BG}${WHITE_FG}OK${RESET}"
+else
+    # 失敗ステータスのメッセージ
+    echo -e "${RED_BG}${WHITE_FG}NG${RESET}, should be OK"
+fi
+```
+
+### カラーコード一覧
+
+<Table
+    caption=""
+    columns={["色の種類", "コード", "説明"]}
+    data={[
+        ["黒", "`30`", "黒色の文字"],
+        ["赤", "`31`", "赤色の文字"],
+        ["緑", "`32`", "緑色の文字"],
+        ["黄", "`33`", "黄色の文字"],
+        ["青", "`34`", "青色の文字"],
+        ["マゼンタ", "`35`", "紫色の文字"],
+        ["シアン", "`36`", "水色の文字"],
+        ["白", "`37`", "白色の文字"],
+        ["黒 BG", "`40`", "黒色の背景"],
+        ["赤 BG", "`41`", "赤色の背景"],
+        ["緑 BG", "`42`", "緑色の背景"],
+        ["黄 BG", "`43`", "黄色の背景"],
+        ["青 BG", "`44`", "青色の背景"],
+        ["マゼンタ BG", "`45`", "紫色の背景"],
+        ["シアン BG", "`46`", "水色の背景"],
+        ["白 BG", "`47`", "白色の背景"],
+        ["明るい色", "`90`-`97`", "明るいフォアグラウンド色"],
+        ["明るいBG色", "`100`-`107`", "明るいバックグラウンド色"],
+    ]}
+/>

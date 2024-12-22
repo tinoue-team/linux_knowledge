@@ -1,0 +1,107 @@
+---
+title: history
+description: 利用するシェル(bash)の設定を行う
+tags:
+    - "Linux"
+    - "bash 組み込みコマンド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: history
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+### 構文
+
+```bash frame="none"
+history [n]
+history -c
+history -d offset
+history -anrw [filename]
+history -p arg [arg ...]
+history -s arg [arg ...]
+```
+
+```bash frame="none"
+# オプションなしで、コマンド履歴リストを行番号付きで表示
+history
+```
+
+```bash frame="none"
+10689* pnpm vite --force
+```
+
+アスタリスク（\*）が付いている履歴の行は、変更が加えられたことを示します。これは、そのコマンドが編集されたり修正されたりしたことを意味します。
+
+引数 n は、最後の n 行だけを表示する
+
+```bash frame="none"
+history <n>
+
+history -5
+# 最後(直近)の 5 行分のコマンド履歴だけ出力
+```
+
+シェル変数 `HISTTIMEFORMAT` が NULL ではなく設定されている場合、 strftime(3) のフォーマット文字列として使用され、 表示された各履歴エントリに関連付けられたタイムスタンプが表示される。これにより、コマンドが実行された日時を確認することができます。
+フォーマットされたタイムスタンプと履歴行の間に空白が挿入されません。タイムスタンプとコマンドが直接連結して表示されます。
+
+### HISTFILE
+
+コマンドの実行履歴の保存先は、デフォルトで `~/.bash_history` が使用される。また、bash のシェル変数 `HISTFILE` のデフォルト値は `~/.bash_history` です。
+
+```bash frame="none"
+echo $HISTFILE
+/root/.bash_history
+```
+
+ファイル名が指定されている場合、その名前が履歴ファイルとして使用されます。指定がない場合は、環境変数 `HISTFILE` の値が履歴ファイルとして使用されます。
+
+### オプション一覧
+
+<Table
+    colWidth={["5.5rem"]}
+    columns={["オプション", "説明"]}
+    data={[
+        ["-c", "すべての履歴エントリを削除して履歴リストをクリアします"],
+        ["-d offset", "指定された位置（offset）にある履歴エントリを削除"],
+        ["-a", "現在のセッションで入力された新しい履歴行を履歴ファイルに追加する"],
+        [
+            "-n",
+            "履歴ファイルからまだ読み込まれていない履歴行を現在の履歴リストに読み込みます。これは、現在のセッション開始後に履歴ファイルに追加された行を対象とします。",
+        ],
+        ["-r", "履歴ファイルの内容を読み込み、それを現在の履歴として使用する"],
+        ["-w", "現在の履歴を履歴ファイルに書き込み、既存の内容を上書きする"],
+        [
+            "-p",
+            [
+                "引数に対して履歴の置換を行い、その結果を標準出力に表示する",
+                "結果は履歴リストに保存されません。各引数は通常の履歴展開を無効にするために引用符で囲む必要があります。",
+            ].join("<br>"),
+        ],
+        [
+            "-s",
+            "引数を一つのエントリとして履歴リストに保存する。引数を追加する前に、履歴リストの最後のコマンドが削除される。",
+        ],
+    ]}
+/>
+
+`HISTTIMEFORMAT` 変数が設定されている場合、各履歴エントリに関連付けられたタイムスタンプ情報が履歴ファイルに書き込まれ、履歴コメント文字でマークされます。履歴ファイルを読み込む際、履歴コメント文字に続いて数字で始まる行は、前の履歴行のタイムスタンプとして解釈されます。
+
+正常に実行された場合は 0 を返します。無効なオプションが指定された場合、履歴ファイルの読み書き中にエラーが発生した場合、
+-d オプションに無効なオフセットが指定された場合、または -p オプションに対する履歴展開が失敗した場合は、0 以外の値を返します。
+
+## 実行履歴に日時をつけて管理
+
+<LinkPreview url="https://qiita.com/bezeklik/items/56a597acc2eb568860d7" />
+- <LinkPreview url="https://terns.tokyo/tech/173" type="inline" />
+- <LinkPreview url="https://qiita.com/ryosuk/items/94c3305699ee0d036219" type="inline" />
