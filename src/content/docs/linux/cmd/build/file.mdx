@@ -1,0 +1,531 @@
+---
+title: file
+description: パーティションの CRUD 操作(MBR 専用、実験的使用で GPT 対応化が始まっている)
+tags:
+    - "Linux"
+    - "構築"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: file
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+`file` コマンドのマニュアル（バージョン 5.39）について、以下に翻訳、解説、要約を行います。
+
+---
+
+### **翻訳**
+
+このマニュアルページは `file` コマンドのバージョン 5.39 について記載しています。
+`file` コマンドは、各引数をテストして分類しようと試みます。
+テストは 3 つのセットに分かれており、順番に実行されます：
+ファイルシステムテスト、マジックテスト、および言語テスト。
+最初に成功したテストにより、ファイルの種類が出力されます。
+
+出力されるタイプは通常、
+
+-   text …ファイルが印刷可能な文字といくつかの一般的な制御文字のみを含み、おそらく ASCII 端末で安全に読み取れる）
+-   executable …ファイルが UNIX カーネルや他のプログラムが理解できる形式でコンパイルされたプログラムの結果を含む
+-   data …その他すべてのものを意味し、通常「binary」または非印刷可能とされます）という単語のいずれかを含みます。
+
+例外として、バイナリデータを含むことが知られている特定のファイル形式（コアファイル、tar アーカイブなど）が存在します。マジックファイルやプログラム自体を変更する場合は、これらのキーワードを保持するようにしてください。ユーザーはディレクトリ内のすべての読み取り可能なファイルに「text」という単語が表示されることを前提にしています。Berkeley のように「shell commands text」を「shell script」に変更しないでください。
+
+ファイルシステムテストは、`stat(2)`システムコールの戻り値を調べることに基づいています。プログラムはファイルが空であるか、特殊な種類のファイルであるかを確認します。システムがサポートしている既知のファイルタイプ（ソケット、シンボリックリンク、名前付きパイプ（FIFO）など）は、システムヘッダファイル `<sys/stat.h>` に定義されていれば推測されます。
+
+マジックテストは、特定の固定フォーマットのデータを含むファイルをチェックするために使用されます。
+典型的な例は、`a.out` ファイルのようなバイナリ実行可能ファイルで、そのフォーマットは `<elf.h>`、`<a.out.h>`、および標準のインクルードディレクトリにある `<exec.h>` で定義されています。
+これらのファイルは、ファイルの先頭付近に「マジックナンバー」と呼ばれる識別子が保存されており、UNIX オペレーティングシステムに対してファイルがバイナリ実行可能ファイルであり、いくつかのタイプのうちのどれであるかを示します。「マジック」の概念は拡張され、データファイルにも適用されています。
+ファイルの特定の固定オフセットに不変の識別子があるファイルは通常この方法で記述できます。
+これらのファイルを識別する情報は、コンパイルされたマジックファイル `/usr/share/misc/magic.mgc` またはコンパイル済みファイルが存在しない場合は `/usr/share/misc/magic` ディレクトリ内のファイルから読み取られます。
+さらに、`$HOME/.magic.mgc` または `$HOME/.magic` が存在する場合、それらはシステムマジックファイルよりも優先されます。
+
+ファイルがマジックファイルのどのエントリとも一致しない場合、それがテキストファイルであるかどうかを確認します。
+ASCII、ISO-8859-x、Macintosh や IBM PC システムで使用される非 ISO 8 ビット拡張 ASCII 文字セット、UTF-8 エンコードされた Unicode、UTF-16 エンコードされた Unicode、および EBCDIC 文字セットは、それぞれのセットで印刷可能なテキストを構成するバイトの範囲とシーケンスによって区別できます。
+ファイルがこれらのテストのいずれかに合格した場合、その文字セットが報告されます。ASCII、ISO-8859-x、UTF-8、および拡張 ASCII ファイルは、「text」として識別されます。
+これは、ほとんどの端末でほぼ読み取れるためです。UTF-16 および EBCDIC は「character data」としてのみ識別されます。これは、テキストを含んでいますが、読み取る前に翻訳が必要なテキストだからです。
+さらに、`file` コマンドはテキストタイプファイルの他の特性を判断しようとします。ファイルの行が Unix 標準の LF ではなく CR、CRLF、または NEL で終了している場合、それが報告されます。
+埋め込みエスケープシーケンスやオーバーストライクが含まれているファイルも識別されます。
+
+`file` コマンドがテキストタイプファイルで使用されている文字セットを特定すると、ファイルがどの言語で書かれているかを判断しようとします。
+言語テストは、ファイルの最初の数ブロックのどこにでも現れる特定の文字列（`<names.h>` を参照）を探します。例えば、キーワード `.br` はファイルが troff(1)の入力ファイルである可能性が高いことを示し、キーワード `struct` は C プログラムであることを示します。
+
+これらのテストは前の 2 つのグループよりも信頼性が低いため、最後に実行されます。言語テストルーチンは、tar(1)アーカイブや JSON ファイルなどのいくつかの雑多なものもテストします。
+
+上記の文字セットのいずれかで書かれているとは特定できないファイルは、単に「data」と言われます。
+
+---
+
+### **解説・要約**
+
+#### **概要**
+
+`file` コマンドは、指定されたファイルの種類を識別するために 3 つのテスト（ファイルシステムテスト、マジックテスト、言語テスト）を順に実行します。最初に成功したテストの結果がファイルの種類として表示されます。
+
+#### **詳細な解説**
+
+##### ファイルシステムテスト
+
+ファイルシステムメタデータを基に基本的な分類
+
+    - **目的**: ファイルが空か、特殊な種類のファイル（ソケット、シンボリックリンク、FIFO など）かを確認します。
+    - **方法**: `stat(2)` システムコールの結果を基に判断します。
+    - **対象**: システムがサポートする既知のファイルタイプ。
+
+##### マジックテスト
+
+マジックナンバーで特定のフォーマットを識別
+
+    - **目的**: ファイルが特定の固定フォーマット（例：バイナリ実行可能ファイル）を持つかを確認します。
+    - **方法**: ファイルの先頭部分にある「マジックナンバー」をチェックします。
+    - **情報源**: `/usr/share/misc/magic.mgc` または `/usr/share/misc/magic` に保存されたマジックファイル。
+    - **ユーザー設定**: ユーザーのホームディレクトリにある `.magic.mgc` や `.magic` ファイルが優先されます。
+
+##### 言語テスト
+
+テキストファイルの場合、文字セットや言語を特定
+
+    - **目的**: テキストファイルの文字セットや記述されている言語を特定します。
+    - **方法**: ファイル内の特定の文字列やパターンを探します。
+    - **特徴**:
+        - **文字セットの識別**: ASCII、ISO-8859-x、UTF-8、UTF-16、EBCDIC など。
+        - **言語の識別**: `.br` や `struct` などのキーワードを基に言語を推測します。
+    - **信頼性**: 他の 2 つのテストに比べて信頼性が低いため、最後に実行されます。
+
+4. **その他の特徴**
+    - **行末の識別**: Unix 標準の LF ではなく CR、CRLF、NEL で終了する行を検出します。
+    - **特殊シーケンスの識別**: 埋め込みエスケープシーケンスやオーバーストライクが含まれているファイルを検出します。
+
+#### **結果の分類**
+
+-   **text**: ほとんどの端末で読み取り可能なテキストファイル。
+-   **executable**: UNIX カーネルや他のプログラムが理解できる形式でコンパイルされた実行可能ファイル。
+-   **data**: 上記以外のすべてのファイル。通常はバイナリまたは非印刷可能。
+
+#### **注意点**
+
+-   マジックファイルやプログラム自体を変更する際には、キーワード（text, executable, data）を保持する必要があります。これらのキーワードに依存しているユーザーが多いため、変更を避けるべきです。
+
+#### **まとめ**
+
+`file` コマンドは、ファイルシステムのメタデータ、マジックナンバー、テキストの文字セットおよび記述されている言語を組み合わせてファイルの種類を特定します。これにより、ユーザーはファイルの内容を簡単に識別でき、適切な処理を行うことができます。特に、ファイルの種類を迅速に確認する際に有用です。
+
+---
+
+-   **重要なポイント**:
+    -   キーワードの変更は避けるべき
+    -   各テストの信頼性と実行順序に注意
+
+このように、`file` コマンドは多層的なアプローチでファイルの種類を識別し、ユーザーに対して有用な情報を提供します。
+
+### 構文
+
+```bash
+file [-bcdEhiklLNnprsSvzZ0] \
+    [--apple] [--exclude-quiet] \
+    [--extension] \
+    [--mime-encoding] \
+    [--mime-type] \
+    [-e testname] \
+    [-F separator] \
+    [-f namefile] \
+    [-m magicfiles] \
+    [-P name=value] \
+    file ...
+file -C [-m magicfiles]
+file [--help]
+```
+
+## オプション
+
+### オプションリスト
+
+<Table
+    caption=""
+    columns={["オプション", "省略なし", "説明"]}
+    data={[
+        [
+            "",
+            "--apple",
+            "古いMacOSバージョンで使用されていたファイルタイプおよびクリエーターコードを出力します。コードは8文字からなり、最初の4文字がファイルタイプ、後の4文字がクリエーターを表します。このオプションは、Appleスタイルの出力が定義されているファイル形式でのみ正しく動作します。",
+        ],
+        ["-b", "--brief", "出力行の先頭にファイル名を付けません（簡易モード）。"],
+        [
+            "-C",
+            "--compile",
+            "マジックファイルまたはディレクトリの事前解析版である `magic.mgc` 出力ファイルを作成します。",
+        ],
+        [
+            "-c",
+            "--checking-printout",
+            "マジックファイルの解析形式をチェック用に出力します。通常は `-m` オプションと組み合わせて新しいマジックファイルをインストール前にデバッグする際に使用されます。",
+        ],
+        ["-d", "", "内部デバッグ情報を `stderr` に出力します。"],
+        [
+            "-E",
+            "",
+            "ファイルタイプの決定時にファイルが存在しないなどのファイルシステムエラーが発生した場合、POSIXの要件に従ってエラーを通常の出力として処理し続行しますが、エラーメッセージを発行して終了します。",
+        ],
+        [
+            "-e",
+            "--exclude testname",
+            "`testname` で指定されたテストをファイルタイプ決定のためのテストリストから除外します。有効なテスト名は以下の通りです：\n• `apptype`：EMXアプリケーションタイプ（EMXのみ）\n• `ascii`：様々なテキストファイル（このテストはエンコーディング設定に関係なくテキストエンコーディングを推測します）\n• `encoding`：ソフトマジックテスト用の異なるテキストエンコーディング\n• `tokens`：後方互換性のために無視\n• `cdf`：コンパウンドドキュメントファイルの詳細を表示\n• `compress`：圧縮ファイルをチェックし、中身を確認\n• `csv`：カンマ区切り値ファイルをチェック\n• `elf`：ELFファイルの詳細を表示（ソフトマジックテストが有効でELFマジックが見つかった場合）\n• `json`：JSON（RFC-7159）ファイルを検証して準拠性を確認\n• `soft`：マジックファイルを参照\n• `tar`：tarファイルを検証し、512バイトのtarヘッダーのチェックサムを確認。パーティションを除外すると、ソフトマジックメソッドを使用してより詳細なコンテンツ記述が可能になります\n• `text`：`ascii` の同義語",
+        ],
+        [
+            "",
+            "--exclude-quiet",
+            "`--exclude` と同様ですが、ファイルが認識していないテストを無視します。これは、古いバージョンの `file` と互換性を持たせるために設計されています。",
+        ],
+        ["", "--extension", "見つかったファイルタイプの有効な拡張子をスラッシュ区切りのリストで出力します。"],
+        [
+            "-F",
+            "--separator separator",
+            "ファイル名とファイル結果の間に指定した文字列を区切りとして使用します。デフォルトは `:` です。",
+        ],
+        [
+            "-f",
+            "--files-from namefile",
+            "調査対象のファイル名を `namefile` から読み込みます（1行につき1ファイル）。少なくとも1つのファイル名引数が必要です。標準入力をテストするには、ファイル名引数として `-` を使用します。`namefile` は展開され、リスト内のファイル名がオプション処理の前に処理されます。例えば、区切り文字を設定する場合は、`-F=@ -f namefile` のように指定します。",
+        ],
+        [
+            "-h",
+            "--no-dereference",
+            "オプションはシンボリックリンクを追跡しないようにします（シンボリックリンクをサポートするシステムで）。環境変数 `POSIXLY_CORRECT` が定義されていない場合のデフォルト設定です。",
+        ],
+        [
+            "-i",
+            "--mime",
+            '`file` コマンドが従来の人間が読みやすい形式ではなく、MIMEタイプ文字列を出力するようにします。例えば、`"ASCII text"` の代わりに `"text/plain; charset=us-ascii"` と表示されます。',
+        ],
+        ["", "--mime-type", "`-i` と同様ですが、MIMEタイプのみを出力します。"],
+        ["", "--mime-encoding", "`-i` と同様ですが、MIMEエンコーディングのみを出力します。"],
+        [
+            "-k",
+            "--keep-going",
+            "最初のマッチで停止せずに続行します。後続のマッチには文字列 `\\012-` がプレフィックスとして付加されます（改行が必要な場合は `-r` オプションを参照）。マジックパターンの強度（`-l` オプション参照）が最も高いものが最初に来ます。",
+        ],
+        [
+            "-l",
+            "--list",
+            "マジックファイルの強度に基づいて降順にソートされたパターンとその強度のリストを表示します。マッチングに使用される強度（`-k` オプション参照）に基づいています。",
+        ],
+        [
+            "-L",
+            "--dereference",
+            "オプションはシンボリックリンクを追跡します。`ls(1)` の同名オプションと同様です（シンボリックリンクをサポートするシステムで）。環境変数 `POSIXLY_CORRECT` が定義されている場合のデフォルト設定です。",
+        ],
+        [
+            "-m",
+            "--magic-file magicfiles",
+            "マジックファイルを含むファイルおよびディレクトリの代替リストを指定します。単一の項目またはコロン区切りのリストにすることができます。マジックファイルがファイルまたはディレクトリと一緒にコンパイルされたマジックファイルが見つかった場合、それが使用されます。",
+        ],
+        ["-N", "--no-pad", "出力を揃えるためにファイル名をパディングしません。"],
+        [
+            "-n",
+            "--no-buffer",
+            "各ファイルのチェック後に `stdout` を強制的にフラッシュします。これはファイルリストをチェックするプログラムにのみ有用です。パイプからファイルタイプ出力を取得したいプログラムによって使用されることを意図しています。",
+        ],
+        [
+            "-p",
+            "--preserve-date",
+            "`utime(3)` または `utimes(2)` をサポートするシステムで、分析されたファイルのアクセス時間を保持し、ファイルが読み取られていないかのようにします。",
+        ],
+        [
+            "-P",
+            "--parameter name=value",
+            "各種パラメータ制限を設定します。\n\n**パラメータ一覧：**\n• `bytes`（デフォルト：1048576） - ファイルから読み取る最大バイト数\n• `elf_notes`（デフォルト：256） - 処理されるELFノートの最大数\n• `elf_phnum`（デフォルト：2048） - 処理されるELFプログラムセクションの最大数\n• `elf_shnum`（デフォルト：32768） - 処理されるELFセクションの最大数\n• `indir`（デフォルト：50） - 間接マジックの再帰制限\n• `name`（デフォルト：50） - 名前/使用マジックの使用回数制限\n• `regex`（デフォルト：8192） - 正規表現検索の長さ制限",
+        ],
+        [
+            "-r",
+            "--raw",
+            "非印刷可能文字を `\\ooo` に変換せずに出力します。通常、`file` は非印刷可能文字をその8進数表現に変換します。",
+        ],
+        [
+            "-s",
+            "--special-files",
+            "通常、`file` コマンドは `stat(2)` が普通のファイルと報告する引数ファイルのみを読み取り、そのタイプを決定しようとします。これにより、特殊ファイルを読み取ることで特異な結果が生じるのを防ぎます。`-s` オプションを指定すると、ブロック特殊ファイルやキャラクタ特殊ファイルなど、引数ファイルのタイプに関係なく読み取ります。これは、RAWディスクパーティションのファイルシステムタイプを決定する際に有用です。また、このオプションは、一部のシステムでRAWディスクパーティションに対して `stat(2)` がゼロサイズを報告するため、ファイルサイズを無視するようにします。",
+        ],
+        [
+            "-S",
+            "--no-sandbox",
+            "`libseccomp`（[https://github.com/seccomp/libseccomp）が利用可能なシステムで、デフォルトで有効になっているサンドボックスを無効にします。このオプションは、`-z` フラグが指定され、組み込みのデコンプレッサが利用できない場合に外部のデコンプレッサプログラムを実行するために必要です。サンドボックスが利用できないシステムでは、このオプションは効果がありません。",
+        ],
+        ["-v", "--version", "プログラムのバージョンを表示して終了します。"],
+        ["-z", "--uncompress", "圧縮ファイルの中身を確認しようとします。"],
+        ["-Z", "--uncompress-noreport", "圧縮ファイルの中身を確認しますが、圧縮に関する情報は報告しません。"],
+        [
+            "-0",
+            "--print0",
+            "ファイル名の末尾にヌル文字 `\\0` を出力します。これは `cut(1)` コマンドでの使用に適しています。このオプションは区切り文字には影響せず、デフォルトの区切り文字はそのままです。\n\nこのオプションを複数回指定すると、`file` コマンドは各エントリの後にヌル文字を2つ出力します（ファイル名の後にヌル文字、説明または `ERROR:` テキストの後にヌル文字）。",
+        ],
+        ["", "--help", "ヘルプメッセージを表示して終了します。"],
+    ]}
+/>
+
+#### -s(--special-files) オプション
+
+```bash
+file -s /dev/xvdb
+```
+
+## STANDARDS CONFORMANCE（標準準拠）
+
+このセクションでは、file コマンドが System V Interface Definition（SVID） の FILE(CMD) をどの程度遵守しているか、また独自の拡張や変更点について説明しています。
+
+### file コマンドの互換性と拡張性
+
+-   **System V との互換性**:
+    -   `file` コマンドは、System V の `FILE(CMD)` よりも高機能であると考えられています。具体的には、System V の標準仕様を超える機能を提供しており、その動作は System V 版とほぼ互換性があります。
+    -   ただし、このバージョンの `file` コマンドは **「マジック」（magic）** と呼ばれるファイルタイプ判定ルールをより多く認識しているため、多くの場合で System V 版とは異なる（しかしより正確な）出力を生成します。
+
+### 主な違い
+
+#### ホワイトスペースの扱い
+
+##### System V 版との違い
+
+このバージョンの file コマンドでは、ホワイトスペース（空白やタブ）をすべて区切り文字として扱います。そのため、マジックファイル内のパターン文字列に空白が含まれる場合は、エスケープが必要です。
+
+##### 具体例
+
+-   **変更前（System V 版）**:
+    ```
+    >10     string  language impress        (imPRESS data)
+    ```
+-   **変更後（このバージョン）**:
+    ```
+    >10     string  language\ impress       (imPRESS data)
+    ```
+    **解説**: `language impress` の間の空白をバックスラッシュ（\）でエスケープする必要があります。これにより、`file` コマンドが `language impress` を一つのパターンとして正しく認識します。
+
+#### バックスラッシュの扱い
+
+##### System V 版との違い
+
+    - パターン文字列に **バックスラッシュ（\）** が含まれる場合、それ自体をエスケープする必要があります。
+
+##### 具体例
+
+-   **変更前（System V 版）**:
+
+```
+0       string          \begindata      Andrew Toolkit document
+```
+
+-   **変更後（このバージョン）**:
+
+```
+0       string          \\begindata     Andrew Toolkit document
+```
+
+**解説**: `\\begindata` のバックスラッシュを二重にすることで、`\\begindata` を一つのパターンとして正しく認識させます。
+
+### **SunOS の `file` コマンドとの比較**
+
+-   **SunOS 版との互換性**:
+    -   **SunOS リリース 3.2 以降**には、System V 版に基づいた `file` コマンドが含まれていますが、いくつかの拡張機能が追加されています。
+    -   このバージョンの `file` コマンドは、**Sun の版とほぼ同等**ですが、以下のようなマイナーな違いがあります。
+-   **主な違い**:
+    -   **`&` 演算子の拡張**:
+        -   **具体例**:
+            ```
+            >16     long&0x7fffffff >0              not stripped
+            ```
+            -   **解説**: `&` 演算子を使用することで、ビットマスクを適用した条件を指定できます。この拡張により、より複雑なファイルタイプ判定が可能になります。
+
+### **実際の運用における影響**
+
+> **マジックファイルの編集**
+
+-   **ホワイトスペースやバックスラッシュを含むパターンの扱い**:
+    -   マジックファイルを編集する際、パターン文字列に空白やバックスラッシュが含まれる場合は、適切にエスケープする必要があります。
+    -   これにより、`file` コマンドが正確にパターンを認識し、期待通りのファイルタイプ判定を行います。
+
+> **新機能の活用**
+
+-   **`&` 演算子の使用**:
+    -   ビットマスクを用いた条件指定が可能となり、特定のビットパターンを持つファイルタイプの判定が柔軟に行えます。
+
+### **まとめ**
+
+-   **互換性と拡張性**:
+    -   このバージョンの `file` コマンドは、System V 版との高い互換性を維持しつつ、追加の機能や拡張により、より正確かつ柔軟なファイルタイプ判定を実現しています。
+-   **マジックファイルの注意点**:
+    -   マジックファイルを編集する際は、ホワイトスペースやバックスラッシュのエスケープに注意が必要です。正しくエスケープすることで、`file` コマンドの判定精度を向上させることができます。
+-   **SunOS との互換性**:
+    -   SunOS 版とほぼ同等の機能を持ちつつ、独自の拡張を提供しているため、SunOS ユーザーにとっても移行が容易です。
+
+---
+
+**補足:**
+
+-   **マジックファイルとは**:
+    -   `file` コマンドがファイルタイプを判定する際に使用するルールセットです。各ファイルタイプに対する特定のパターン（マジックナンバーや文字列）を定義しています。
+-   **エスケープの重要性**:
+    -   正しくエスケープしないと、`file` コマンドがパターンを誤認識し、誤ったファイルタイプを判定する可能性があります。
+
+## 環境変数
+
+環境変数 MAGIC を使用して、デフォルトのマジックファイル名を設定することができる。 この変数が設定されている場合、file は$HOME/.magic を開こうとしない。file はこの変数の値に「.mgc 」を追加する。 環境変数 POSIXLY_CORRECT は、シンボリックリンクをサポートするシステム上で、 file がシンボリックリンクをたどるかどうかを制御する。 設定されていれば、ファイルはシンボリックリンクに従うが、そうでなければ従わない。 これは -L と -h オプションによっても制御される。
+
+## FILES
+
+-   **`/usr/share/misc/magic.mgc`** …デフォルトでコンパイルされているマジックのリスト。
+-   **`/usr/share/misc/magic`** …デフォルトのマジックファイルを含むディレクトリ。
+
+## EXIT STATUS
+
+file will exit with 0 if the operation was successful or >0 if an error was encountered. The following errors cause diagnostic messages, but don't affect the program exit code (as POSIX requires), unless -E is specified:
+
+-   A file cannot be found
+-   There is no permission to read a file
+-   The file type cannot be determined
+
+## TODO
+
+### 出力の改善
+
+`file` コマンドの出力処理において、MIME タイプや APPLE フラグの判定を複数箇所で行うのではなく、一箇所で統一的に処理する設計に変更する必要があります。具体的には、可能な出力をリストに蓄積し、最も具体的な（最後に追加された）出力を選択するか、リストが空の場合はデフォルトの出力を使用する方法が提案されています。これにより、コードの冗長性を減らし、処理速度への影響を最小限に抑えることが期待されます。
+
+### エンコーディングロジックの移行
+
+`file` コマンドのエンコーディングに関するロジックがソースコード（encoding.c）内に固定的に実装されています。これを、マジックファイル内で `!:charset` というアノテーションを使用して柔軟に指定できるようにすることで、エンコーディングの管理や拡張が容易になります
+
+### マジックファイルのバグ修正
+
+マジックファイルに関連するバグを継続的に修正する必要があります。Debian の Bug Tracking System（BTS）は、バグ報告や修正に関する有用な情報源として推奨されています。
+
+### 長い文字列の保存
+
+`%s` パターンなどで使用される長い文字列を効率的に管理・表示するために、文字列を「文字列プール」と呼ばれるメモリ領域に一元管理します。マジックファイルの末尾に文字列プールを配置し、各文字列へのポインタをこのプールからの相対的なオフセットとして管理することで、メモリ使用量の最適化と効率的な文字列処理が可能になります。これにより、特定の Debian バグ（#271672）が修正されます。
+
+### 相対オフセットの構文追加
+
+マジックファイル内で、現在の階層レベルに対して相対的なオフセットを指定できる構文を追加します。これにより、マジックファイルの記述が柔軟になり、特定のバグ（Debian バグ #466037）も修正されます。
+
+### `file -ki` オプションの実装
+
+`-k` オプション（マジックの続行）と `-i` オプション（MIME タイプ出力）を組み合わせた `-ki` オプションを正しく機能させるための実装を行います。これにより、一つのファイルに対して複数の MIME タイプを返すことが可能になります。
+
+### Office2007 ドキュメントの詳細表示用 ZIP ライブラリの追加
+
+Office2007 形式のドキュメント（例：.docx、.xlsx）は ZIP 形式で圧縮されているため、これらのファイル内部を解析して詳細情報を取得するための ZIP ライブラリを file コマンドに追加します。これにより、ドキュメントの具体的な内容や構造に基づいたより詳細なファイルタイプ判定が可能になります。
+
+### ファイル記述のソース URL を表示するオプションの追加
+
+マジックファイルやその他のファイル記述がどのソースから来ているのかを示す URL を出力できるオプションを追加します。これにより、ユーザーは特定のファイルタイプ判定の根拠となる情報源に簡単にアクセスできるようになります。
+
+### スクリプト検索の統合と実行可能ファイル名から MIME タイプへのマッピング方法の追加
+
+スクリプトファイル（シェルスクリプトや Python スクリプトなど）の検索方法を統合し、実行可能ファイル名を特定の MIME タイプにマッピングする仕組みを導入します。具体的には、`!:mime` というマジック値を用意し、これにより判定された文字列をあらかじめ定義されたテーブルから参照することで、同じマジックパターンを複数のスクリプトインタープリタに対して繰り返し記述する必要がなくなります。これにより、マジックファイルの管理が簡素化され、冗長性が減少します。
+
+### ファイルディスクリプタが利用可能な場合のバッファ管理の改善
+
+`file` コマンドでは、バッファ管理が非効率的かつ複雑（ハッキー）になっています。ファイルディスクリプタが利用可能な場合、より効率的にバッファを操作（スキップや調整）できるように改善することで、コードの可読性と保守性を向上させるとともに、パフォーマンスの向上を図ります。
+
+### 「name」と「use」の一貫性チェックおよび効率化
+
+マジックファイル内の「name」と「use」フィールドの整合性をコンパイル時に検証することで、重複や未定義参照といったエラーを防ぎます。また、「name」と「use」を効率的に処理するために、名前のリストをソートして保持します。さらに、パーサーでバイトオーダー（エンディアンネス）を反転させる際に `^` を特別扱いすることで、エスケープ処理を不要にし、その動作を文書化します。これにより、マジックファイルの記述が簡潔になり、処理速度も向上します。
+
+### バッファサイズ超過時のオフセット処理の改善
+
+現在、マジックファイル内で指定されたオフセットがバッファのサイズ制限（`HOWMANY` 変数）を超えた場合、`file` コマンドはそのオフセットにシークせずに処理を中止します。これを改善し、ファイルディスクリプタが利用可能な場合にバッファ管理を適切に行い、ファイル内を効率的に移動できるようにします。ただし、この変更にはパフォーマンスへの影響やセキュリティ上のリスクが伴うため、慎重に実装する必要があります。
+
+## EXAMPLES
+
+```bash
+$ file file.c file /dev/{wd0a,hda}
+file.c:   C program text
+file:     ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV),
+          dynamically linked (uses shared libs), stripped
+/dev/wd0a: block special (0/0)
+/dev/hda: block special (3/0)
+```
+
+```bash
+$ file -s /dev/wd0{b,d}
+/dev/wd0b: data
+/dev/wd0d: x86 boot sector
+```
+
+```bash
+$ file -s /dev/hda{,1,2,3,4,5,6,7,8,9,10}
+/dev/hda:   x86 boot sector
+/dev/hda1:  Linux/i386 ext2 filesystem
+/dev/hda2:  x86 boot sector
+/dev/hda3:  x86 boot sector, extended partition table
+/dev/hda4:  Linux/i386 ext2 filesystem
+/dev/hda5:  Linux/i386 swap file
+/dev/hda6:  Linux/i386 swap file
+/dev/hda7:  Linux/i386 swap file
+/dev/hda8:  Linux/i386 swap file
+/dev/hda9:  empty
+/dev/hda10: empty
+```
+
+```bash
+$ file -i file.c file /dev/{wd0a,hda}
+file.c:      text/x-c
+file:        application/x-executable
+/dev/hda:    application/x-not-regular-file
+/dev/wd0a:   application/x-not-regular-file
+```
+
+## SECURITY
+
+On systems where libseccomp (https://github.com/seccomp/libseccomp) is available, file is enforces limiting system calls to only the ones necessary for the operation of the program. This enforcement does not provide any security benefit when file is asked to decompress input files running external programs with the -z option. To enable execution of external decompressors, one needs to disable sandboxing using the -S flag.
+
+## MAGIC DIRECTORY
+
+The magic file entries have been collected from various sources, mainly USENET, and contributed by various authors. Christos Zoulas (address below) will collect additional or corrected magic file entries. A consolidation of magic file entries will be distributed periodically.
+
+The order of entries in the magic file is significant. Depending on what system you are using, the order that they are put together may be incorrect. If your old file command uses a magic file, keep the old magic file around for comparison purposes (rename it to /usr/share/misc/magic.orig).
+
+## HISTORY
+
+There has been a file command in every UNIX since at least Research Version 4 (man page dated November, 1973). The System V version introduced one significant major change: the external list of magic types. This slowed the program down slightly but made it a lot more flexible.
+This program, based on the System V version, was written by Ian Darwin ⟨ian@darwinsys.com⟩ without looking at anybody else's source code.
+
+John Gilmore revised the code extensively, making it better than the first version. Geoff Collyer found several inadequacies and provided some magic file entries. Contributions of the ‘&’ operator by Rob McMahon, ⟨cudcv@warwick.ac.uk⟩, 1989.
+
+Guy Harris, ⟨guy@netapp.com⟩, made many changes from 1993 to the present.
+
+Primary development and maintenance from 1990 to the present by Christos Zoulas ⟨christos@astron.com⟩.
+
+Altered by Chris Lowth ⟨chris@lowth.com⟩, 2000: handle the -i option to output mime type strings, using an alternative magic file and internal logic.
+
+Altered by Eric Fischer ⟨enf@pobox.com⟩, July, 2000, to identify character codes and attempt to identify the languages of non-ASCII files.
+Altered by Reuben Thomas ⟨rrt@sc3d.org⟩, 2007-2011, to improve MIME support, merge MIME and non-MIME magic, support directories as well as files of magic, apply many bug fixes, update and fix a lot of magic, improve the build system, improve the documentation, and rewrite the Python bindings in pure Python.
+
+The list of contributors to the ‘magic’ directory (magic files) is too long to include here. You know who you are; thank you. Many contributors are listed in the source files.
+
+### その他
+
+> **LEGAL NOTICE**
+
+Copyright (c) Ian F. Darwin, Toronto, Canada, 1986-1999. Covered by the standard Berkeley Software Distribution copyright; see the file COPYING in the source distribution.
+
+The files tar.h and is_tar.c were written by John Gilmore from his public-domain tar(1) program, and are not covered by the above license.
+
+> **SEE ALSO**
+
+hexdump(1), od(1), strings(1), magic(5)
+
+> **BUGS**
+
+Please report bugs and send patches to the bug tracker at https://bugs.astron.com/ or the mailing list at ⟨file@astron.com⟩ (visit
+https://mailman.astron.com/mailman/listinfo/file first to subscribe).
+
+> **AVAILABILITY**
+
+You can obtain the original author's latest version by anonymous FTP on [ftp.astron.com](http://ftp.astron.com/) in the directory /pub/file/file-X.YZ.tar.gz.

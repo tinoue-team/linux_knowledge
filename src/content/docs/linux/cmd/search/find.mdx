@@ -1,0 +1,158 @@
+---
+title: find
+description: 検索条件をあたえ、該当するファイルを出力
+tags:
+    - "Linux"
+    - "探す・調べる"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: find
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+### 構文
+
+```bash frame="none"
+find [検索開始階層ディレクトリ] [検索式]
+find [検索開始階層ディレクトリ] [検索式] [アクション式]
+```
+
+find コマンドは、指定したディレクトリ階層以下から検索条件にマッチする、ファイルやディレクトリ、シンボリックリンクを標準出力します。また検索条件にマッチしたファイルに対してアクションを起こす(例えば削除する)など、高度な処理が可能なコマンド。
+
+## オプション
+
+### オプション一覧
+
+<Table
+    caption=""
+    columns={["オプション", "省略なし", "説明"]}
+    data={[
+        ["-name", "", ["引数", "・`‘ファイル名’`", "`*` 、`?`などの正規表現も使える"].join("<br>")],
+        ["-type", "", ["引数", "・d …ディレクトリ", "・f …ファイル", "・l …シンボリックリンク"].join("<br>")],
+        ["-a", "", "and の意味、複数の検索条件をオプションでつけられる、しかし、このオプションはつけなくても大丈夫"],
+        ["-atime", "", "引数に日時をあて最終アクセス時刻で検索する"],
+        ["-mtime", "", "引数に日時をあて最終更新時刻で検索する"],
+        ["-perm", "", "引数にアクセス権で検索する"],
+        ["-size", "", "引数にサイズを指定して、ファイルサイズで検索する"],
+        ["-user", "", "引数にユーザ名を指定\nファイルの所有者で検索する"],
+        ["-print", "", "マッチしたファイルを表示する(省略可能)"],
+        ["-ls", "", "ls -l コマンドのようにファイルの詳細を表示する"],
+        ["-exec", "", "引数にコマンド指定、\nマッチしたファイルに対してコマンドを実行"],
+        ["-ok", "", "引数にコマンド指定、\nマッチしたファイルに対してコマンドを実行(確認あり)"],
+    ]}
+/>
+
+#### `-name` オプション
+
+```bash frame="none"
+# ファイルの末尾が .md のファイルを検索
+find /usr/share/doc -name "*.md"
+/usr/share/doc/procps/bugs.md
+/usr/share/doc/libtasn1-6/README.md
+/usr/share/doc/openssl/FAQ.md
+/usr/share/doc/git/contrib/vscode/README.md
+/usr/share/doc/git/README.md
+
+touch test.md
+find . -name *.md   # 検索条件を引用符で囲まないと以下のような結果となる
+./test.md
+
+find . -name '*.txt' -print # -print がなくても同様の結果にはなる
+```
+
+#### `-type` オプション
+
+ファイルの種別を条件で検索
+
+```bash frame="none"
+find . -type d
+
+# ファイル種別と文字列検索
+find . -type d -a -name share
+```
+
+#### `-mtime` オプション
+
+更新された時刻を条件に検索
+
+```bash frame="none"
+# 過去 1 日以内に更新されたファイルを検索
+find . -type f -mtime -1
+```
+
+#### `-perm` オプション
+
+設定した権限を条件に検索する
+
+```bash frame="none"
+# /usr/bin ディレクトリ以下から SUID が設定されたファイルを検索する
+find /usr/bin -type f -perm -u+s
+/usr/bin/passwd
+/usr/bin/su
+/usr/bin/umount
+/usr/bin/newgrp
+/usr/bin/chfn
+/usr/bin/chsh
+/usr/bin/mount
+/usr/bin/gpasswd
+```
+
+#### `-user` オプション
+
+ファイルの所有者を条件に検索する
+
+```bash frame="none"
+# /tmp ディレクトリ以下から所有者が linucuser であるファイルやディレクトリを検索する
+find /tmp -user linucuser
+```
+
+#### `-exec` オプション
+
+マッチしたファイルに対してコマンドを実行
+コマンドを実行する部分はアクション式と呼び、以下のような構文になる
+
+```bash frame="none"
+-exec 実行コマンド \;
+```
+
+検索条件の後ろにアクション式をつけて利用する
+
+```bash frame="none"
+# カレントディレクトリで条件にマッチした(30日の間アクセスされていない)条件のファイルを削除する
+find -atime +30 -type f -exec rm {} \;
+
+# 指定されたディレクトリ内の特定の拡張子を持つファイルを削除(.log 拡張子のファイルを削除する)
+find /path/to/directory -name "*.log" -exec rm {} \;
+
+# 特定の条件に一致するファイルのパーミッションを変更(対象ディレクトリ内のすべての .sh ファイルに実行権限を追加)
+find /path/to/directory -name "*.sh" -exec chmod +x {} \;
+
+# 特定の条件に一致するファイルの内容を表示する(対象ディレクトリ内のすべての .txt ファイルの内容を表示する)
+find /path/to/directory -name "*.txt" -exec cat {} \;
+
+# jpeg ファイルを目的のディレクトリに移動する
+find /path/to/source -name "*.jpg" -exec mv {} /path/to/destination \;
+
+# .txt ファイルを gzip で圧縮する
+find /path/to/directory -name "*.txt" -exec gzip {} \;
+
+# ファイルのコピー(.conf ファイルを目的のディレクトリにコピー)
+find /path/to/source -name "*.conf" -exec cp {} /path/to/destination \;
+
+# ファイル名の表示
+find /path/to/directory -name "*.md" -exec echo {} \;
+
+# サイズが空のファイルを削除する
+find /path/to/directory -type f -empty -exec rm {} \;
+```

@@ -106,6 +106,11 @@ export default defineConfig({
                                     autogenerate: { directory: 'linux/cmd/network' },
                                 },
                                 {
+                                    label: '構築',
+                                    collapsed: true,
+                                    autogenerate: { directory: 'linux/cmd/build' },
+                                },
+                                {
                                     label: 'セキュリティ',
                                     collapsed: true,
                                     autogenerate: { directory: 'linux/cmd/security' },
