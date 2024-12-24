@@ -1,0 +1,30 @@
+---
+title: exec
+description: 利用するシェル(bash)の設定を行う
+tags:
+    - "Linux"
+    - "bash 組み込みコマンド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: exec
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+```
+exec [-cl] [-a name] [command [arguments]]
+              If command is specified, it replaces the shell.  No new process is created.  The arguments become the arguments to command.  If the -l  option  is  supplied,  the
+              shell  places  a dash at the beginning of the zeroth argument passed to command.  This is what login(1) does.  The -c option causes command to be executed with an
+              empty environment.  If -a is supplied, the shell passes name as the zeroth argument to the executed command.  If command cannot be executed  for  some  reason,  a
+              non-interactive shell exits, unless the shell option execfail is enabled, in which case it returns failure.  An interactive shell returns failure if the file can‐
+              not be executed.  If command is not specified, any redirections take effect in the current shell, and the return status is 0.  If there is  a  redirection  error,
+              the return status is 1.
+```

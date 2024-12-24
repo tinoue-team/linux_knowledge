@@ -1,0 +1,43 @@
+---
+title: さくらクラウド Sand Box の利用
+description: Usacloud、さくらクラウドで Sand Box を利用する。
+tags:
+    - "Terraform"
+    - "さくらのクラウド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: さくらクラウド Sand Box の利用
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 13
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+<LinkPreview url="https://manual.sakura.ad.jp/cloud/server/sandbox.html?_gl=1*wg9mqi*_gcl_aw*R0NMLjE3MzMxODE3ODQuQ2p3S0NBaUEwclc2QmhBY0Vpd0FRSDI4SWlFTUphMDdJZ21mSE0yRm5uczlOeWRHWDlKYnQ3STdxYTFtX2RZSEJyRFVibEpvLVZQLU5Sb0M2Vm9RQXZEX0J3RQ..*_gcl_au*ODI1MTM3NzE1LjE3MzI4NDc2OTg." />
+
+## 説明
+
+Sandbox ゾーンでは以下の利用用途があります
+
+-   さくらのクラウドを本格利用する前にコントロールパネルや API の機能を確認する
+-   組織内の他担当者に操作方法をレクチャーする
+-   大量のリソースを API 経由で作成するスクリプトを事前に動作確認するため
+
+:::caution
+Sandbox ゾーンではコントロールパネルや API での操作テスト用の環境です。
+実際に作成されたリソースは本来の機能としての動作は行われないため、
+サーバやディスクの性能テストやサーバへログインしてのご利用はできません。
+:::
+
+### usacloud での API 操作
+
+```bash frame=none
+usacloud --zone tk1v server ls
+```

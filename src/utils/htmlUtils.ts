@@ -49,7 +49,7 @@ export function sanitizeAndDecodeHtml(target: string): string {
  * @param charset - デコードに使用する文字エンコーディング
  * @returns OGDataオブジェクト
  */
-export function extractOGTags(bufferData: Buffer, charset: string): OGData {
+export function extractOGTags(bufferData: Buffer, charset: string, url: string): OGData {
     // バッファを指定されたエンコーディングでデコード
     const decodedHtml = iconv.decode(bufferData, charset);
     const root = parse(decodedHtml);
@@ -77,5 +77,47 @@ export function extractOGTags(bufferData: Buffer, charset: string): OGData {
         ogData.description = metaDesc?.getAttribute('content') || '';
     }
 
+    // '/' パス対策
+    if (ogData.image?.startsWith('/')) {
+        const domain = new URL(url).origin;
+        ogData.image = domain + ogData.image;
+    }
+
     return ogData;
+}
+
+/**
+ * Link 要素から favicon の URL を取得する
+ * @param url リンク先のURL
+ * @returns favicon を取得する完全な URL
+ */
+export function getFaviconUrl(bufferData: Buffer, charset: string, url: string): string {
+    // バッファを指定されたエンコーディングでデコード
+    const decodedHtml = iconv.decode(bufferData, charset);
+    const root = parse(decodedHtml);
+
+    const domain = new URL(url).origin;
+    let faviconPath = `${domain}/favicon.ico`;
+
+    const iconHref =
+        root.querySelector("link[rel='icon']")?.attributes?.href?.valueOf() ??
+        root.querySelector("link[rel='shortcut icon']")?.attributes?.href?.valueOf();
+
+    if (iconHref) {
+        faviconPath = iconHref;
+    }
+
+    // '/' パス対策
+    if (iconHref?.startsWith('/')) {
+        faviconPath = `${domain}${iconHref}`;
+    }
+
+    // この段階で、http から始まる favicon url になっていない時、引数の url の最後の '/' セグメントを削除する
+    if (!faviconPath.startsWith('http')) {
+        const parsedUrl = new URL(url);
+        parsedUrl.pathname = parsedUrl.pathname.replace(/\/[^/]+$/, '');
+        faviconPath = `${parsedUrl.toString()}/${iconHref}`;
+    }
+
+    return faviconPath;
 }

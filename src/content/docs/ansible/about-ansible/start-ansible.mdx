@@ -1,0 +1,221 @@
+---
+title: Ansible の導入
+description: Ansible の基本的な内容を包括
+tags:
+    - "Ansible"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Ansible の導入
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 1
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## Ansible とは
+
+> その他参考記事
+>
+> -   <LinkPreview url="https://qiita.com/Brutus/items/1894629105d61f4854bc" type="inline" />
+> -   <LinkPreview url="https://qiita.com/tmurakam99/items/8e609f174f5804308a20" type="inline" />
+
+## インストール
+
+<LinkPreview url="https://docs.ansible.com/" />
+<LinkPreview url="https://formulae.brew.sh/formula/ansible" />
+
+### インストール方法
+
+<Tabs syncKey="ansible">
+    <TabItem label="MacOS">
+        ```bash frame=none
+        brew install ansible
+
+        # インストール後 ansible コマンドの実行確認
+        ansible --version
+        ansible [core 2.17.4]
+        config file = None
+        configured module search path = ['/Users/t_inoue/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+        ansible python module location = /opt/homebrew/Cellar/ansible/10.4.0/libexec/lib/python3.12/site-packages/ansible
+        ansible collection location = /Users/t_inoue/.ansible/collections:/usr/share/ansible/collections
+        executable location = /opt/homebrew/bin/ansible
+        python version = 3.12.7 (main, Oct  1 2024, 02:05:46) [Clang 15.0.0 (clang-1500.3.9.4)] (/opt/homebrew/Cellar/ansible/10.4.0/libexec/bin/python)
+        jinja version = 3.1.4
+        libyaml = True
+        ```
+        更新するには、`brew upgrade ansible`
+
+    </TabItem>
+
+    <TabItem label="Linux(Debian)">
+        ```bash frame=none
+
+
+        # インストール後 ansible コマンドの実行確認
+        ansible --version
+        ```
+    </TabItem>
+
+    <TabItem label="Linux(RHEP)">
+        ```bash frame=none
+
+
+        # インストール後 ansible コマンドの実行確認
+        ansible --version
+        ```
+    </TabItem>
+
+</Tabs>
+
+## Ansible の仕組み
+
+### 概要
+
+Ansible はリモートシステムの管理を自動化し、システムの望ましい状態を制御するサービス
+
+以下の使用例があります。
+
+-   繰り返しをなくし、ワークフローを簡素化
+-   システム構成の管理と維持
+-   複雑なソフトウェアを継続的に導入する
+-   ダウンタイムゼロのローリングアップデートを実行する
+
+Ansible は Playbook と呼ばれる手順書をもとにターゲットとなるノードの望ましい状態を宣言している。
+
+{/* ![Ansible の仕組み](src/assets/ansible/about-ansible/2024-09-17_22.26.15.webp) */}
+
+<MermaidChart
+    chart={`
+    graph LR
+
+    %% ************************************ 宣言
+
+    subgraph Master Node
+        Inventory[インベントリファイル<br> /etc/ansible/hosts <br> /etc/hosts]
+        Playbook[Playbook ファイル <br> yaml]
+        ansible((Ansible<br>サービス))
+    end
+
+    subgraph Target Host
+        node1[(ターゲットノード<br>①)]
+        node2[(ターゲットノード<br>②)]
+        node3[(ターゲットノード<br>③)]
+    end
+
+    %% ************************************ 関連
+    Inventory --- ansible
+    Playbook --- ansible
+
+    ansible -.-> node1
+    ansible -.-> node2
+    ansible -.-> node3
+
+
+    `}
+
+/>
+
+#### Ansible の主要なコンポーネント
+
+<Table
+    caption=""
+    columns={["ノード", "説明"]}
+    data={[
+        [
+            "Control(制御)ノード",
+            [
+                "Ansibleがインストールされたシステム。Ansible を実行する",
+                "コントロールノード上で `ansible` や `ansible-inventory` などの Ansible コマンドを実行する。",
+                "Python がインストールされたほぼすべての UNIX 系マシンで使用可",
+            ].join("<br/>"),
+        ],
+        [
+            "Inventory (在庫)",
+            [
+                "論理的に整理された管理ノードのリスト。",
+                "コントロールノード上にインベントリを作成し、Ansible へのホストのデプロイを記述します。",
+            ].join("<br/>"),
+        ],
+        [
+            "Managed (管理) ノード",
+            [
+                "Ansible が制御するリモート・システム（ホスト）。管理されるホスト",
+                "Ansible がインストールされている必要はないが、Ansible によって生成された Python コードを実行するために Python が必要",
+                "対話型 POSIX シェルを使用してノードに SSH 経由で接続できるユーザーアカウントも必要",
+            ].join("<br/>"),
+        ],
+    ]}
+/>
+
+1. **入力ファイル読み込み**
+
+    インベントリを元に、どのターゲットに対してメンテナンスを行うか、情報 (IP アドレスなど)を取得する Playbook を元に、ターゲットに対して行うメンテナンス内容(ソフトウェアの追加/変更/削除など)を取得する
+
+1. **メンテナンス**
+
+    1 で取得した情報を元に各ターゲットに対してメンテナンスを行う
+    (Ansible でできるのは、既存のターゲットに対するソフトウェアの変更のみで、ハードウェアに対する変更(メモリ使用量の変更など)はサポートしていない。情報取得、例えばメモリ使用量や OS のバージョン確認などは可能)
+
+### Ansible 冪等性
+
+冪等性とは、Ansible の性質を知る上で重要です。
+
+同じ操作を何度繰り返しても、同じ結果が得られる性質。例えば、マスターからターゲットに対して何かしらの操作を実行した時、実行した結果が必ず期待通りのものになり、実行のたびに結果が変わるべきではない。つまり、Playbook が何度実行されても、システムが同じ状態を維持するため、Ansible は何も変更しないようになっている。
+
+#### 冪等性を担保する仕組み
+
+-   Ansible が同じ結果が得られるように制御をしている
+-   Ansible を一度実行してターゲットにファイルがコピー済みの場合、二度目の実行時はファイルがコピーされているかどうかを判断し、コピー済みであれば、コピー処理はスキップする
+
+#### 冪等性を採用する理由
+
+-   ターゲットの状態を気にして Playbook を書いたり、実行したりする必要がない(手間がかからない)
+-   ターゲットにファイルをコピー済みなら Playbook から、コピー処理を外す、2 回目の実行を控えるなどの記載をする必要がない。
+
+### ターゲットホスト(ノード)に `hostname` コマンドを実行する
+
+> 構文
+
+```bash frame=none
+ansible <target-host> -m <モジュール> -a '実行コマンド'
+```
+
+```bash frame=none
+ansible localhost -m shell -a 'hostname'
+[WARNING]: No inventory was parsed, only implicit localhost is available
+localhost | CHANGED | rc=0 >>
+MacBook-Air.local
+```
+
+初回、インベントリファイルがない場合は警告が表示されます。
+そのため、インベントリファイルとして、「/etc/ansible/hosts」を作成する
+
+```bash frame=none
+sudo mkdir /etc/ansible
+
+sudo vi /etc/ansible/hosts
+```
+
+以下のように編集
+
+```ini title="/etc/ansible/hosts"
+[localhost]
+127.0.0.1 ansible_connection=local
+```
+
+```bash frame=none
+ansible localhost -m shell -a 'hostname'
+[WARNING]: Platform darwin on host 127.0.0.1 is using the discovered Python interpreter at /opt/homebrew/bin/python3.12, but future installation of another Python interpreter could
+change the meaning of that path. See https://docs.ansible.com/ansible-core/2.17/reference_appendices/interpreter_discovery.html for more information.
+127.0.0.1 | CHANGED | rc=0 >>
+MacBook-Air.local
+```
+
+### ansible コマンド

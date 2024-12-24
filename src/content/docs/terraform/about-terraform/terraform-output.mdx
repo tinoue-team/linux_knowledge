@@ -1,0 +1,170 @@
+---
+title: output セクション
+description: Terraform の output セクションの利用
+tags:
+    - "Terraform"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: output セクション
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 5
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, FileTree, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## output セクション
+
+<LinkPreview url="https://developer.hashicorp.com/terraform/language/values/outputs" />
+- <LinkPreview url="https://hitolog.blog/2021/10/17/terraform-module/" type="inline" />
+- <LinkPreview url="https://qiita.com/kyntk/items/2cdd38c2438ac257ac4e" type="inline" />
+
+### 説明
+
+インフラストラクチャの作成に関する情報について、作成結果の出力値を利用する。
+現在の tfstate に記載されている output セクションの値を表示するには [`terraform ouput`](/terraform/cmds/all-other-commands/output)
+
+#### 構文
+
+```tf
+output "出力時の名前" {
+    value = インフラ名.リソース名.プロパティ
+}
+```
+
+value は一つしか定義できないため、出力したい値があれば、再度、同様に出力したい値を記述する
+
+### 基本的なフロー
+
+<Steps>
+
+1.  .tf ファイルに以下を追記
+
+    ```tf
+    output "eip_public_ip" {
+        value = aws_eip.iac-eip.public_ip
+    }
+    ```
+
+2.  インフラストラクチャの更新
+
+    ```bash frame=none
+    terraform apply -auto-approve
+    aws_vpc.iac-vpc: Refreshing state... [id=vpc-052f6acfa7b91cd75]
+    aws_internet_gateway.iac-gateway: Refreshing state... [id=igw-0288101ee2c640558]
+    aws_subnet.iac-subnet: Refreshing state... [id=subnet-0b6e69c24dd8aedd3]
+    aws_security_group.iac-security-group: Refreshing state... [id=sg-0389a6f3b90dea414]
+    aws_route_table.iac-route-table: Refreshing state... [id=rtb-09348450641b18943]
+    aws_route_table_association.iac-association: Refreshing state... [id=rtbassoc-071ca02810081968f]
+    aws_network_interface.iac-nw-interface: Refreshing state... [id=eni-04fc6928ece9f0fdf]
+    aws_instance.iac-instance: Refreshing state... [id=i-0b68dbb75d51d276a]
+    aws_eip.iac-eip: Refreshing state... [id=eipalloc-064438dbccc0252dd]
+
+    Changes to Outputs:
+    + eip_public_ip = "52.192.134.177"
+
+    You can apply this plan to save these new output values to the Terraform state, without changing any real infrastructure.
+
+    Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+    Outputs:
+
+    eip_public_ip = "52.192.134.177"
+    ```
+
+    output セクションによって、apply と同時に出力する
+
+</Steps>
+
+### 複数の出力値を扱う
+
+<Steps>
+
+1.  output セクションは一つの value しか表示できないので、他の出力値は以下のように行う
+
+    ```tf
+    output "instance_private_ip" {
+        value = aws_instance.iac-instance.private_ip
+    }
+
+    output "instance_id" {
+        value = aws_instance.iac-instance.id
+    }
+    ```
+
+2.  出力結果が追加される
+
+    ```bash frame=none
+    terraform apply -auto-approve
+    aws_vpc.iac-vpc: Refreshing state... [id=vpc-052f6acfa7b91cd75]
+    aws_subnet.iac-subnet: Refreshing state... [id=subnet-0b6e69c24dd8aedd3]
+    aws_internet_gateway.iac-gateway: Refreshing state... [id=igw-0288101ee2c640558]
+    aws_security_group.iac-security-group: Refreshing state... [id=sg-0389a6f3b90dea414]
+    aws_route_table.iac-route-table: Refreshing state... [id=rtb-09348450641b18943]
+    aws_network_interface.iac-nw-interface: Refreshing state... [id=eni-04fc6928ece9f0fdf]
+    aws_route_table_association.iac-association: Refreshing state... [id=rtbassoc-071ca02810081968f]
+    aws_instance.iac-instance: Refreshing state... [id=i-0b68dbb75d51d276a]
+    aws_eip.iac-eip: Refreshing state... [id=eipalloc-064438dbccc0252dd]
+
+    Changes to Outputs:
+    + instance_id         = "i-0b68dbb75d51d276a"
+    + instance_private_ip = "10.0.1.50"
+
+    You can apply this plan to save these new output values to the Terraform state, without changing any real infrastructure.
+
+    Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+    Outputs:
+
+    eip_public_ip = "52.192.134.177"
+    instance_id = "i-0b68dbb75d51d276a"
+    instance_private_ip = "10.0.1.50"
+    ```
+
+</Steps>
+
+ouput はルートモジュールファイルで定義された output を出力する。
+
+:::tip[各モジュールからの出力結果を表示する]
+
+<FileTree>
+
+-   .
+    -   main.tf
+    -   modules/
+        -   ec2.tf
+
+</FileTree>
+
+```tf title="modules/ec2.tf"
+~~ aws ec2 インスタンスの定義 ~~
+
+resource "aws_eip" "lb" {
+    instance = aws_instance.web.id
+    domain   = "vpc"
+}
+
+output "eip_public_ip" {
+    value = aws_eip.lb.public_ip
+}
+
+```
+
+モジュール階層での output 出力値をルートモジュールで出力するためには、
+以下のようにルートモジュール tf ファイルで output を書く
+
+```tf title="main.tf"
+~~ module の利用を定義
+
+output "eip_public_ip" {
+    description = "Instance Public EIP"
+    value       = module.eip.eip_public_ip
+}
+```
+
+:::

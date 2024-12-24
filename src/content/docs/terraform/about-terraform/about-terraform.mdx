@@ -14,7 +14,7 @@ sidebar:
     #     variant: tip
 ---
 
-import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
 import LinkPreview from "@components/LinkPreview.astro";
 import Table from "@components/Table.astro";
 
@@ -103,19 +103,39 @@ terraform は Iac と呼ばれるツールの一種で、インフラの構成�
 
 > ex. aws プロバイダに `terraform init` を実行した際の構成
 
-```
-.
-├── .terraform
-│   └── providers
-│       └── registry.terraform.io
-│           └── hashicorp
-│               └── aws
-│                   └── 5.67.0
-│                       └── darwin_arm64
-│                           ├── LICENSE.txt
-│                           └── terraform-provider-aws_v5.67.0_x5
-├── .terraform.lock.hcl
-└── iac.tf
+<FileTree>
+- .
+    -   .terraform
+        -   providers
+            -   registry.terraform.io
+                -   hashicorp
+                    -   aws
+                        -   5.67.0
+                            -   darwin_arm64
+                                -   LICENSE.txt
+                                -   terraform-provider-aws_v5.67.0_x5
+    -   .terraform.lock.hcl
+    -   xxx.tf
+
+</FileTree>
+
+### TF ファイル
+
+#### .tf ファイルの基本構文
+
+aws プロバイダを利用した時の例
+
+```tf title="xxx.tf"
+provider "" {
+    region = ""
+    access_key = ""
+    secret_key = ""
+}
+
+resource "<provider>_<resource_type>" "name" {
+    key1 = "value1"
+    key2 = "value2"
+}
 ```
 
 ### ロックファイル(.lock.hcl)

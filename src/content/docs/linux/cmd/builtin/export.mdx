@@ -1,0 +1,34 @@
+---
+title: export
+description: 利用するシェル(bash)の設定を行う
+tags:
+    - "Linux"
+    - "bash 組み込みコマンド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: export
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+```
+export [-fn] [name[=word]] ...
+export -p
+    The supplied names are marked for automatic export to the environment of subsequently executed commands.  If the -f option is given, the names refer to functions.
+
+    If  no names are given, or if the -p option is supplied, a list of all names that are exported in this shell is printed.
+    The -n option causes the export property to be removed from each name.
+    If a variable name is followed by =word, the value of the variable is set to word.
+
+    export returns an exit status of 0 unless  an invalid option is encountered,
+    one of the names is not a valid shell variable name,
+    or -f is supplied with a name that is not a function.
+```

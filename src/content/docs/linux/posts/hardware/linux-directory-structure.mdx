@@ -1,0 +1,182 @@
+---
+title: Linuxディレクトリの構成
+description: Linuxディレクトリの構成の説明
+tags:
+    - "Linux"
+    - "ハードウェア機器"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Linuxディレクトリの構成
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 5
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## Linux ディレクトリの構成
+
+### Ubuntu のルートディレクトリ構成
+
+<FileTree>
+- / # ファイルシステムの頂点に当たるディレクトリ 約20~120GB以上
+    - boot/ # カーネルイメージなど、Linuxが起動するためのファイルが配置されている。 (約200~300MB) 起動時に BIOS の制限を受けないためにルートファイルシステムとは別に、ディスクの先頭付近に配置されることがある。
+    - etc/ # システム管理用・各種ソフトウェアの設定ファイル、スクリプトファイルなどが配置されている。
+    - var/ # variableの略。システム運用中にファイルサイズが変化するファイル、内容が頻繁に変更されるファイルが配置される。ログファイル、メールやプリンタのジョブ・キューを管理するスプールなど
+        - cache/ # 一時的なキャッシュファイルが配置される。man コマンドで表示するために整形したデータなど
+        - lock/ # アプリケーションが排他制御に使うためのロックファイルが配置される
+        - log/ # ログファイルが書き出される。
+            - messages
+            - cron
+            - ...etc # その他の log ファイル
+        - run/ # システムの状態を示すファイルが配置される
+        - spool/ # 処理待ちのデータが配置される。印刷待ちのデータ(/var/spool/lpd)や予約されたジョブ(/var/spool/at)など
+    - bin/ -> usr/bin # 一般ユーザ、管理者が使用するコマンド。実行ファイルが格納されている。
+    - bin.usr-is-merged
+    - dev/ # デバイスファイル、ハードディスクや DVD-ROM などのデバイスファイルが配置される。デバイスファイルは特殊ファイルであり、デバイスに応じたデバイスファイルが必要です。
+    - usr/ # User Services and Routines の略。ユーザが共有するファイル、ユーティリティ、ライブラリ、コマンド などが配置される。
+        - bin/ # ユーザが一般的に使うコマンド、緊急時のシステム保守に必須ではないコマンドはここに配置される。
+        - sbin/ # システム管理コマンドで、緊急時のシステム保守に必須ではないコマンドがここに配置される。
+        - lib/ # プログラムに必要な共有ライブラリが配置される
+        - local/ # ローカルシステムで必要とされるコマンドやライブラリ、ドキュメントなどが配置される。
+            - bin/
+            - sbin/
+            - local/
+        - share/ # x86 や x86 - 64 といったシステムアーキテクチャに依存しないファイルが配置される。
+            - man/ # man コマンドで使うマニュアルが配置
+        - src/ # Linux のカーネルソースなど、ソースコードが配置
+    - home/ # 一般ユーザのホームディレクトリ。ユーザごとのホームディレクトリが置かれる。独立したファイルシステムにすることによりクォータを設定することができたり、保守性を向上させたりできます。FHS ではオプション扱いとなる。
+    - lib/ -> usr/lib # 共有ライブラリやカーネルモジュールが配置される。/bin や /sbin にあるコマンドが必要とするライブラリはここに配置される。
+    - lib64/ # 64版のライブラリ
+    - media/ # CD や DVD ドライブのマウントポイントが配置される
+    - mnt/ # media と同様に CD や DVD ドライブのマウントする場所、一時的にマウントするファイルシステムのポイントが配置される。
+    - opt/ # アプリケーションのインストール先。パッケージ管理の仕組みを使ってプログラムがインストールされるディレクトリ。ディストリビューションによっては配置されない。
+    - proc/ # プロセスやメモリなどのLinuxシステム情報。カーネル内部の情報にアクセスするための仮想的なファイルシステム。つまり、このディレクトリ内のファイルはファイルのように見えるだけで、実際にはディスク上に存在しない。
+        - cpuinfo # CPU 情報
+        - interrupts # IRQ 情報
+        - ioports # I/O アドレス情報
+        - meminfo # メモリ情報
+        - swaps # スワップ領域情報
+        - bus
+            - usb/* # USB デバイス情報
+            - pci/* # PCI デバイス情報
+    - root/ # 管理者のホームディレクトリ。/home ファイルシステムがマウントできなくなった場合でも、システムのメンテナンスを行うことができるよう、/home とは別になっている。FHS ではオプション扱いとなっている。
+    - run/ # 実行時の可変データ群、再起動時に消去
+    - sbin/ -> usr/sbin # システム管理コマンド(システム管理に必須のコマンド)が配置されている。このコマンドは root ユーザのみが実行可能。shutdown、fdisk、fsck、init、mkfs、mkswap、reboot といったコマンドが規定されている。
+    - sbin/.usr-is-merged
+    - srv/ # HTTP などのサービス用のデータを保存する場所
+    - sys/ # デバイス情報を記述しているファイル
+    - tmp/ # 一時的ファイルの保存場所。すべてのユーザが読み書き可能。
+
+</FileTree>
+
+### FHS(Filesystem Hierarchy Standard)
+
+Linux などの UNIX 系 OS の標準的なディレクトリ構成を定めた標準仕様のこと
+標準化することで、
+
+-   開発者はソフトウェア固有の知識のインプットを最小限にできる
+-   配布側にとっては規格に準拠した方が利用してもらいやすい
+
+### /dev
+
+Linux でハードウェア(接続機器)はファイルで管理されます。デバイスを接続すると、/dev 配下に検出されたデバイスへアクセスするためのファイル(デバイスファイル)が追加される。デバイスファイルは、デバイス(周辺機器)を操作するためのファイルで、udev という仕組みによって自動的に作成されるようになっている。
+
+![OSとデータの棲み分け2](@assets/linux/posts/hardware/2024-09-30_8.30.57.webp)
+
+例えば、CD/DVD ドライブのデバイスファイルは /dev/sr0 (2 台目は sr1) となる。
+
+ディスクのデバイスファイル名は接続するインターフェースによって異なりますが、
+大半で使われている SCSI (スカジー)系のディスクでは、/dev/sda (1 台目)、/dev/sdb (2 台目)、…
+
+ハードディスクの規格に応じて SATA、IDE/ATA (PATA)、USB の場合はカーネル内の SCSI と同じく、/dev/sd○ として作成され、○ には 1 台目から a, b, c … と付与されていく
+
+### /proc
+
+Linux カーネルが認識しているデバイス情報の一部は /proc 以下のファイルで確認できる。
+/proc 以下のファイルはファイルとしての実体がない仮想的なファイルです。
+
+```bash
+cat /proc/cpuinfo
+
+processor       : 0
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 1
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 2
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 3
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 4
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 5
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 6
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+
+processor       : 7
+BogoMIPS        : 48.00
+Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint
+CPU implementer : 0x61
+CPU architecture: 8
+CPU variant     : 0x0
+CPU part        : 0x000
+CPU revision    : 0
+```
+
+/sys ディレクトリは、/proc ディレクトリと同様に仮想的なファイルシステムです。テキストファイルとしてシステム情報にアクセスできます。
+
+/dev/sda1 のサイズを確認してみる。

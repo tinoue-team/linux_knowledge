@@ -1,0 +1,32 @@
+---
+title: compgen
+description: 利用するシェル(bash)の設定を行う
+tags:
+    - "Linux"
+    - "bash 組み込みコマンド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: compgen
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+```
+compgen [option] [word]
+              Generate  possible completion matches for word according to the options, which may be any option accepted by the complete builtin with the exception of -p and -r,
+              and write the matches to the standard output.  When using the -F or -C options, the various shell variables set by the programmable completion  facilities,  while
+              available, will not have useful values.
+
+              The  matches  will  be  generated in the same way as if the programmable completion code had generated them directly from a completion specification with the same
+              flags.  If word is specified, only those completions matching word will be displayed.
+
+              The return value is true unless an invalid option is supplied, or no matches were generated.
+```

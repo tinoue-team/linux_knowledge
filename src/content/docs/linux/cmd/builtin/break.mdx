@@ -1,0 +1,26 @@
+---
+title: break
+description: 利用するシェル(bash)の設定を行う
+tags:
+    - "Linux"
+    - "bash 組み込みコマンド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: break
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+```
+break [n]
+              Exit from within a for, while, until, or select loop.  If n is specified, break n levels.  n must be ≥ 1.  If n is greater than the number of enclosing loops, all
+              enclosing loops are exited.  The return value is non-zero when n is ≤ 0; Otherwise, break returns 0 value.
+```

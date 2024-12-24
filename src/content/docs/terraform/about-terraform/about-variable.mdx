@@ -7,14 +7,14 @@ sidebar:
     # このリンクのカスタムラベルを設定します
     label: 変数
     # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
-    order: 1
+    order: 3
     # このリンクにバッジを追加します
     # badge:
     #     text: ""
     #     variant: tip
 ---
 
-import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
 import LinkPreview from "@components/LinkPreview.astro";
 import Table from "@components/Table.astro";
 
@@ -26,8 +26,8 @@ import Table from "@components/Table.astro";
 
 変数の使用方法は大きく 2 つある
 
--   `terraform apply` の実行時に引数として渡す
--   変数定義ファイル(.tfvars)によって渡す
+-   **`terraform apply` の実行時に引数として渡す**
+-   **変数定義ファイル(.tfvars)によって渡す**
 
 ### terraform apply の実行時に引数として渡す
 
@@ -51,25 +51,28 @@ import Table from "@components/Table.astro";
         columns={["コマンド", "説明"]}
         data={[
             ["description", ["変数の説明"].join("<br/>")],
-            ["type", ["変数の型を指定する、string など"].join("<br/>")],
+            ["type", ["[変数の型を指定する、string など](https://developer.hashicorp.com/terraform/language/expressions/types)"].join("<br/>")],
             ["default", ["値が設定されなかった場合の既定値"].join("<br/>")],
         ]}
     />
 
     :::caution[variable セクションを参照する]
-    xxx .tf というファイルがあった場合、その中で変数を参照している場合、同階層の xxx.tf に記述されているものを参照する。
+    xxx .tf というファイルがあった場合、その中で変数を参照(利用)している場合、同階層の xxx.tf に記述されている variable セクションを参照する。
 
-    ```
-    .
-    ├── 00_subnet.tf # 参照
-    ├── 00_vpc.tf # 参照
-    └── 99_variable.tf # 定義
-    ```
+    <FileTree>
+    - .
+        - 00_subnet.tf
+        - 00_vpc.tf
+        - 99_variable.tf  ← variable セクションが定義されている
+    </FileTree>
 
-    00_vpc.tf が参照するファイルは 00_subnet.tf、99_variable.tf です。そのため、00_vpc.tf 内で変数を参照するときに、二つのファイルに宣言がなければ参照エラーとなる。
+    00_vpc.tf 内や、同列階層の 00_subnet.tf、 99_variable.tf に同じ変数名の variable セクションがあると構文エラーとなります。
+    また、00_vpc.tf 内で変数を参照するときに、同列階層内の tf ファイルに宣言がなければ参照エラーとなる。
     他のパスから渡す方法は モジュールなどでリソースを参照する時に同時に変数を渡す方法がある。
 
     :::
+
+    `subnet_prefix` という変数を定義 (明示的にファイル名に variable とつけ、変数宣言用のファイルとする)
 
     ```tf title="99_variable.tf"
     variable "subnet_prefix" {
@@ -128,13 +131,13 @@ import Table from "@components/Table.astro";
 ### 変数定義ファイル(.tfvars)によって渡す
 
 <Steps>
-1. .tf ファイルの同階層に拡張子 .tfvars を作成する。
+1. **.tf ファイルの同階層に拡張子 .tfvars を作成する。**
 
     ```tfvars title="network.tfvars"
     subnet_prefix = "10.0.1.0/24"
     ```
 
-1. `apply` に `-var-file` オプションで変数ファイルを指定する。
+1. **`apply` に `-var-file` オプションで変数ファイルを指定する。**
 
     ```bash frame=none
     terraform apply -var-file network.tfvars -auto-approve
@@ -183,26 +186,22 @@ import Table from "@components/Table.astro";
 
 #### 実装例
 
-```
-project/
-│
-├── main.tf        # インフラストラクチャを構成のメインとなるファイル
-├── variables.tf   # 変数を定義する
-├── outputs.tf     # 実行の際の出力内容を定義する
-│
-├── environments/       # 環境別の管理
-│   ├── dev.tfvars
-│   ├── staging.tfvars
-│   └── prod.tfvars
-│
-├── configs/            # 情報の種類による分類
-│   ├── network.tfvars
-│   └── database.tfvars
-│
-└── secrets/            # セキュリティのための管理
-        └── api_keys.tfvars  # .gitignoreに追加
+<FileTree>
+- project/
+    - main.tf        # インフラストラクチャを構成のメインとなるファイル
+    - variables.tf   # 変数を定義する
+    - outputs.tf     # 実行の際の出力内容を定義する
+    - environments/       # 環境別の管理
+        - dev.tfvars
+        - staging.tfvars
+        - prod.tfvars
+    - configs/            # 情報の種類による分類
+        - network.tfvars
+        - database.tfvars
+    - .secrets/            # セキュリティのための管理('.' から始まることで明示的に隠しディレクトリとして管理)
+        - api_keys.tfvars  # .gitignoreに追加
 
-```
+</FileTree>
 
 このような構造を使用する場合、以下のように terraform を実行できる
 
@@ -281,3 +280,56 @@ resource "aws_subnet" "iac-subnet1" {
 ```
 
 terraform で上記のように resouce セクション、tfvars ファイルを用意した時、variables セクションを用意してください
+
+### プロジェクトの規模によったフォルダ構成
+
+#### 大規模な Terraform プロジェクトの例
+
+<FileTree>
+- project
+    - .terraform/
+    - main.tf
+    - config_variable.tf # 設定系変数宣言ファイル
+    - bundle_variable.tf # modules 内で定義した _variable.tf を bundle したもの
+    - modules/
+        - computing/
+            - ec2/
+                - _variable.tf
+                - instance.tf
+            - ec2_sg/
+                - _output.tf
+                - _variable.tf
+                - resource.tf
+            - ec2_sg_rule/
+                - _variable.tf
+                - resource.tf
+        - network/
+            - subnet/
+                - _output.tf
+                - _variable.tf
+                - resource.tf
+            - vpc/
+                - _output.tf
+                - _variable.tf
+                - resource.tf
+        - storage/
+            - s3/
+                - _output.tf
+                - _variable.tf
+                - resource.tf
+    - vars/ # 変数の実際の値を管理するファイルを格納、workspace 毎にディレクトリを作成
+        - dev/
+            - computing/
+                - ec2.tfvars
+            - network/
+                - vpc.tfvars
+            - storage/
+                - s3.tfvars
+            - .secret/ # API認証などの機密情報を格納 .gitignore に追加する。
+                - secret.tfvars
+        - prd/ # 他の workspace 同様のファイル構成にして格納
+        - stg/
+
+</FileTree>
+
+ネットワーク構成からインスタンス構成、ストレージの配置までさまざまなリソースを作成したりしていく時には、modules 内に resource を定義して

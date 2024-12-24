@@ -1,0 +1,78 @@
+---
+title: AWS EC2 の利用
+description: AWS EC2 のリソースを Terraform で管理する方法
+tags:
+    - "Terraform"
+    - "AWS"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: AWS EC2 の利用
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 10
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## EC2 リソースの作成
+
+### EC2 インスタンスの作成
+
+#### 必要最低限の記述
+
+```tf
+resource "aws_instance" "sample1" {
+    ami           = "ami-023ff3d4ab11b2525"
+    instance_type = "t2.micro"
+}
+```
+
+ami と instance_type を指定する。  
+今回の AMI は AmazonLinux の AMI ID を指定している。
+
+## Sample
+
+### 検索
+
+#### IAM ユーザーグループに含まれる IAM ユーザーを作成
+
+##### tf ファイル
+
+```tf
+resource "aws_iam_user" "alice" {
+    name = "Alice"
+}
+
+resource "aws_iam_group" "full" {
+    name = "ec2_full"
+}
+
+resource "aws_iam_user_group_membership" "alice_ec2_full" {
+    user   = aws_iam_user.alice.name
+    groups = [aws_iam_group.full.name]
+}
+
+# AWS で提供されている AmazonEC2FullAccess ポリシーを full グループにアタッチ
+resource "aws_iam_group_policy_attachment" "ec2_full_access" {
+    group      = aws_iam_group.full.name
+    policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+}
+
+# AmazonS3FullAccess ポリシーを full グループにアタッチ
+resource "aws_iam_group_policy_attachment" "s3_full_access" {
+    group      = aws_iam_group.full.name
+    policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
+# その他のポリシーを追加する場合は、同様にリソースを追加できます
+# 例:
+resource "aws_iam_group_policy_attachment" "cloud_watch_full_access" {
+    group      = aws_iam_group.full.name
+    policy_arn = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+}
+```

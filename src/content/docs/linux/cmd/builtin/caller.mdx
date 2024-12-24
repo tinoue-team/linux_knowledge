@@ -1,0 +1,29 @@
+---
+title: caller
+description: 利用するシェル(bash)の設定を行う
+tags:
+    - "Linux"
+    - "bash 組み込みコマンド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: caller
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+```
+caller [expr]
+              Returns the context of any active subroutine call (a shell function or a script executed with the . or source builtins).  Without expr, caller displays  the  line
+              number  and  source filename of the current subroutine call.  If a non-negative integer is supplied as expr, caller displays the line number, subroutine name, and
+              source file corresponding to that position in the current execution call stack.  This extra information may be used, for example, to print  a  stack  trace.   The
+              current  frame  is frame 0.  The return value is 0 unless the shell is not executing a subroutine call or expr does not correspond to a valid position in the call
+              stack.
+```

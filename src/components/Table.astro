@@ -6,9 +6,10 @@ interface Props {
     data: string[][];
     align?: 'left' | 'center' | 'right';
     caption?: string;
+    colWidth?: string[];
 }
 
-const { columns, data, align = 'left', caption } = Astro.props as Props;
+const { columns, data, align = 'left', caption, colWidth } = Astro.props as Props;
 
 // data 内のそれぞれのレコード(要素である)の配列の要素数 と column の要素数が一致するか確認する処理を入れる
 // データの検証: 各行の要素数が列の数と一致するか
@@ -79,6 +80,7 @@ if (caption) {
             <tr
                 class=""
             >
+                <!-- {columns.map((column) => ( -->
                 {columns.map((column, index) => (
                     <th
                         set:html={sanitizeAndDecodeHtml(column)}
@@ -94,9 +96,10 @@ if (caption) {
                             last:rounded-tr-md
                             shadow-xs-distinct
                         `}
-                        style="
+                        style={`
                             text-shadow: var(--text-shadow);
-                        "
+                            ${colWidth ? 'width: ' + colWidth[index] : ''}
+                        `}
                     />
                 ))}
             </tr>

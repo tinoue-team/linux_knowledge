@@ -1,0 +1,87 @@
+---
+title: Table
+description: Table コンポーネントの紹介
+tags:
+    - "Astro"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Table
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import Table from "@components/Table.astro";
+
+## 概要
+
+`<Table>` コンポーネントは表レイアウトを作成するカスタムコンポーネントです。
+
+### インポート
+
+```mdx
+import Table from "@components/Table.astro";
+
+<Table
+    caption=""
+    columns={["コマンド", "説明"]}
+    data={[
+        ["description", ["変数の説明"].join("<br/>")],
+        [
+            "type",
+            [
+                "[変数の型を指定する、string など](https://developer.hashicorp.com/terraform/language/expressions/types)",
+            ].join("<br/>"),
+        ],
+        ["default", ["値が設定されなかった場合の既定値"].join("<br/>")],
+    ]}
+/>
+```
+
+#### プロパティ
+
+##### caption
+
+type: `string`
+
+`<caption>`要素に渡す文字
+
+##### columns
+
+type: `[] string`
+
+`<th>`要素に渡す文字。配列の要素数分のカラムが作られる
+
+##### data
+
+type: `[][] string`
+
+`<td>`要素に渡す文字。二次元配列で、列とその中のデータを格納する。  
+長文などを利用する場合に join メソッドでテキストを格納するとコード管理しやすい
+
+### 出力結果
+
+<Table
+    caption=""
+    columns={["コマンド", "説明"]}
+    data={[
+        ["description", ["変数の説明"].join("<br/>")],
+        [
+            "type",
+            [
+                "[変数の型を指定する、string など](https://developer.hashicorp.com/terraform/language/expressions/types)",
+            ].join("<br/>"),
+        ],
+        ["default", ["値が設定されなかった場合の既定値"].join("<br/>")],
+    ]}
+/>
+
+:::note[テキストは Markdown が解釈される]
+
+columns や data に格納されるテキストは Markdown を解釈してくれる。  
+そのため、強調表示やリンクなどを Markdown 記法で利用できる
+
+:::

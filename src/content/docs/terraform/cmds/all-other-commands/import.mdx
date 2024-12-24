@@ -14,6 +14,174 @@ sidebar:
     #     variant: tip
 ---
 
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 説明
+
+### 解説
+
+既存のインフラストラクチャを Terraform のステートにインポートする。
+
+これにより、指定されたリソースを Terraform のステートに見つけてインポートし、
+Terraform によって最初に作成されていなくても、既存のインフラストラクチャを Terraform の管理下に置くことができる。(tfstate に取り込む)
+
+このコマンドはインフラストラクチャを変更しませんが、インポートされるリソースに関連するインフラストラクチャの一部を調査するためにネットワークリクエストを行います。
+
+### 構文
+
 ```bash frame="none"
+terraform [global options] import [options] ADDR ID
+
 terraform import aws_instance.example i-12345678
 ```
+
+#### ADDR
+
+指定された `ADDR` (アドレス) は、リソースのインポート先のアドレス。
+リソースアドレスについてはオンラインのドキュメントを参照してください。ID は、インポートされるリソースを識別するリソース固有の ID です。
+
+例えば、`aws_instance.my_instance` のように、リソースタイプと名前を組み合わせた形式。モジュール内のリソースを指す場合は、`module.module_name.resource_type.resource_name` のようになる。
+
+#### ID
+
+使用する `ID` の構文を決定するには、インポートするリソースタイプのドキュメントを参照してください。通常、プロバイダーが使用する ID と直接一致します。
+
+インポートするリソースのクラウドプロバイダーやサービス内での識別子。  
+具体的な ID の形式はリソースタイプやプロバイダーによって異なります。例えば、AWS の EC2 インスタンスであれば、インスタンス ID（i-1234567890abcdef0）になります。
+
+### Options
+
+<Table
+    caption=""
+    columns={["Option", "説明"]}
+    data={[
+        [
+            "-config=path",
+            [
+                "プロバイダーを設定するために使用するTerraform設定ファイルのディレクトリへのパス。",
+                "デフォルトは現在の作業ディレクトリ（`pwd`）です。",
+                "設定ファイルが存在しない場合、入力プロンプトまたは環境変数を介して提供する必要があります。",
+            ].join("<br/>"),
+        ],
+        ["-input=false", ["対話的な入力プロンプトを無効にします"].join("<br/>")],
+        [
+            "-ignore-remote-version",
+            [
+                "リモートバックエンドでのみ使用されるオプションで、リモートのTerraformバージョンチェックを無視します。特定の状況でのみ使用され、通常は必要ありません。",
+            ].join("<br/>"),
+        ],
+        [
+            ["-state", "-state-out", "-backup"].join("<br/>"),
+            [
+                "ローカルバックエンドのみでサポートされるレガシーオプションです。詳細についてはローカルバックエンドのドキュメントを参照してください。",
+            ].join("<br/>"),
+        ],
+    ]}
+/>
+
+## import ブロックを利用する
+
+-   <LinkPreview url="https://dev.classmethod.jp/articles/terraform-import-twoway/" type="inline" />
+-   <LinkPreview url="https://dev.classmethod.jp/articles/terraform-import-command-and-import-block/" type="inline" />
+-   <LinkPreview url="https://cross-black777.hatenablog.com/entry/2017/07/24/235614" type="inline" />
+    tf ファイルの import ブロックを利用して、リソースを tfstate にインポートする{" "}
+
+## Sample
+
+<LinkPreview url="https://dev.classmethod.jp/articles/terraform-import-twoway/" />
+
+### `import` の使用例
+
+#### AWS EC2 インスタンスの import
+
+<Steps>
+
+1.  既存の EC2 インスタンスの ID を取得します（例: i-1234567890abcdef0）
+
+1.  Terraform 設定ファイルに以下を追加します
+
+    ```hcl
+    resource "aws_instance" "my_instance" {
+        // 必要な属性を定義
+    }
+    ```
+
+1.  以下のコマンドをターミナルで実行してインポート
+
+    ```bash frame=none
+    terraform import aws_instance.my_instance i-1234567890abcdef0
+    ```
+
+</Steps>
+
+:::caution[注意点]
+
+-   **属性の定義**:
+
+    インポート後、`terraform plan` を実行すると、設定ファイルに定義されていない属性やデフォルト値の違いから差分が発生する可能性があります。必要に応じて設定ファイルを更新して、既存のリソースの状態と一致させる必要があります。
+
+-   **リソース ID の確認**:
+
+    各プロバイダーやリソースタイプごとにインポート時に必要な ID の形式が異なるため、公式ドキュメントを参照して正しい ID を使用してください。
+
+-   **インフラの変更は行わない**:
+
+    `terraform import` コマンド自体はインフラストラクチャを変更しませんが、インポート後に `terraform apply` を実行する際に、設定と実際のリソース状態の不一致により変更が発生する可能性があります。
+
+-   **バックアップの推奨**:
+
+    インポート前にステートファイルのバックアップを取っておくことを推奨します。
+
+:::
+
+:::danger[管理されたリソースの destroy]
+
+`import` コマンドにより、対象のリソースは tfstate `に登録されるため、terraform plan`、`terraform apply`、`terraform destroy` の操作対象のリソースとなります。
+
+##### `terraform destroy` の動作
+
+Terraform の現在の作業スペース内のすべての管理対象リソースを削除します。  
+`import` 済みのリソースも tfstate に含まれているため、 `terraform destroy` を実行するとこれらのリソースも削除される。
+
+##### 意図しない削除動作の防止
+
+-   削除したいリソースの指定した destroy
+
+    ```bash frame=none
+    terraform destroy -target=resource_type.resource_name
+    ```
+
+-   ステートからの削除
+
+    ```bash frame=none
+    terraform state rm resource_type.resource_name
+    ```
+
+    ステートからリソースを削除すると、Terraform はそのリソースを管理しなくなりますが、実際のリソースはそのまま残る。
+
+:::
+
+#### AWS IAM ユーザーを import
+
+##### 手順
+
+<Steps>
+
+    1. 予め AWS で IAM ユーザーを作成している(今回は Alice という IAM ユーザを用意)
+    1. resource を定義
+        ```tf
+        resource "aws_iam_user" "alice" {
+            name = "Alice"
+        }
+        ```
+        name が必須パラメータで指定している
+
+    1. IAM ユーザーを import
+        ```bash frame=none
+        terraform import aws_iam_user.alice Alice
+        ```
+        tfstate にリソースが管理される
+
+</Steps>

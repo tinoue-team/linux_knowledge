@@ -1,0 +1,1506 @@
+---
+title: usacloud iaas server
+description: Usacloud、さくらクラウドの API を利用したサーバーの作成
+tags:
+    - "Terraform"
+    - "さくらのクラウド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: usacloud iaas server
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 103
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## 説明
+
+### 構文
+
+```bash frame=none
+usacloud iaas server [flags]
+usacloud iaas server [command]
+```
+
+### Available Commands
+
+<Table
+    caption=""
+    columns={["Subcommand", "Aliases", "説明"]}
+    data={[
+        ["[`boot`](#boot)", "`power-on`", "停止中のサーバーを起動状態に変更する"],
+        ["[`create`](#create)", "`build`", "新しいサーバーを作成する"],
+        ["[`delete`](#delete)", "`rm`", "不要になったサーバーおよび関連リソースを削除する"],
+        ["[`list`](#list)", ["`ls`", "`find`", "`select`"].join("<br/>"), "現在のサーバーの状態や情報を一覧表示"],
+        [
+            "[`monitor-cpu`](#monitor-cpu)",
+            "",
+            "サーバーのCPU使用率を監視。指定した期間のCPUパフォーマンスデータを取得して表示する。",
+        ],
+        [
+            "[`rdp`](#rdp)",
+            "`remote-desktop`",
+            "サーバーにリモートデスクトップ接続（RDP）を行います。Windowsサーバーなどに対して RDP プロトコルで接続します。",
+        ],
+        ["[`read`](#read)", "`show`", "サーバーの詳細情報を表示"],
+        ["[`reset`](#reset)", "", "サーバーを強制再起動する。通常の再起動が困難な場合のハードリセットを実行"],
+        [
+            "[`send-nmi`](#send-nmi)",
+            "",
+            "サーバーにNMI（Non-Maskable Interrupt）シグナルを送信します。OSのデバッグや緊急時の対処に使用",
+        ],
+        ["[`shutdown`](#shutdown)", "`power-off`", "起動中のサーバーを安全に停止(シャットダウン)する"],
+        ["[`ssh`](#ssh)", "", "サーバーに SSH 接続を行う。Linux サーバーなどに対してシェルアクセスを提供"],
+        [
+            "[`update`](#update)",
+            "",
+            "サーバーの設定を更新します。サーバー名、説明、リソーススペックなどの情報を変更する",
+        ],
+        ["[`vnc`](#vnc)", "", "VNCプロトコルを使用してサーバーのコンソールにアクセス"],
+        [
+            "[`wait-until-ready`](#wait-until-ready)",
+            "`wait-for-boot`",
+            "サーバーが起動完了するまで待機します。サーバーが使用可能な状態になるのを待つ際に使用。",
+        ],
+        [
+            "[`wait-until-shutdown`](#wait-until-shutdown)",
+            "`wait-for-down`",
+            "サーバーが停止完了するまで待機します。サーバーが完全に停止するのを待つ際に使用。",
+        ],
+    ]}
+/>
+
+## 共通オプション
+
+### Input options
+
+<Table
+    caption=""
+    columns={["Option", "type", "説明"]}
+    data={[
+        ["-y, --assumeyes", "", ["コマンド実行時の対話型ダイアログに自動的に yes と回答する"].join("<br/>")],
+        [
+            "--generate-skeleton",
+            "",
+            ["Aliases: `--skeleton`", "コマンドで指定可能なパラメータの雛形（スケルトン）をJSON 形式で出力する"].join(
+                "<br/>"
+            ),
+        ],
+        ["--parameters", "string", ["JSON 形式の入力値を渡す。JSON ファイルのパスでも可"].join("<br/>")],
+    ]}
+/>
+
+#### `--generate-skeleton` オプションの利用方法
+
+`--generate-skeleton` はそのコマンドで使用できるすべてのパラメータのテンプレートとなる JSON 形式の文字列を出力してくれる。
+出力結果を設定ファイルとして保存・編集し、`--parameters`オプションで値として渡すことで、コマンドの設定値を一つ一つ指定する必要がなくなり、簡潔な処理を書くことができる。
+
+<Steps>
+
+1. **スケルトンの出力**
+
+    ```bash frame=none
+    usacloud iaas server boot --generate-skeleton > boot_params.json
+    ```
+
+    `--generate-skeleton` オプションで、雛形となる値を boot_params.json に記録する
+
+1. **パラメータの編集**
+
+    雛形の状態だと以下のようになっている。
+
+    ```json title="boot_params.json"
+    {
+        "Zone": "tk1v",
+        "UserData": "",
+        "NoWait": false
+    }
+    ```
+
+    目的の値で編集して、
+
+    ```json title="boot_params.json"
+    {
+        // 実行先ゾーンの指定
+        "Zone": "is1a",
+        // サーバー起動時に実行される処理を記述
+        "UserData": "#!/bin/bash\necho 'Hello World!'",
+        // サーバーの起動処理を非同期で行い、コマンドを即座に終了する。
+        "NoWait": true
+    }
+    ```
+
+1. **コマンドの実行**
+
+    ```bash frame=none
+    usacloud iaas server boot --parameters boot_params.json my-server
+    ```
+
+    my-server は起動対象のサーバー名、ID、またはタグを指定します。
+
+</Steps>
+
+#### `--parameters` オプションについて
+
+:::caution[パラメータファイルの優先度]
+
+`--parameters` オプションで指定したパラメータは、コマンドライン上の他のオプションで渡す値よりも優先されます。
+
+:::
+
+## command 一覧
+
+### `boot`
+
+Aliases: `power-on`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server boot { ID | NAME | TAG }... [flags]
+```
+
+-   ID: リソース ID
+-   NAME: サーバーの名前
+-   TAG: リソースにタグ付けした名前
+
+#### Flags (options):
+
+##### Server-specific options
+
+`--user-data string`
+
+##### Zone options
+
+`--zone string   (*required)`
+
+##### Wait options
+
+`--no-wait`
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server boot --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a",
+    "UserData": "",
+    "NoWait": false
+}
+```
+
+### `create`
+
+Aliases: `build`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server create [flags]
+```
+
+#### Flags (options):
+
+##### Common options
+
+<Table
+    caption=""
+    columns={["Option flag", "type", "説明"]}
+    data={[
+        ["--disk-name", "string", [""].join("<br/>")],
+        ["--name", "string", ["(*required)", "サーバーの名前を指定する。"].join("<br/>")],
+        ["--description", "string", [""].join("<br/>")],
+        ["--disk-description", "string", [""].join("<br/>")],
+        ["--disk-tags", "strings", [""].join("<br/>")],
+        ["--tags", "strings", [""].join("<br/>")],
+        ["--disk-icon-id", "int", [""].join("<br/>")],
+        ["--icon-id", "int", ["`112901627751`: ubuntu アイコン", "`ssss`: centos アイコン", "``: xxx"].join("<br/>")],
+    ]}
+/>
+
+##### Plan options
+
+<Table
+    caption=""
+    columns={["Option flag", "type", "説明"]}
+    data={[
+        ["--cpu", "int", ["(*required) (aliases: --core) (default 1)", "CPUコア数を指定します"].join("<br/>")],
+        ["--memory", "int", ["(*required) (default 1)", "メモリ容量をGB単位で指定"].join("<br/>")],
+        ["--gpu", "int", [""].join("<br/>")],
+        ["--cpu-model", "string", [""].join("<br/>")],
+        ["--disk-encryption-algorithm", "string", ["options: [none/aes256_xts]"].join("<br/>")],
+        ["--commitment", "string", ['(*required) options: [standard/dedicatedcpu] (default "standard")'].join("<br/>")],
+        ["--generation", "string", ['(*required) options: [default/g100/g200] (default "default")'].join("<br/>")],
+    ]}
+/>
+
+##### Server-specific options
+
+<Table
+    caption=""
+    columns={["Option flag", "type", "説明"]}
+    data={[
+        ["--boot-after-create", "", ["サーバー作成後に自動的に起動する"].join("<br/>")],
+        ["--cdrom-id", "int", ["(aliases: --iso-image-id)"].join("<br/>")],
+        ["--interface-driver", "string", ['(*required) options: [virtio/e1000] (default "virtio")'].join("<br/>")],
+        ["--private-host-id", "int", [""].join("<br/>")],
+    ]}
+/>
+
+##### Disk options
+
+<Table
+    caption=""
+    columns={["Option flag", "type", "説明"]}
+    data={[
+        ["--disk-connection", "string", ["options: [virtio/ide]"].join("<br/>")],
+        ["--disk-disk-plan", "string", ["options: [ssd/hdd]", "ディスクストレージプランを指定"].join("<br/>")],
+        ["--disk-distant-from", "int", [""].join("<br/>")],
+        ["--disk-id", "int", [""].join("<br/>")],
+        ["--disk-no-wait", "", [""].join("<br/>")],
+        [
+            "--disk-os-type",
+            "string",
+            ["options: [almalinux/rockylinux/miraclelinux/ubuntu/debian/...]", "インストールするOSの種類を指定"].join(
+                "<br/>"
+            ),
+        ],
+        ["--disk-size", "int", ["(aliases: --size-gb)", "ディスクサイズをGB単位で指定"].join("<br/>")],
+        ["--disk-source-archive-id", "int", [""].join("<br/>")],
+        ["--disk-ids", "int", [""].join("<br/>")],
+        ["--disks", "string", [""].join("<br/>")],
+    ]}
+/>
+
+##### Edit disk options
+
+<Table
+    caption=""
+    columns={["Option flag", "type", "説明"]}
+    data={[
+        ["--disk-edit-host-name", "string", [""].join("<br/>")],
+        [
+            "--disk-edit-password",
+            "string",
+            ["ディスク作成時にパスワードを設定します。SSH公開鍵を使用しない場合に指定します。"].join("<br/>"),
+        ],
+        ["--disk-edit-ip-address", "string", [""].join("<br/>")],
+        ["--disk-edit-netmask", "int", ["(aliases: --network-mask-len)"].join("<br/>")],
+        ["--disk-edit-gateway", "string", ["(aliases: --default-route)"].join("<br/>")],
+        ["--disk-edit-disable-pw-auth", "", [""].join("<br/>")],
+        ["--disk-edit-enable-dhcp", "", [""].join("<br/>")],
+        ["--disk-edit-change-partition-uuid", "", [""].join("<br/>")],
+        [
+            "--disk-edit-ssh-keys",
+            "strings",
+            [
+                '`--disk-edit-ssh-keys "/path/to/your/public/key.pub"`',
+                "ディスク作成時にSSH公開鍵を登録します。これにより、パスワードなしでSSH接続が可能になります。",
+            ].join("<br/>"),
+        ],
+        ["--disk-edit-ssh-key-ids", "int", [""].join("<br/>")],
+        ["--disk-edit-make-ssh-keys-ephemeral", "", [""].join("<br/>")],
+        ["--disk-edit-note-ids", "int", [""].join("<br/>")],
+        ["--disk-edit-notes", "string", [""].join("<br/>")],
+        ["--disk-edit-make-notes-ephemeral", "", [""].join("<br/>")],
+    ]}
+/>
+
+##### Network options
+
+<Table
+    caption=""
+    columns={["Option flag", "type", "説明"]}
+    data={[
+        ["--network-interface-packet-filter-id", "int", [""].join("<br/>")],
+        [
+            "--network-interface-upstream",
+            "string",
+            [
+                "options: [`shared`/`disconnected`/`switch-id:<id text>`)]",
+                "ネットワークインターフェースの接続先を指定",
+                "`shared`: 共有セグメントに接続",
+                "`switch-id`: switch-id で指定の switch を接続",
+            ].join("<br/>"),
+        ],
+        ["--network-interface-user-ip-address", "string", [""].join("<br/>")],
+        ["--network-interfaces", "string", [""].join("<br/>")],
+    ]}
+/>
+
+##### Zone options
+
+```
+-zone string   (*required)
+```
+
+##### Wait options
+
+```
+--no-wait
+```
+
+##### Output options
+
+```
+--format string         Output format in Go templates (aliases: --fmt)
+-o, --output-type string    Output format options: [table/json/yaml] (aliases: --out)
+    --query string          Query for JSON output
+    --query-driver string   Name of the driver that handles queries to JSON output options: [jmespath/jq]
+-q, --quiet                 Output IDs only
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server create --example
+```
+
+example の出力結果
+
+```json title="output"
+{
+    "Zone": "tk1a | tk1b | is1a | is1b | tk1v",
+    "Name": "example",
+    "Description": "example",
+    "Tags": ["tag1=example1", "tag2=example2"],
+    "IconID": 123456789012,
+    "CPU": 1,
+    "Memory": 2,
+    "GPU": 0,
+    "CPUModel": "",
+    "Commitment": "standard | dedicatedcpu",
+    "Generation": "default | g100 | g200",
+    "InterfaceDriver": "virtio | e1000",
+    "BootAfterCreate": true,
+    "CDROMID": 123456789012,
+    "PrivateHostID": 123456789012,
+    "NetworkInterfaces": [
+        {
+            "Upstream": "shared | disconnected | (switch-id)",
+            "PacketFilterID": 123456789012,
+            "UserIPAddress": "192.0.2.11"
+        }
+    ],
+    "Disks": [
+        {
+            "Description": "新規ディスクを作成する例",
+            "Tags": ["tag1=example1", "tag2=example2"],
+            "IconID": 123456789012,
+            "DiskPlan": "ssd | hdd",
+            "Connection": "virtio | ide",
+            "EncryptionAlgorithm": "none | aes256_xts",
+            "SourceDiskID": 123456789012,
+            "SourceArchiveID": 123456789012,
+            "SizeGB": 20,
+            "DistantFrom": [123456789012],
+            "OSType": "centos | centos7 | almalinux | almalinux9 | almalinux8 | rockylinux | rockylinux9 | rockylinux8 | miracle | miraclelinux | miracle8 | miraclelinux8 | miracle9 | miraclelinux9 | ubuntu | ubuntu2204 | ubuntu2004 | ubuntu1804 | debian | debian10 | debian11 | kusanagi",
+            "EditDisk": {
+                "HostName": "hostname",
+                "Password": "password",
+                "IPAddress": "192.0.2.11",
+                "NetworkMaskLen": 24,
+                "DefaultRoute": "192.0.2.1",
+                "DisablePWAuth": true,
+                "EnableDHCP": true,
+                "ChangePartitionUUID": true,
+                "SSHKeys": ["/path/to/your/public/key", "ssh-rsa ..."],
+                "SSHKeyIDs": [123456789012],
+                "IsSSHKeysEphemeral": true,
+                "NoteIDs": [123456789012],
+                "IsNotesEphemeral": true,
+                "Notes": [
+                    {
+                        "ID": 123456789012,
+                        "Variables": {
+                            "variable1": "foo",
+                            "variable2": "bar"
+                        }
+                    }
+                ]
+            },
+            "NoWait": true
+        },
+        {
+            "ID": 123456789012,
+            "Description": "既存のディスクを接続する例",
+            "EditDisk": {},
+            "NoWait": false
+        }
+    ],
+    "NoWait": false
+}
+```
+
+#### Sample
+
+##### サーバー作成の基本例
+
+```bash frame=none
+usacloud iaas server create \
+    --name "my-server" \
+    --cpu 2 \
+    --memory 4 \
+    --disk-size 20 \
+    --disk-plan ssd \
+    --os-type ubuntu2004 \
+    --network-interface-upstream shared \
+    --boot-after-create \
+    --zone "is1a"
+```
+
+##### SSH キーを設定してサーバーを作成する例
+
+```bash frame=none
+usacloud iaas server create \
+    --name "my-server" \
+    --cpu 2 \
+    --memory 4 \
+    --disk-size 20 \
+    --disk-plan ssd \
+    --os-type ubuntu2004 \
+    --disk-edit-ssh-keys "/path/to/your/public/key.pub" \
+    --network-interface-upstream shared \
+    --boot-after-create \
+    --zone "is1a"
+```
+
+##### パスワードを設定してサーバーを作成
+
+```bash frame=none
+usacloud iaas server create \
+    --name "my-server" \
+    --cpu 2 \
+    --memory 4 \
+    --disk-size 20 \
+    --disk-plan ssd \
+    --os-type ubuntu2004 \
+    --disk-edit-password "your_password" \
+    --network-interface-upstream shared \
+    --boot-after-create \
+    --zone "is1a"
+```
+
+##### サーバー作成時に複数のネットワークインターフェースを設定
+
+```bash frame=none
+usacloud iaas server create \
+    --name "my-multinetwork-server" \
+    --cpu 4 \
+    --memory 8 \
+    --disk-size 40 \
+    --disk-plan ssd \
+    --os-type ubuntu2004 \
+    --network-interfaces "shared" \
+    --network-interfaces "switch-id:123456789012" \
+    --boot-after-create \
+    --zone "is1a"
+```
+
+### `delete`
+
+Aliases: `rm`
+
+#### 構文
+
+```bash frame=none
+
+usacloud iaas server delete { ID | NAME | TAG }... [flags]
+
+```
+
+#### Flags (options):
+
+##### Delete options
+
+<Table
+    caption=""
+    columns={["Option flag", "type", "説明"]}
+    data={[
+        ["-f, --force", "", ""],
+        ["--with-disks", "", "サーバーに接続しているディスクも一緒に削除"],
+    ]}
+/>
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Error options
+
+```
+--fail-if-not-found
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server delete --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a",
+    "FailIfNotFound": false,
+    "Force": false,
+    "WithDisks": false
+}
+```
+
+#### Sample
+
+```bash frame=none
+# サーバーの削除
+usacloud iaas server delete "my-server" --zone "is1a" --with-disks
+```
+
+### `list`
+
+Aliases: `ls`, `find`, `select`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server list [flags]
+```
+
+#### Flags (options):
+
+##### Filter options
+
+```
+--names strings
+--tags strings
+```
+
+#### Sample
+
+```bash frame=none
+# 石狩第一ゾーンのサーバー情報を一覧表示
+usacloud iaas server list --zone "is1a"
+```
+
+##### シンプルな実行
+
+```bash frame=none
+usacloud server ls
+```
+
+```json
+[
+    {
+        "Availability": "available",
+        "BundleInfo": null,
+        "CDROMID": 0,
+        "CPU": 1,
+        "CreatedAt": "2024-12-04T07:10:58+09:00",
+        "Description": "テスト用に作成",
+        "Disks": [
+            {
+                "Availability": "available",
+                "Connection": "virtio",
+                "ConnectionOrder": 1,
+                "DiskPlanID": 4,
+                "EncryptionAlgorithm": "none",
+                "ID": 113602389098,
+                "Name": "test-server",
+                "ReinstallCount": 0,
+                "SizeMB": 20480,
+                "Storage": {
+                    "Class": "iscsi1204",
+                    "Generation": 200,
+                    "ID": 2900194001,
+                    "Name": ""
+                }
+            }
+        ],
+        "GPU": 0,
+        "HostName": "test-server",
+        "ID": 113602389096,
+        "IconID": 112901627751,
+        "InstanceBeforeStatus": "down",
+        "InstanceHostInfoURL": "",
+        "InstanceHostName": "sac-tk1v-sv013",
+        "InstanceStatus": "up",
+        "InstanceStatusChangedAt": "2024-12-04T07:11:36+09:00",
+        "InstanceWarnings": "none",
+        "InstanceWarningsValue": 0,
+        "InterfaceDriver": "virtio",
+        "Interfaces": [
+            {
+                "HostName": "",
+                "ID": 113602389097,
+                "IPAddress": "100.65.28.128",
+                "MACAddress": "9C:A3:BA:12:2F:0B",
+                "PacketFilterID": 0,
+                "PacketFilterName": "",
+                "PacketFilterRequiredHostVersion": 0,
+                "SubnetBandWidthMbps": 100,
+                "SubnetDefaultRoute": "100.65.0.1",
+                "SubnetNetworkAddress": "100.65.0.0",
+                "SubnetNetworkMaskLen": 18,
+                "SwitchID": 112600699555,
+                "SwitchName": "スイッチ",
+                "SwitchScope": "shared",
+                "UpstreamType": "shared",
+                "UserIPAddress": "",
+                "UserSubnetDefaultRoute": "",
+                "UserSubnetNetworkMaskLen": 24
+            }
+        ],
+        "MemoryMB": 1024,
+        "ModifiedAt": "2024-12-04T07:11:33+09:00",
+        "Name": "test-server",
+        "PrivateHostID": 0,
+        "PrivateHostName": "",
+        "ServerPlanCPUModel": "uncategorized",
+        "ServerPlanCommitment": "standard",
+        "ServerPlanGeneration": 200,
+        "ServerPlanID": 200001001,
+        "ServerPlanName": "プラン/1Core-1GB(新プラン)",
+        "Tags": ["test-hoge-server"],
+        "Zone": {
+            "DisplayName": "Sandbox",
+            "FTPServer": {
+                "HostName": "sac-tk1v-ftp.example.jp",
+                "IPAddress": "0.0.0.1"
+            },
+            "ID": 29001,
+            "IsDummy": true,
+            "Name": "tk1v",
+            "Region": {
+                "Description": "Sandbox",
+                "ID": 290,
+                "Name": "Sandbox",
+                "NameServers": ["133.242.0.3", "133.242.0.4"]
+            },
+            "VNCProxy": {
+                "HostName": "sac-tk1v-ssl.example.jp",
+                "IPAddress": "0.0.0.1"
+            }
+        }
+    }
+]
+```
+
+##### Limit/Offset options
+
+```
+--count int   (aliases: --max, --limit)
+--from int    (aliases: --offset)
+```
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Output options
+
+```
+--format string         Output format in Go templates (aliases: --fmt)
+-o, --output-type string    Output format options: [table/json/yaml] (aliases: --out)
+    --query string          Query for JSON output
+    --query-driver string   Name of the driver that handles queries to JSON output options: [jmespath/jq]
+-q, --quiet                 Output IDs only
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server list --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a",
+    "Count": 0,
+    "From": 0,
+    "Names": null,
+    "Tags": null
+}
+```
+
+### `monitor-cpu`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server monitor-cpu { ID | NAME | TAG }... [flags]
+```
+
+#### Flags (options):
+
+##### Monitor options
+
+```
+--end string
+--start string
+```
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Output options
+
+```
+--format string         Output format in Go templates (aliases: --fmt)
+-o, --output-type string    Output format options: [table/json/yaml] (aliases: --out)
+        --query string          Query for JSON output
+        --query-driver string   Name of the driver that handles queries to JSON output options: [jmespath/jq]
+-q, --quiet                 Output IDs only
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server monitor-cpu --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a",
+    "Start": "",
+    "End": ""
+}
+```
+
+### `rdp`
+
+Aliases: `remote-desktop`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server rdp { ID | NAME | TAG } [flags]
+```
+
+#### Flags (options):
+
+##### Server-specific options
+
+```
+--port int            (default 3389)
+--user string         (default "Administrator")
+--wait-until-ready   (aliases: --wait)
+```
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server rdp --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a",
+    "User": "Administrator",
+    "Port": 3389,
+    "WaitUntilReady": false
+}
+```
+
+### `read`
+
+Aliases: `show`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server read { ID | NAME | TAG } [flags]
+```
+
+#### Flags (options):
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Output options
+
+```
+--format string         Output format in Go templates (aliases: --fmt)
+-o, --output-type string    Output format options: [table/json/yaml] (aliases: --out)
+        --query string          Query for JSON output
+        --query-driver string   Name of the driver that handles queries to JSON output options: [jmespath/jq]
+-q, --quiet                 Output IDs only
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server read --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a"
+}
+```
+
+#### Sample
+
+```bash frame=none
+# サーバーの詳細情報を表示
+usacloud iaas server read "my-server" --zone "is1a"
+```
+
+##### 既存のサーバー情報を起動用の json ファイルとして保存
+
+<Steps>
+
+1. "test-server" というサーバー名の情報を取得して json ファイルに記録
+
+    ```bash frame=none
+    usacloud iaas server read "test-server" --zone "tk1v" --output-type json > test-server.json
+    ```
+
+    出力内容
+
+    ```json title="test-server.json"
+    [
+        {
+            "Availability": "available",
+            "BundleInfo": null,
+            "CDROMID": 0,
+            "CPU": 1,
+            "CreatedAt": "2024-12-04T07:10:58+09:00",
+            "Description": "テスト用に作成",
+            "Disks": [
+                {
+                    "Availability": "available",
+                    "Connection": "virtio",
+                    "ConnectionOrder": 1,
+                    "DiskPlanID": 4,
+                    "EncryptionAlgorithm": "none",
+                    "ID": 113602389098,
+                    "Name": "test-server",
+                    "ReinstallCount": 0,
+                    "SizeMB": 20480,
+                    "Storage": {
+                        "Class": "iscsi1204",
+                        "Generation": 200,
+                        "ID": 2900194001,
+                        "Name": ""
+                    }
+                }
+            ],
+            "GPU": 0,
+            "HostName": "test-server",
+            "ID": 113602389096,
+            "IconID": 112901627751,
+            "InstanceBeforeStatus": "down",
+            "InstanceHostInfoURL": "",
+            "InstanceHostName": "sac-tk1v-sv013",
+            "InstanceStatus": "up",
+            "InstanceStatusChangedAt": "2024-12-04T07:11:36+09:00",
+            "InstanceWarnings": "none",
+            "InstanceWarningsValue": 0,
+            "InterfaceDriver": "virtio",
+            "Interfaces": [
+                {
+                    "HostName": "",
+                    "ID": 113602389097,
+                    "IPAddress": "100.65.28.128",
+                    "MACAddress": "9C:A3:BA:12:2F:0B",
+                    "PacketFilterID": 0,
+                    "PacketFilterName": "",
+                    "PacketFilterRequiredHostVersion": 0,
+                    "SubnetBandWidthMbps": 100,
+                    "SubnetDefaultRoute": "100.65.0.1",
+                    "SubnetNetworkAddress": "100.65.0.0",
+                    "SubnetNetworkMaskLen": 18,
+                    "SwitchID": 112600699555,
+                    "SwitchName": "スイッチ",
+                    "SwitchScope": "shared",
+                    "UpstreamType": "shared",
+                    "UserIPAddress": "",
+                    "UserSubnetDefaultRoute": "",
+                    "UserSubnetNetworkMaskLen": 24
+                }
+            ],
+            "MemoryMB": 1024,
+            "ModifiedAt": "2024-12-04T07:11:33+09:00",
+            "Name": "test-server",
+            "PrivateHostID": 0,
+            "PrivateHostName": "",
+            "ServerPlanCPUModel": "uncategorized",
+            "ServerPlanCommitment": "standard",
+            "ServerPlanGeneration": 200,
+            "ServerPlanID": 200001001,
+            "ServerPlanName": "プラン/1Core-1GB(新プラン)",
+            "Tags": ["test-hoge-server"],
+            "Zone": {
+                "DisplayName": "Sandbox",
+                "FTPServer": {
+                    "HostName": "sac-tk1v-ftp.example.jp",
+                    "IPAddress": "0.0.0.1"
+                },
+                "ID": 29001,
+                "IsDummy": true,
+                "Name": "tk1v",
+                "Region": {
+                    "Description": "Sandbox",
+                    "ID": 290,
+                    "Name": "Sandbox",
+                    "NameServers": ["133.242.0.3", "133.242.0.4"]
+                },
+                "VNCProxy": {
+                    "HostName": "sac-tk1v-ssl.example.jp",
+                    "IPAddress": "0.0.0.1"
+                }
+            }
+        }
+    ]
+    ```
+
+1. `--example` や `--skeleton` などでで入力テンプレートの JSON ファイルを用意
+
+1. 入力テンプレートにサーバー情報で必要な内容を記入し、設定ファイルとして保管しておく
+
+    ```json title="server.json"
+    {
+        "Zone": "tk1v",
+        "Name": "test-server",
+        "Description": "テスト用に作成",
+        "Tags": ["test-hoge-server"],
+        "IconID": 112901627751,
+        "CPU": 1,
+        "Memory": 1,
+        "GPU": 0,
+        "CPUModel": "",
+        "Commitment": "standard",
+        "Generation": "g200",
+        "InterfaceDriver": "virtio",
+        "BootAfterCreate": false,
+        "NetworkInterfaces": [
+            {
+                "Upstream": "shared"
+            }
+        ],
+        "Disks": [
+            {
+                "Name": "test-server",
+                "Description": "",
+                "DiskPlan": "ssd",
+                "Connection": "virtio",
+                "EncryptionAlgorithm": "none",
+                "SizeGB": 20,
+                "OSType": "ubuntu2004",
+                "EditDisk": {
+                    "HostName": "test-server"
+                },
+                "NoWait": false
+            }
+        ],
+        "NoWait": false
+    }
+    ```
+
+1. server.json を元にサーバー作成を実行
+
+    ```bash frame=none
+    usacloud iaas server create --parameters server.json
+    ```
+
+</Steps>
+### `reset`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server reset { ID | NAME | TAG }... [flags]
+```
+
+#### Flags (options):
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server reset --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a"
+}
+```
+
+### `send-nmi`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server send-nmi { ID | NAME | TAG }... [flags]
+```
+
+#### Flags (options):
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server send-nmi --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a"
+}
+```
+
+### `shutdown`
+
+Aliases: `power-off`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server shutdown { ID | NAME | TAG }... [flags]
+```
+
+#### Flags (options):
+
+##### Server-specific options
+
+```
+-f, --force-shutdown   (aliases: --force)
+```
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Wait options
+
+```
+--no-wait
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server shutdown --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a",
+    "NoWait": false,
+    "ForceShutdown": false
+}
+```
+
+### `ssh`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server ssh { ID | NAME | TAG } [flags]
+```
+
+#### Flags (options):
+
+##### Server-specific options
+
+```
+-i, --key string
+        --password string    (aliases: --pass-phrase)
+-p, --port int           (*required)  (default 22)
+-l, --user string
+        --wait-until-ready   (aliases: --wait)
+```
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server ssh --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a",
+    "Key": "",
+    "User": "",
+    "Port": 22,
+    "Password": "",
+    "WaitUntilReady": false
+}
+```
+
+#### Sample
+
+```bash frame=none
+usacloud iaas server ssh "my-server" --zone "is1a"
+
+# ユーザー名(ここでは 'ubuntu')を指定してログイン
+usacloud iaas server ssh "my-server" --zone "is1a" -l ubuntu
+```
+
+### `update`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server update { ID | NAME | TAG }... [flags]
+```
+
+#### Flags (options):
+
+##### Common options
+
+```
+--name string
+--description string
+--tags strings
+--icon-id int
+```
+
+##### Plan options
+
+```
+--cpu int             (aliases: --core)
+--memory int
+--gpu int
+--cpu-model string
+--commitment string   options: [standard/dedicatedcpu]
+--generation string   options: [default/g100/g200]
+```
+
+##### Server-specific options
+
+```
+--cdrom-id int                (aliases: --iso-image-id)
+--disks string
+--force-shutdown
+--interface-driver string     options: [virtio/e1000]
+--network-interfaces string
+--private-host-id int
+```
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Wait options
+
+```
+--no-wait
+```
+
+##### Output options
+
+```
+--format string         Output format in Go templates (aliases: --fmt)
+-o, --output-type string    Output format options: [table/json/yaml] (aliases: --out)
+    --query string          Query for JSON output
+    --query-driver string   Name of the driver that handles queries to JSON output options: [jmespath/jq]
+-q, --quiet                 Output IDs only
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server update --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "tk1a | tk1b | is1a | is1b | tk1v",
+    "Name": "example",
+    "Description": "example",
+    "Tags": ["tag1=example1", "tag2=example2"],
+    "IconID": 123456789012,
+    "CPU": 1,
+    "Memory": 2,
+    "GPU": null,
+    "CPUModel": "",
+    "Commitment": "standard | dedicatedcpu",
+    "Generation": "default | g100 | g200",
+    "InterfaceDriver": "virtio | e1000",
+    "CDROMID": 123456789012,
+    "PrivateHostID": 123456789012,
+    "NetworkInterfaces": [
+        {
+            "Upstream": "shared | disconnected | (switch-id)",
+            "PacketFilterID": 123456789012,
+            "UserIPAddress": "192.0.2.11"
+        }
+    ],
+    "Disks": [
+        {
+            "Description": "新規ディスクを作成する例",
+            "Tags": ["tag1=example1", "tag2=example2"],
+            "IconID": 123456789012,
+            "DiskPlan": "ssd | hdd",
+            "Connection": "virtio | ide",
+            "SourceDiskID": 123456789012,
+            "SourceArchiveID": 123456789012,
+            "SizeGB": 20,
+            "DistantFrom": [123456789012],
+            "OSType": "centos | centos7 | almalinux | almalinux9 | almalinux8 | rockylinux | rockylinux9 | rockylinux8 | miracle | miraclelinux | miracle8 | miraclelinux8 | miracle9 | miraclelinux9 | ubuntu | ubuntu2204 | ubuntu2004 | ubuntu1804 | debian | debian10 | debian11 | kusanagi",
+            "EditDisk": {
+                "HostName": "hostname",
+                "Password": "password",
+                "IPAddress": "192.0.2.11",
+                "NetworkMaskLen": 24,
+                "DefaultRoute": "192.0.2.1",
+                "DisablePWAuth": true,
+                "EnableDHCP": true,
+                "ChangePartitionUUID": true,
+                "SSHKeys": ["/path/to/your/public/key", "ssh-rsa ..."],
+                "SSHKeyIDs": [123456789012],
+                "IsSSHKeysEphemeral": true,
+                "NoteIDs": [123456789012],
+                "IsNotesEphemeral": true,
+                "Notes": [
+                    {
+                        "ID": 123456789012,
+                        "Variables": {
+                            "variable1": "foo",
+                            "variable2": "bar"
+                        }
+                    }
+                ]
+            },
+            "NoWait": true
+        },
+        {
+            "ID": 123456789012,
+            "Description": "既存のディスクを接続する例",
+            "EditDisk": {},
+            "NoWait": false
+        }
+    ],
+    "NoWait": false,
+    "ForceShutdown": false
+}
+```
+
+### `vnc`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server vnc { ID | NAME | TAG } [flags]
+```
+
+#### Flags (options):
+
+##### Server-specific options
+
+```
+--wait-until-ready   (aliases: --wait)
+```
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server vnc --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a",
+    "WaitUntilReady": false
+}
+```
+
+### `wait-until-ready`
+
+Aliases: `wait-for-boot`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server wait-until-ready { ID | NAME | TAG }... [flags]
+```
+
+#### Flags (options):
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server wait-until-ready --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a"
+}
+```
+
+### `wait-until-shutdown`
+
+Aliases: `wait-for-down`
+
+#### 構文
+
+```bash frame=none
+usacloud iaas server wait-until-shutdown { ID | NAME | TAG }... [flags]
+```
+
+#### Flags (options):
+
+##### Zone options
+
+```
+--zone string   (*required)
+```
+
+##### Parameter example
+
+```
+--example   Output example parameters with JSON format
+```
+
+```bash frame=none
+usacloud iaas server wait-until-shutdown --example
+```
+
+example の出力結果
+
+```json
+{
+    "Zone": "is1a"
+}
+```

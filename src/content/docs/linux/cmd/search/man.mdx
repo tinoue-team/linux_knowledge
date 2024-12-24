@@ -1,0 +1,228 @@
+---
+title: man
+description: マニュアルを参照する
+tags:
+    - "Linux"
+    - "探す・調べる"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: man
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+### 構文
+
+```bash frame="none"
+man [オプション] キーワード
+```
+
+調べたいキーワードのマニュアルを表示してくれるコマンド
+キーワードはディレクトリであったり、コマンド名であったり多岐にわたる
+
+:::note[man によるマニュアルページのキー操作]
+
+マニュアルページが 1 画面で表示できない場合、man コマンドは 1 画面分を表示したところで、一度表示を停止します。
+スクロール操作などをキー操作で行う場合、主に以下のような操作がある。
+
+<Table
+    columns={["主なキー操作", "説明"]}
+    data={[
+        ["Space", "次のページを表示"],
+        ["Enter", "次の行を表示"],
+        ["B", "前のページを表示"],
+        ["N", "ヘルプを表示"],
+        ["Q", "マニュアルプレビューの終了"],
+        ["/文字列", "文字列検索(N キーで検索文字の次にヒットしたもの shift + N で戻る)"],
+    ]}
+/>
+
+:::
+
+## オプション
+
+### オプションリスト
+
+<Table
+
+columns={["オプション", "省略なし", "説明"]}
+data={[
+["-C", "--con-file", "設定ファイルの指定"],
+["-a", "--all", "対象のマニュアルを次々と表示"],
+["-d", "--debug", "デバッグ情報をプロンプトで表示"],
+["-k", "--apropos", "マニュアルの検索を行う"],
+["-K", "--global-appropos", "マニュアルの説明文で検索を行う"],
+["-P", "--pager=PAGER", "ページャーを指定する"],
+["-f", "", "キーワードと完全に一致するマニュアルが何セクションにあるか表示する"],
+]}
+/>
+
+### セクション番号を指定してキーワードを調べる
+
+```bash frame="none"
+man セクション番号 キーワード
+```
+
+> セクション番号を指定してキーワードを調べる
+> マニュアルの種類には番号でカテゴリわけされている
+
+```bash frame="none"
+1  (コマンド)
+# ls,catなどの基本的なLinuxコマンド
+2  (システムコール(カーネル関数)
+# openや、fork、read、writeなどの入出力に関連する関数
+3  (ライブラリコール (システム関数))
+# printfなどの表示関数や、sinやlogなどの算術関数など
+4  (スペシャルファイル)
+# デバイスファイルとも呼ばれるデバイスの入出力に関するファイル
+# ディレクトリ/dev内のhd（ハードディスク）、lp（プリンタ）、null（入力したものをすべて捨て無効にする）などがある
+5  (ファイルのフォーマット)
+# ディレクトリ/etc内のhostsやpasswd、groupのような設定ファイルなど
+6  (ゲームやデモ)
+# Mainsなどプリインストールされているゲームやデモ
+7  (マクロ)
+# 複数のコマンドや命令をまとめてあたかも一つのコマンドを入力するだけで複雑な動きができるようにまとめているもの
+# boot（起動シーケンス）が代表例
+8  (システム管理用のコマンド)
+# ifconfigやusermod、shutdownなど管理権限で使うコマンド
+9  (カーネルルーチン)
+# カーネルルーチン[非標準]
+```
+
+例えば、マニュアルプレビューで
+
+```bash frame="none"
+SEE ALSO
+        systemd(1), systemctl(1), systemd-system.conf(5), systemd.unit(5), systemd.exec(5), systemd.resource-control(5), systemd.kill(5), systemd.directives(7), systemd-
+        run(1)
+```
+
+のように man コマンドの出力結果で書いてある場合、以下のようにすると関連のマニュアル systemd.unit(5) が表示される
+
+```bash frame="none"
+man 5 systemd.unit
+```
+
+### man ドキュメントの参照されるパス
+
+man コマンドが実行時に参照するドキュメントファイルの配置先は
+
+-   /usr/share/man
+-   /usr/local/share/man
+
+が標準的です。
+
+## 応用例
+
+### 日本語のマニュアルページをインストール
+
+日本語マニュアルページをインストールする
+
+-   manpages-ja
+-   manpages-ja-dev
+
+のパッケージをインストールする
+
+```bash frame="none"
+**apt-get update**
+ヒット:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease
+取得:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease [126 kB]
+ヒット:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease
+ヒット:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease
+126 kB を 3秒 で取得しました (49.7 kB/s)
+パッケージリストを読み込んでいます... 完了
+**apt-get install manpages-ja manpages-ja-dev**
+パッケージリストを読み込んでいます... 完了
+依存関係ツリーを作成しています... 完了
+状態情報を読み取っています... 完了
+以下のパッケージが新たにインストールされます:
+  manpages-ja manpages-ja-dev
+アップグレード: 0 個、新規インストール: 2 個、削除: 0 個、保留: 1 個。
+6,295 kB のアーカイブを取得する必要があります。
+この操作後に追加で 8,495 kB のディスク容量が消費されます。
+取得:1 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 manpages-ja all 0.5.0.0.20221215+dfsg-1 [3,791 kB]
+取得:2 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 manpages-ja-dev all 0.5.0.0.20221215+dfsg-1 [2,505 kB]
+6,295 kB を 3秒 で取得しました (2,008 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+以前に未選択のパッケージ manpages-ja を選択しています。
+(データベースを読み込んでいます ... 現在 35168 個のファイルとディレクトリがインストールされています。)
+.../manpages-ja_0.5.0.0.20221215+dfsg-1_all.deb を展開する準備をしています ...
+manpages-ja (0.5.0.0.20221215+dfsg-1) を展開しています...
+以前に未選択のパッケージ manpages-ja-dev を選択しています。
+.../manpages-ja-dev_0.5.0.0.20221215+dfsg-1_all.deb を展開する準備をしています ...
+manpages-ja-dev (0.5.0.0.20221215+dfsg-1) を展開しています...
+manpages-ja-dev (0.5.0.0.20221215+dfsg-1) を設定しています ...
+manpages-ja (0.5.0.0.20221215+dfsg-1) を設定しています ...
+man-db (2.12.0-4build2) のトリガを処理しています ...
+```
+
+`MANPATH` 環境変数の設定と、シェル設定ファイルに書き込み再読み込み
+
+```bash frame="none"
+export MANPATH=/usr/share/man/ja:$MANPATH
+
+# この設定を永続化させるためには、bashrc、bash_profile に追加する
+echo 'export MANPATH=/usr/share/man/ja:$MANPATH' >> ~/.bashrc
+source ~/.bashrc
+```
+
+-   dnf インストール
+
+    ```bash frame="none"
+    sudo dnf install man-pages
+    Updating Subscription Management repositories.
+    Unable to read consumer identity
+
+    This system is not registered with an entitlement server. You can use "rhc" or "subscription-manager" to register.
+
+    Last metadata expiration check: 2:18:24 ago on Thu 08 Aug 2024 03:02:23 PM UTC.
+    Dependencies resolved.
+    ==============================================================================================================================================================
+    Package                                 Architecture               Version                              Repository                                      Size
+    ==============================================================================================================================================================
+    Installing:
+    man-pages                               noarch                     6.04-1.el9                           rhel-9-baseos-rhui-rpms                        6.5 M
+    Installing weak dependencies:
+    man-pages-overrides                     noarch                     9.0.0.0-1.el9                        rhel-9-appstream-rhui-rpms                      18 k
+
+    Transaction Summary
+    ==============================================================================================================================================================
+    Install  2 Packages
+
+    Total download size: 6.5 M
+    Installed size: 5.3 M
+    Is this ok [y/N]: y
+    Downloading Packages:
+    (1/2): man-pages-overrides-9.0.0.0-1.el9.noarch.rpm                                                                           390 kB/s |  18 kB     00:00
+    (2/2): man-pages-6.04-1.el9.noarch.rpm                                                                                         52 MB/s | 6.5 MB     00:00
+    --------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Total                                                                                                                          36 MB/s | 6.5 MB     00:00
+    Running transaction check
+    Transaction check succeeded.
+    Running transaction test
+    Transaction test succeeded.
+    Running transaction
+        Preparing        :                                                                                                                                      1/1
+        Installing       : man-pages-overrides-9.0.0.0-1.el9.noarch                                                                                             1/2
+        Running scriptlet: man-pages-6.04-1.el9.noarch                                                                                                          2/2
+        Installing       : man-pages-6.04-1.el9.noarch                                                                                                          2/2
+        Running scriptlet: man-pages-6.04-1.el9.noarch                                                                                                          2/2
+        Verifying        : man-pages-overrides-9.0.0.0-1.el9.noarch                                                                                             1/2
+        Verifying        : man-pages-6.04-1.el9.noarch                                                                                                          2/2
+    Installed products updated.
+
+    Installed:
+        man-pages-6.04-1.el9.noarch                                             man-pages-overrides-9.0.0.0-1.el9.noarch
+
+    Complete!
+    ```

@@ -1,0 +1,258 @@
+---
+title: シェル変数・環境変数
+description: シェル変数・環境変数について
+tags:
+    - "Linux"
+    - "シェルスクリプト"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: シェル変数・環境変数
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+
+## シェルとコマンドの関係
+
+### シェルがコマンドを実行する流れ
+
+シェルは Linux で OS とユーザの仲介を行うインターフェースです。ユーザが入力したコマンドを解釈して、実行するインタープリターで OS 間とのやりとりを操作する。標準シェルは bash だが他のシェルを使用することもできる。
+
+<MermaidChart
+    chart={`
+    sequenceDiagram
+    autonumber
+    %% node section
+    participant memory as メモリ
+    participant terminal as ターミナル画面(プロンプト)
+
+    %% relation
+    memory ->> terminal: プロンプト表示
+    note right of terminal: $
+
+    terminal -->> terminal: ls と入力
+    note right of terminal: $ ls
+
+    terminal -->> memory: ユーザーから入力された<br>コマンド解析
+    memory -->> memory: bash がプロセス生成
+    memory ->> terminal: プロセスが処理を実行
+    note right of terminal: ls の結果を表示 <br><br>fileA fileB
+
+    terminal -->> memory: プロセスの終了をシェルに通知
+
+    note left of memory: プロセス終了
+
+    memory ->> terminal: プロンプト待ち受け表示
+    terminal -->> terminal: プロンプトに処理結果を通知、<br>待機モードに戻る
+
+    note right of terminal: $
+    `}
+
+/>
+
+## シェル変数
+
+シェル変数は 1 プロセス内の範囲で利用できる変数です。設定されたシェル内で利用でき、子プロセスには引き継がれない。
+
+### シェル変数の定義
+
+```bash frame="none"
+変数名=値  #(間にスペース入れない)書き方は特に決まってないが変数は大文字推奨
+unset 変数名   #変数を削除する
+
+
+LPIC=study_linux
+export $LPIC # 定義したシェル変数を環境変数に設定する(このセッションのみ)
+```
+
+### コマンドでシェル変数の作成から削除
+
+現在のシェル変数の一覧表示、登録、削除など
+
+```bash frame="none"
+# 現在 TEST という変数は定義されていない
+echo $TEST
+
+# TEST というシェル変数を定義
+TEST="SE"
+
+# TEST が定義されていることを確認
+echo $TEST
+SE
+
+# TEST変数が定義されていることを set コマンドで確認
+set | grep TEST
+TEST=SE
+
+# TEST変数の削除
+unset TEST
+
+# TEST変数が削除されていることを確認
+echo $TEST
+
+# TEST変数が削除されていることをsetコマンドで確認
+set | grep TEST
+```
+
+## 環境変数
+
+export
+
+設定されたシェルとそのシェルで起動したプログラムが使用する変数。子プロセスに引き継がれる。export コマンドにより定義
+
+### 構文
+
+```bash frame="none"
+export ENV_VALUE=値
+```
+
+#### 環境変数の作成
+
+```bash frame="none"
+# 環境変数として宣言
+export TEST="SE"
+
+# env コマンドで、環境変数を確認できる
+env | grep "TEST"
+
+# シェル変数として定義、プロセス内では SE のまま
+TEST=SE
+```
+
+:::note[シェルセッション]
+
+この宣言した環境変数は宣言されたシェルセッション内でのみ有効で、
+現在のシェルセッションとその子プロセス（例えば、現在のシェルから起動されたスクリプトやコマンド）でのみ有効。
+
+-   シェルセッションが終了すると、`export` コマンドで設定された環境変数は失われます。
+-   新しいシェルセッションが開始されると、以前に設定した環境変数は存在しなくなる。
+
+:::
+
+#### 永続的に環境変数を定義
+
+環境変数を永続的に設定するためには、シェルの初期化ファイルに設定を追加する必要があります。
+例えば、`~/.bashrc` や `~/.bash_profile` などのファイルに設定を追加します。
+
+```bash frame="none"
+echo 'export MY_VARIABLE="some_value"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+このように設定すると、`MY_VARIABLE` は新しいシェルセッションが開始されるたびに自動的に設定される
+
+## デフォルト環境変数
+
+### 主要なデフォルト環境変数
+
+<Tabs syncKey="default-env">
+    <TabItem label="PWD">
+        #### PWD
+        カレントディレクトリの絶対パス
+
+        現在の作業ディレクトリのパスを返す
+
+        ```bash frame=none
+        pwd
+        # 以下も同じ
+        echo "$PWD"
+        ```
+    </TabItem>
+
+    <TabItem label="PATH">
+        #### PATH
+        コマンド検索パス
+
+        ```bash frame=none
+        echo "$PATH"
+        /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/ec2-user/.local/bin:/home/ec2-user/bin
+        ```
+
+        ##### PATH を通す
+        実行バイナリファイル(コマンド)のパスを新たに追加して、シェル設定ファイルを再度読み込ませることで
+        現在のシェルセッションを利用できるようになる。
+
+        ```bash frame=none
+        echo 'export PATH=$PATH:<実行コマンドパス>' >> 設定ファイルパス
+        ```
+
+        ```bash frame=none
+        sudo apt install snapd
+        snap --version
+        # ここで snap が実行できないなどの警告文が出力される
+
+        # シェル設定ファイル(今回は ~/.bashrc)の末尾にリダイレクションで追記
+        echo 'export PATH=$PATH:/snap/bin' >> ~/.bashrc
+        # ファイル読み込み
+        source ~/.bashrc
+        ```
+
+    </TabItem>
+
+    <TabItem label="HOME">
+        #### HOME
+        ユーザのホームディレクトリ
+
+        ```bash frame=none
+        echo "$HOME"
+        /home/ec2-user
+        ```
+    </TabItem>
+
+    <TabItem label="PS1">
+        #### PS1
+        ターミナルでのプロンプト表示(1次プロンプト)の設定
+
+        ```bash frame=none
+        echo "$PS1"
+        [\u@\h \W]\$ # [セッションユーザー名@ホスト名 作業ディレクトリ] の形式で表示
+        ```
+        - `\a` …ビープ音がなる
+        - `\A` …実行時の時間を24時間表記で表示
+        - `\d` …曜日、月、日の順で表示する
+        - `\h` …ホスト名のうちの最初の . まで
+        - `\H` …ホスト名を表示
+        - `\s` …現在のシェルを表示
+        - `\v` …シェル(bash)のバージョン
+        - `\t` …現在の時刻を表示
+        - `\u` …現在のセッションユーザー名
+        - `\w` …現在の作業ディレクトリ
+        - `\!` …コマンド履歴を表示
+
+        PS1 のデフォルト値は `\s-\v\$`
+        bash-4.2$ のようにプロンプトが表示され待ち受ける
+    </TabItem>
+
+    <TabItem label="PS2">
+        #### PS2
+        ユーザのホームディレクトリ
+
+        ```bash frame=none
+        echo "$PS2"
+        >
+        ```
+    </TabItem>
+
+</Tabs>
+
+### その他のデフォルト環境変数
+
+<Table
+    columns={["変数名", "説明"]}
+    data={[
+        ["HISTFILE", "コマンド履歴を格納するファイルを定義"],
+        ["HISTSIZE", "現在のシェルでの過去コマンドの履歴の保存数を指定"],
+        ["HISTFILESIZE", "コマンド履歴保存ファイルへの履歴保存数を指定"],
+        ["LANG", "ロケール(言語設定)"],
+        ["USER", "ログインしているユーザ名を格納している"],
+        ["HOSTNAME", "ホスト名を格納する環境変数"],
+    ]}
+/>

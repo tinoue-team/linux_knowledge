@@ -1,0 +1,42 @@
+---
+title: source
+description: 利用するシェル(bash)の設定を行う
+tags:
+    - "Linux"
+    - "bash 組み込みコマンド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: source
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 説明
+
+### 構文
+
+```bash frame="none"
+source filename [arguments]
+```
+
+現在のシェル環境で filename からコマンドを読み込んで実行し、filename から最後に実行されたコマンドの終了ステータスを返す。
+
+`filename` 内の最後に実行したコマンドの終了ステータスを返します。  
+`filename` にスラッシュが含まれていない場合、filename は PATH に含まれるディレクトリから探されます。
+
+PATH 内で検索されるファイルは、実行可能(+x)である必要はありません。  
+bash が posix モード 以外で動作しているときは、 PATH 中でファイルを見つけられなかった場合に、 カレントディレクトリが検索されます。
+
+組み込みコマンド shopt に対する sourcepath オプションが無効にされている場合、 PATH の検索は行われません。
+何らかの arguments が指定された場合、これらの引き数は filename を実行したときの位置パラメータとなります。
+指定されなかった場合は、位置パラメータは変更されません。
+
+返却ステータスはスクリプト内で最後に実行したコマンドのステータスです (コマンドが全く実行されなければ 0 です)。 filename が見つからない場合や読み込めない場合には偽となります。

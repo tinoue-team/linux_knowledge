@@ -1,0 +1,122 @@
+---
+title: SMTP
+description: SMTP 通信とその設定について
+tags:
+    - "Linux"
+    - "Postfix"
+    - "Mail"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: SMTP
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## Postfix での設定
+
+<LinkPreview url="https://www.bscre8.com/bslife/2017/08/31/%E3%83%90%E3%83%BC%E3%83%81%E3%83%A3%E3%83%AB%E3%83%89%E3%83%A1%E3%82%A4%E3%83%B3%E7%92%B0%E5%A2%83%E3%81%AE-postfix-%E3%81%AB%E3%81%A6%E3%80%81%E3%83%A1%E3%83%BC%E3%83%AB%E3%82%A2%E3%83%89%E3%83%AC/" />
+<LinkPreview url="https://ascii.jp/elem/000/000/589/589668/" />
+
+![SMTPコネクション](https://ascii.jp/img/2011/03/03/288302/o/76c14e15ce3c484b.jpg)
+
+<MermaidChart
+    chart={`
+    sequenceDiagram
+    %% settings
+    autonumber
+    %% node section
+    actor mua1 as MUA<br>(メーラー)
+    participant ms1 as メールサーバ<br>(自分の)
+    participant dns as DNSサーバ
+    participant ms2 as メールサーバ<br>(相手の)
+    actor mua2 as MUA<br>(相手メーラー)
+
+    %% allow list
+    mua1 ->> ms1: mail送信
+    Note right of mua1: SMTP
+    ms1 ->> ms1: resolv.conf
+    ms1 ->> dns: MTAが<br>DNSに名前解決依頼
+    Note right of dns: MXレコードを参照
+    dns -->> ms1: MTA(相手の)の<br>IPアドレス
+    ms1 ->> ms2: メール配送
+    rect rgb(73, 16, 130)
+        note right of ms2: 返信経路バッファ<br>[接続の確立]
+        ms1 ->> ms2: TCP コネクション接続要求、<br>SMTP 送信クライアントから受信サーバーのポート25へTCP コネクションを確立
+        ms2 ->> ms1: 220 [OK] <br>無事TLS セッションが確立されると、受信サーバーからSMTPのリプライコード 220 を返す
+        ms1 ->> ms2: EHLO or HELO <br>宛先サーバーに SMTP 通信開始を宣言する <br>EHLO または、HELO コマンドを送信
+        ms2 ->> ms1: 250 [OK]<br>宛先サーバーからコード 250 を返す
+    end
+
+    rect rgb(173, 16, 30)
+        note right of ms2: 転送経路バッファ<br>[返信先、宛先の通知]
+        ms1 ->> ms2: MAIL FROM <br>クライアントは MAIL コマンド(＊1)を宛先サーバーに送信する
+        ms2 ->> ms1: 250 [OK] <br>宛先サーバーにコマンドが受理されたリプライコード
+        ms1 ->> ms2: RCPT TO <br>クライアントから、メールの宛先を伝える RCPT コマンド(＊2)が送られる
+        ms2 ->> ms1: 250 [OK] <br>宛先サーバーにコマンドが受理されたリプライコード
+    end
+
+    rect rgb(23, 136, 80)
+        note right of ms2: メールデータバッファ<br>[メッセージの転送]
+        ms1 ->> ms2: DATA
+        ms2 ->> ms1: 354 [OK]
+        ms1 ->> ms2: メールメッセージの転送
+        ms1 ->> ms2: メールメッセージの転送終了
+        ms2 ->> ms1: 250 [OK]
+    end
+
+    rect rgb(33, 100, 80)
+        note right of ms2: [セッションの終了]
+        ms1 ->> ms2: QUIT <br>クライアントはQUITコマンドを送信し、TCPコネクションを切断する
+        ms2 ->> ms1: 221 [OK]
+    end
+
+    ms2 -->> ms2: MTA から MDA
+    ms2 -->> ms2: MDA は宛先ユーザの<br>メールボックスに格納
+
+    mua2 ->> ms2: 格納されたメール<br>を取り出す。
+    Note right of ms2: POP/IMAP
+
+
+    `}
+
+/>
+
+##### ＊1 MAIL コマンド
+
+MAIL コマンドのパラメータには、エラーメールを返すための返信先アドレスを添えて送信
+
+##### ＊2 RCPT コマンド
+
+RCPT コマンドのパラメータは受取人のメールアドレスで、複数の受取人へ送るメールであればメールの受取人の数だけ RCPT コマンドを繰り返し送信する。
+
+このとき、メッセージヘッダにも宛先アドレスフィールドなどの宛先や送信元情報があることに気付く人もいるだろう。
+実はここに SMTP の特徴がある。メッセージ上は From フィールドや To フィールドにメールアドレスを記述している。
+しかし SMTP では、これらは「便せん」の一部であって、内容には直接関与しないようになっている。
+その代わり、MAIL コマンドと RCPT コマンドをメールのエンベロープ（Envelope、封筒）と考え、実際の配送メールアドレスを示すわけだ。
+この MAIL コマンドのメールアドレスを「エンベロープ From」、RCPT コマンドのメールアドレスを「エンベロープ To」と呼ぶ習慣がある。
+
+##### ＊3 DATA コマンドとメッセージの転送
+
+<Steps>
+
+    1. DATA コマンドでサーバにメールメッセージの送信を開始
+    1. リプライコード 354 で「メッセージの入力を開始し、`<CRLF>.<CRLF>`で終了せよ」と応答する。以降、クライアントはサーバに向けてメッセージを送信する
+    1. メッセージの終了を表わすパターンをサーバが受信すると、リプライコード250を返し、メッセージの受信が完了となる。
+
+</Steps>
+
+サーバはこのようにしてメッセージを受信するが、そのメッセージがサーバの持つメールボックス宛であれば、
+バッファ（スプールともいう）に受信しているメッセージをメールボックスに移動して終了となる。
+一方、受信したメッセージをさらに別のメールサーバに転送する場合(relay server)は、今度は自身が SMTP クライアントとなって、
+バッファに受信した情報を使いメッセージの送信を行なう。
+
+これが基本的なメッセージ送信の流れです。

@@ -1,0 +1,127 @@
+---
+title: Sakura Cloud Provider
+description: さくらクラウドの Terraform 実行
+tags:
+    - "Terraform"
+    - "さくらのクラウド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Sakura Cloud Provider
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 10
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## さくらクラウドの利用
+
+<LinkPreview url="https://registry.terraform.io/providers/sacloud/sakuracloud/latest/docs" />
+- <LinkPreview url="https://docs.usacloud.jp/usacloud/references/global/" type="inline" />
+
+### さくらクラウドのプロバイダを利用する
+
+SakuraCloud プロバイダは、API でサポートされている多くのリソースと対話するために使用
+
+```tf
+terraform {
+    required_providers {
+        sakuracloud = {
+            source = "sacloud/sakuracloud"
+
+            # 新しいバージョンが頻繁にリリースされるため
+            # さくらのクラウドプロバイダの特定のバージョンの指定をすることが推奨
+            version = "2.25.5"
+            #version = "~> 2"
+        }
+    }
+}
+# Configure the SakuraCloud Provider
+provider "sakuracloud" {
+    # More information on the authentication methods supported by the SakuraCloud Provider can be found here:
+    # https://docs.usacloud.jp/terraform/provider/
+
+    # profile = "..."
+}
+```
+
+### さくらのクラウドプロバイダ認証
+
+<LinkPreview url="https://docs.usacloud.jp/terraform/provider/" />
+
+API の認証方法を以下でサポートしている。
+
+-   tf ファイル
+-   環境変数
+-   プロファイル
+
+#### tf ファイル (Static credential)
+
+:::caution[Warning]
+
+tf ファイル上に API キー(トークン/シークレット)を記載する方法は非推奨です。
+この方法には、GitHub などのパブリックなリポジトリ上で API キーを公開してしまうリスクがあります。
+テスト/検証以外では利用しないでください。
+
+:::
+
+```tf
+provider "sakuracloud" {
+    token  = "my-access-token"
+    secret = "my-access-secret"
+    zone   = "is1a"
+}
+```
+
+#### 環境変数 (Environment variables)
+
+環境変数 `SAKURACLOUD_ACCESS_TOKEN` と `SAKURACLOUD_ACCESS_TOKEN_SECRET` を指定する。
+
+<Steps>
+
+1. provider セクションを空で指定
+
+    ```tf
+    provider "sakuracloud" {}
+    ```
+
+1. terraform plan の実行前に環境変数を宣言する
+
+    ```bash frame=none
+    export SAKURACLOUD_ACCESS_TOKEN="my-access-token"
+    export SAKURACLOUD_ACCESS_TOKEN_SECRET="my-access-secret"
+    export SAKURACLOUD_ZONE="is1a"
+    terraform plan
+    ```
+
+</Steps>
+
+#### プロファイル (Shared credentials file)
+
+sakuracloud プロバイダーブロック内で profile を指定することにより Usacloud 形式のプロファイルを利用可能です。
+
+プロファイルは API キーなどの情報を格納した JSON ファイルで、デフォルトでは以下の場所に保存されています。
+
+```bash frame=none
+# Linux/macOS の場合
+$HOME/.usacloud/<profile name>/config.json
+
+# Windows の場合
+%USERPROFILE%\.usacloud\<profile name>/config.json
+```
+
+このファイルは `usacloud profile edit <profile name>` コマンドや直接テキストエディタを開くことで、編集可能。
+
+```bash frame=none
+$ cat $HOME/.usacloud/default/config.json
+{
+    "AccessToken": "my-access-token",
+    "AccessTokenSecret": "my-access-secret",
+    "Zone": "is1a"
+}
+```

@@ -1,0 +1,75 @@
+---
+title: Usacloud リソース操作
+description: Usacloud、さくらクラウドの API を利用したリソースの操作
+tags:
+    - "Terraform"
+    - "さくらのクラウド"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: Usacloud リソース操作
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 2
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## `usacloud iaas <リソース名>`
+
+<Table
+    caption=""
+    columns={["Option", "説明"]}
+    data={[
+        ["archive", ""],
+        ["auth-status", ""],
+        ["auto-backup", ""],
+        ["auto-scale", ""],
+        ["bill", ""],
+        ["bridge", ""],
+        ["cdrom", ""],
+        ["certificate-authority", ""],
+        ["container-registry", ""],
+        ["coupon", ""],
+        ["database", ""],
+        ["disk", ""],
+        ["disk-plan", ""],
+        ["dns", ""],
+        ["enhanced-db", ""],
+        ["esme", ""],
+        ["gslb", ""],
+        ["icon", ""],
+        ["interface", ""],
+        ["internet", ""],
+        ["internet-plan", ""],
+        ["ipaddress", ""],
+        ["ipv6addr", ""],
+        ["ipv6net", ""],
+        ["license", ""],
+        ["license-info", ""],
+        ["load-balancer", ""],
+        ["local-router", ""],
+        ["mobile-gateway", ""],
+        ["nfs", ""],
+        ["note", ""],
+        ["packet-filter", ""],
+        ["private-host", ""],
+        ["private-host-plan", ""],
+        ["proxy-lb", ""],
+        ["region", ""],
+        ["self (Print resource ID)", ""],
+        ["server", ""],
+        ["server-plan", ""],
+        ["service-class", ""],
+        ["sim", ""],
+        ["simple-monitor", ""],
+        ["ssh-key", ""],
+        ["subnet", ""],
+        ["switch", ""],
+        ["vpc-router", ""],
+    ]}
+/>

@@ -1,0 +1,33 @@
+---
+title: デバイスファイル
+description: デバイスファイルについての説明。
+tags:
+    - "Linux"
+    - "ハードウェア機器"
+sidebar:
+    # このリンクのカスタムラベルを設定します
+    label: デバイスファイル
+    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+    order: 4
+    # このリンクにバッジを追加します
+    # badge:
+    #     text: ""
+    #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## デバイス情報の確認
+
+### /dev
+
+Linux でハードウェア(接続機器)はファイルで管理されます。デバイスを接続すると、/dev 配下に検出されたデバイスへアクセスするためのファイル(デバイスファイル)が追加される。デバイスファイルは、デバイス(周辺機器)を操作するためのファイル。
+
+例えば、CD/DVD ドライブのデバイスファイルは /dev/sr0 (2 台目は sr1) となる。
+
+ディスクのデバイスファイル名は接続するインターフェースによって異なりますが、
+大半で使われている SCSI (スカジー)系のディスクでは、/dev/sda (1 台目)、/dev/sdb (2 台目)、…
+
+ハードディスクの規格に応じて SATA、IDE/ATA (PATA)、USB の場合はカーネル内の SCSI と同じく、/dev/sd○ として作成され、○ には 1 台目から a, b, c … と付与されていく
