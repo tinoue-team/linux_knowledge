@@ -1,11 +1,13 @@
 // 1. ユーティリティを`astro:content`からインポート
 
 import { defineCollection, z } from 'astro:content';
+import { docsLoader, i18nLoader } from '@astrojs/starlight/loaders';
 import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
+import { glob } from 'astro/loaders';
 
 // 2. 各コレクションに`type`と`schema`を定義
 const cmdCollection = defineCollection({
-    type: 'content', // v2.5.0以降
+    loader: glob({ pattern: '**/[^_]*.md', base: './src/content/cmd' }),
     schema: z.object({
         title: z.string(),
         description: z.string(),
@@ -26,10 +28,10 @@ const cmdCollection = defineCollection({
 
 // 3. コレクションを登録するために、単一の`collections`オブジェクトをエクスポート
 export const collections = {
-    docs: defineCollection({ schema: docsSchema() }),
+    docs: defineCollection({ loader: docsLoader(), schema: docsSchema() }),
     cmd: cmdCollection,
     i18n: defineCollection({
-        type: 'data',
+        loader: i18nLoader(),
         schema: i18nSchema({
             extend: z.object({
                 'custom.label': z.string().optional(),

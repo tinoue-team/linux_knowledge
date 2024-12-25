@@ -256,7 +256,7 @@ export default defineConfig({
         //     },
         // }),
     ],
-    output: 'hybrid',
+    // output: 'static',
     adapter: netlify(),
     // adapter: isProd ? netlify() : '',
     // 特定のパターンのページを事前レンダリング
