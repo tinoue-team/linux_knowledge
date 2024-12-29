@@ -1,0 +1,170 @@
+---
+title: ansible-playbook
+description: ansible-playbook について
+tags:
+  - "Ansible"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: ansible-playbook
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 20
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## ansible-playbook
+
+Ansible playbook を実行し、対象ホスト上で定義されたタスクを実行する。
+
+### 構文
+
+```bash frame=none
+ansible-playbook [-h] [--version] [-v] [--private-key PRIVATE_KEY_FILE] [-u REMOTE_USER] [-c CONNECTION] [-T TIMEOUT] [--ssh-common-args SSH_COMMON_ARGS] [--sftp-extra-args SFTP_EXTRA_ARGS]
+                        [--scp-extra-args SCP_EXTRA_ARGS] [--ssh-extra-args SSH_EXTRA_ARGS] [-k | --connection-password-file CONNECTION_PASSWORD_FILE] [--force-handlers] [--flush-cache] [-b]
+                        [--become-method BECOME_METHOD] [--become-user BECOME_USER] [-K | --become-password-file BECOME_PASSWORD_FILE] [-t TAGS] [--skip-tags SKIP_TAGS] [-C] [-D] [-i INVENTORY] [--list-hosts]
+                        [-l SUBSET] [-e EXTRA_VARS] [--vault-id VAULT_IDS] [-J | --vault-password-file VAULT_PASSWORD_FILES] [-f FORKS] [-M MODULE_PATH] [--syntax-check] [--list-tasks] [--list-tags] [--step]
+                        [--start-at-task START_AT_TASK]
+                        playbook [playbook ...]
+```
+
+## オプション
+
+### オプション一覧
+
+<Table
+  columns={["オプション", "説明"]}
+  data={[
+    [
+      ["--become-password-file", "--become-pass-file BECOME_PASSWORD_FILE"].join("<br>"),
+      ["権限昇格のためのパスワードファイル"].join("<br>"),
+    ],
+    [
+      ["--connection-password-file", "--conn-pass-file CONNECTION_PASSWORD_FILE"].join("<br>"),
+      ["接続のためのパスワードファイル"].join("<br>"),
+    ],
+    ["--flush-cache", ["インベントリ内の全てのホストに対するファクトキャッシュをクリアします"].join("<br>")],
+    ["--force-handlers", ["タスクが失敗してもハンドラーを実行します"].join("<br>")],
+    ["--list-hosts", ["一致するホストのリストを出力します。その他の操作は実行しません"].join("<br>")],
+    ["--list-tags", ["利用可能な全てのタグをリストします"].join("<br>")],
+    ["--list-tasks", ["実行される全てのタスクをリストします"].join("<br>")],
+    [
+      "--skip-tags SKIP_TAGS",
+      ["これらの値に一致しないタグのプレイとタスクのみを実行します。この引数は複数回指定できます"].join("<br>"),
+    ],
+    ["--start-at-task START_AT_TASK", ["この名前に一致するタスクからプレイブックを開始します"].join("<br>")],
+    ["--step", ["一度に一つのステップで実行します：各タスクを実行前に確認します"].join("<br>")],
+    ["--syntax-check", ["プレイブックの構文チェックを行いますが、実行はしません"].join("<br>")],
+    ["--vault-id VAULT_IDS", ["使用するボールトID。この引数は複数回指定できます"].join("<br>")],
+    [
+      ["--vault-password-file", "--vault-pass-file VAULT_PASSWORD_FILES"].join("<br>"),
+      ["ボールトパスワードファイル"].join("<br>"),
+    ],
+    [
+      "--version",
+      [
+        "プログラムのバージョン番号、設定ファイルの場所、設定されたモジュール検索パス、モジュールの場所、実行ファイルの場所を表示し終了します",
+      ].join("<br>"),
+    ],
+    [["-C", "--check"].join("<br>"), ["変更を加えず、代わりに発生する可能性のある変更を予測します"].join("<br>")],
+    [
+      ["-D", "--diff"].join("<br>"),
+      [
+        "（小さい）ファイルやテンプレートを変更する際、そのファイルの差分を表示します。--check と併用すると効果的です",
+      ].join("<br>"),
+    ],
+    [["-J", "--ask-vault-password", "--ask-vault-pass"].join("<br>"), ["ボールトパスワードを尋ねます"].join("<br>")],
+    [["-K", "--ask-become-pass"].join("<br>"), ["権限昇格のパスワードを尋ねます"].join("<br>")],
+    [
+      ["-M", "--module-path MODULE_PATH"].join("<br>"),
+      [
+        'モジュールライブラリへのコロン区切りのパスを前置します（デフォルト={{ ANSIBLE_HOME ~ "/plugins/modules:/usr/share/ansible/plugins/modules" }}）。',
+        "この引数は複数回指定できます",
+      ].join("<br>"),
+    ],
+    [
+      ["-e", "--extra-vars EXTRA_VARS"].join("<br>"),
+      [
+        "追加の変数を key=value または YAML/JSON 形式で設定します。",
+        "ファイルの場合は @ を先頭に付けます。この引数は複数回指定できます",
+      ].join("<br>"),
+    ],
+    [["-f", "--forks FORKS"].join("<br>"), ["使用する並列プロセスの数を指定します（デフォルト=5）"].join("<br>")],
+    [["-h", "--help"].join("<br>"), ["ヘルプメッセージを表示して終了します"].join("<br>")],
+    [
+      ["-i", "--inventory", "--inventory-file"].join("<br>"),
+      [
+        "引数: INVENTORY",
+        "INVENTORY …インベントリホストのパスまたはカンマ区切りのホストリストを指定します。",
+        "--inventory-file は非推奨です。この引数は複数回指定できます",
+      ].join("<br>"),
+    ],
+    [["-k", "--ask-pass"].join("<br>"), ["接続パスワードを尋ねます"].join("<br>")],
+    [
+      ["-l", "--limit SUBSET"].join("<br>"),
+      ["追加のパターンに基づいて選択されたホストをさらに制限します"].join("<br>"),
+    ],
+    [
+      ["-t", "--tags TAGS"].join("<br>"),
+      ["これらの値でタグ付けされたプレイとタスクのみを実行します。この引数は複数回指定できます"].join("<br>"),
+    ],
+    [
+      ["-v", "--verbose"].join("<br>"),
+      [
+        "Ansible がより多くのデバッグメッセージを表示します。-v を複数回追加すると冗長性が増します。組み込みのプラグインは現在 -vvvvvv まで評価します。開始するのに適切なレベルは -vvv です。接続デバッグには -vvvv が必要な場合があります。この引数は複数回指定できます",
+      ].join("<br>"),
+    ],
+  ]}
+/>
+
+<Table
+  caption="Connection Options:"
+  columns={["オプション", "説明"]}
+  data={[
+    [
+      ["--private-key", "--key-file"].join("<br>"),
+      ["--private-key=PRIVATE_KEY_FILE", "このファイルを使用して接続を認証します"].join("<br>"),
+    ],
+    [
+      "--scp-extra-args",
+      ["--scp-extra-args SCP_EXTRA_ARGS", "scp のみへの追加の引数を指定します（例: -l）"].join("<br>"),
+    ],
+    [
+      "--sftp-extra-args",
+      ["--sftp-extra-args SFTP_EXTRA_ARGS", "sftp のみへの追加の引数を指定します（例: -f, -l）"].join("<br>"),
+    ],
+    [
+      "--ssh-common-args",
+      ["--ssh-common-args SSH_COMMON_ARGS", "sftp/scp/ssh に共通の引数を指定します（例: ProxyCommand）"].join("<br>"),
+    ],
+    [
+      "--ssh-extra-args",
+      ["--ssh-extra-args SSH_EXTRA_ARGS", "ssh のみへの追加の引数を指定します（例: -R）"].join("<br>"),
+    ],
+    [
+      ["-T", "--timeout TIMEOUT"].join("<br>"),
+      ["接続タイムアウトを秒単位で上書きします（デフォルトは接続によって異なります）"].join("<br>"),
+    ],
+    [["-c", "--connection CONNECTION"].join("<br>"), ["使用する接続タイプを指定します（デフォルト=ssh）"].join("<br>")],
+    [["-u", "--user REMOTE_USER"].join("<br>"), ["このユーザーとして接続します（デフォルト=None）"].join("<br>")],
+  ]}
+/>
+
+<Table
+  caption="Privilege Escalation Options"
+  columns={["オプション", "説明"]}
+  data={[
+    [
+      ["--become-method BECOME_METHOD"].join("<br>"),
+      "使用する権限昇格方法を指定します（デフォルト=sudo）。有効な選択肢を一覧表示するには `ansible-doc -t become -l` を使用します",
+    ],
+    [["--become-user BECOME_USER"].join("<br>"), "このユーザーとして操作を実行します（デフォルト=root）"],
+    [["-b, --become"].join("<br>"), "権限昇格を使用して操作を実行します（パスワードのプロンプトを意味しません）"],
+  ]}
+/>

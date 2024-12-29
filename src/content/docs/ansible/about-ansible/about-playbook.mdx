@@ -1,0 +1,113 @@
+---
+title: Playbook
+description: Playbook について
+tags:
+  - "Ansible"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: Playbook
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 20
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## Playbook の基本
+
+### YAML での宣言のメリット
+
+プレイブックは、
+インフラ構成を定義する手順書のことで、 YAML 形式で定義し用意します。
+
+- 自動化タスクを YAML 形式で定義。
+- 複数のプレイを含み、各プレイがホストグループに対応。
+- タスク、モジュール、ハンドラー、変数などを組み合わせて構成。
+
+```yaml title="update_nginx.yml"
+---
+- hosts: web
+  tasks:
+    - name: Update Nginx
+      yum:
+        name: nginx
+        state: latest
+```
+
+この Playbook の内容を実際に実行すると以下のような手順を実行することになる
+
+<Steps>
+
+1. 対象サーバーにログインする
+
+   ```bash frame=none
+   ssh root@web
+   ```
+
+1. 最小サーバーの nginx パッケージを更新する(最新版であれば、この手順をスキップ)
+
+   ```bash frame=none
+   yum update nginx
+   ```
+
+1. 対象サーバーからログアウトする
+
+   ```bash frame=none
+   exit
+   ```
+
+</Steps>
+
+このように実際の手順を紐解くと、YAML ファイルで簡潔にかくことのメリットが大きいことがわかる。
+
+### PyYAML (Playbook を Python で実行する)
+
+YAML はあくまで、データ構造を表すためのファイルです。実際に YAML のデータをもとに実行するのは Python です。
+Ansible では、Python 向けの YAML を操作するライブラリとして、**[PyYAML](https://pyyaml.org/)** があります。
+
+## Playbook の構文
+
+### rescue ブロック
+
+```yaml
+---
+- hosts: all
+  vars:
+    ansible_become: yes
+    ansible_become_method: sudo
+  tasks:
+    - name: Install Nginx
+      block:
+        - yum:
+            name: nginx
+            state: latest
+      rescue:
+        - debug:
+          msg: "Error!"
+      always:
+        - debug:
+          msg: "Always run this section"
+```
+
+プレイブック内で block を指定すると、block 内でのエラーが発生した場合、rescue ブロックが処理される。いわゆる例外処理を行う。
+単に block の処理にエラーが起きると failed とせず、rescue を行う(エラーハンドリング)。
+
+#### block
+
+このセクションに実行するタスクを記述して、以降の rescue、always のセクションはこの block の処理次第で実行される。
+
+#### rescue
+
+block 内の処理でエラーが発生した際に、このセクションに記述されている処理が実行される。
+
+#### always
+
+block 内の処理が終了した際、タスクの成功、失敗に問わず必ず実行される。
+ここでは、block 内の処理が成功した場合は、"Always run this section" という文字が出力されエラーが発生した場合は rescue 内の "Error!"
+が出力された後に、"Always run this section" の文字が出力される。

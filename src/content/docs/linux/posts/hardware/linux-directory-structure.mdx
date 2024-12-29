@@ -2,17 +2,17 @@
 title: Linuxディレクトリの構成
 description: Linuxディレクトリの構成の説明
 tags:
-    - "Linux"
-    - "ハードウェア機器"
+  - "Linux"
+  - "ハードウェア機器"
 sidebar:
-    # このリンクのカスタムラベルを設定します
-    label: Linuxディレクトリの構成
-    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
-    order: 5
-    # このリンクにバッジを追加します
-    # badge:
-    #     text: ""
-    #     variant: tip
+  # このリンクのカスタムラベルを設定します
+  label: Linuxディレクトリの構成
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 5
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
 ---
 
 import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
@@ -83,8 +83,8 @@ import Table from "@components/Table.astro";
 Linux などの UNIX 系 OS の標準的なディレクトリ構成を定めた標準仕様のこと
 標準化することで、
 
--   開発者はソフトウェア固有の知識のインプットを最小限にできる
--   配布側にとっては規格に準拠した方が利用してもらいやすい
+- 開発者はソフトウェア固有の知識のインプットを最小限にできる
+- 配布側にとっては規格に準拠した方が利用してもらいやすい
 
 ### /dev
 
@@ -234,3 +234,23 @@ CPU revision    : 0
 /sys ディレクトリは、/proc ディレクトリと同様に仮想的なファイルシステムです。テキストファイルとしてシステム情報にアクセスできます。
 
 /dev/sda1 のサイズを確認してみる。
+
+## /var
+
+### /var/log
+
+#### /var/log/messages
+
+一般的なシステムログが記録されます。Cloud-Init やその他のシステムサービスからのメッセージが含まれる場合があります。
+
+#### /var/log/boot.log
+
+システムの起動時に実行されたプロセスやサービスのログが記録されます。
+
+#### /var/log/cloud-init-output.log
+
+user-data スクリプトの標準出力（stdout）および標準エラー（stderr）の出力が記録されます。スクリプト内で実行されたコマンドの出力やエラーメッセージを確認する際に有用です。
+
+#### /var/log/cloud-init.log
+
+Cloud-Init の詳細な実行ログが記録されます。インスタンスの初回起動時に Cloud-Init がどのように user-data スクリプトを処理したか、各ステップで発生したイベントやエラーを確認できます。
