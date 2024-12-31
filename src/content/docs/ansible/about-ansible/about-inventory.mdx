@@ -19,9 +19,9 @@ import LinkPreview from "@components/LinkPreview.astro";
 import MermaidChart from "@components/MermaidChart.astro";
 import Table from "@components/Table.astro";
 
-## インベントリの基本
+{/* 5w(what, where, when, who, why)1h(how) */}
 
-### YAML での宣言のメリット
+## What Inventory (インベントリとは)
 
 Playbook は、ターゲットノードに"何をする"かを宣言しています。インベントリでは、どこに実行するのか？
 つまり、ターゲットノードの指定方法についてを宣言しているファイルとなります。
@@ -62,38 +62,177 @@ all:
 
 インベントリでのターゲットノードの指定方法は、IP アドレスか、ホスト名となります。ホスト名は名前解決が必要です。
 
+## Where Inventory (インベントリファイルの管理)
+
+インベントリファイルをどこに配備するか？
+これに関しては、結論、どこでも良いです。よくある例としては、以下の二つ
+
+- `/etc/ansible/*` に配備
+- ansible プロジェクトディレクトリ内に `inventory` ディレクトリを作成して配備
+
+<FileTree>
+
+- inventory/
+  - hosts.yaml # 管理対象ノードの構造のみ、参照する変数の値は \*\_vars 配下に任せる。
+  - group_vars/ # グループ単位で共通の値を定義
+    - all.yaml # グローバルに利用する変数の値を定義
+    - web.yaml
+    - app.yaml
+  - host_vars/ # ホストそれぞれの変数を定義
+    - web01.yaml
+    - web02.yaml
+    - app01.yaml
+    - app02.yaml
+
+</FileTree>
+
+## Who Inventory (ホスト、ホストグループ)
+
+インベントリファイルの構成
+
+<MermaidChart
+  chart={`
+    graph
+
+    ansible[ansible -i Inventory]
+    all[all]
+    A[hostA]
+
+    subgraph web
+      B[hostB]
+      C[hostC]
+    end
+
+    subgraph zabbix
+      D[hostD]
+    end
+
+    subgraph database
+      E[hostE]
+      F[hostF]
+    end
+
+    ansible --> all
+    all --> A
+    all -->|children| web
+    all -->|children| zabbix
+    all -->|children| database
+
+`}
+/>
+
+このようなターゲットホストを定義している Inventory ファイルは以下
+
+```yaml
+all:
+  hosts:
+    hostA:
+      ansible_host: 192.10.10.20
+  children:
+    web:
+      hosts:
+          hostB: 52.194.192.120:
+            ansible_user: ec2-user
+            ansible_ssh_private_key_file: ~/.ssh/ec2-access.pem
+            ansible_python_interpreter: /usr/bin/python3
+          hostC: 13.194.16.120:
+            ansible_user: ec2-user
+            ansible_ssh_private_key_file: ~/.ssh/ec2-access.pem
+            ansible_python_interpreter: /usr/bin/python3
+    zabbix:
+      hosts:
+          hostD: 52.194.192.120:
+            ansible_user: ec2-user
+            ansible_ssh_private_key_file: ~/.ssh/ec2-access.pem
+            ansible_python_interpreter: /usr/bin/python3
+    database:
+      hosts:
+          hostE: 252.194.192.120:
+            ansible_python_interpreter: /usr/bin/python3
+          hostF: 113.194.16.120:
+            ansible_python_interpreter: /usr/bin/python3
+
+```
+
+### all
+
+インベントリファイルのトップ階層は all となります。すべてのホストとグループはこの下に配置されます。
+ini ファイルでは意識することがないですが、ターゲットノードとして
+
 ### ホストグループ
 
 インベントリには Ansible で管理する対象のノードを記載していきますが、
 実行対象が単体のノードではなく複数のノードに実行するには、ホストグループを設定して実行することができます。
 これは、環境ごとに実行するなどのときに便利です。
 
-```ini title="ini形式のホストグループ"
-[web]
-web01
-web02
+<Tabs syncKey="host-group">
+  <TabItem label="INI 形式">
+    ```ini
+    [web]
+    web01
+    web02
 
-[app]
-app01
-app02
-```
+    [app]
+    app01
+    app02
+    ```
+
+  </TabItem>
+  <TabItem label="YAML 形式">
+    ```yaml
+    all:
+      children:
+        web:
+          hosts:
+              web01:
+              web02:
+        app:
+          hosts:
+              app01:
+              app02:
+    ```
+
+  </TabItem>
+</Tabs>
 
 web というグループと、app というグループにわけた書き方です。web01 と web02 に実行したい場合は web グループに対して Playbook を実行することになる。
 また、ホストグループに階層を作り、以下のような三層構造でのホストグループ設定をすることもできる。
 
-```ini
-[web:children]
-tokyo_web
-osaka_web
+<Tabs syncKey="host-group">
+  <TabItem label="INI 形式">
+    ```ini
+    [web:children]
+    tokyo_web
+    osaka_web
 
-[tokyo_web]
-tokyo_web01
-tokyo_web02
+    [tokyo_web]
+    tokyo_web01
+    tokyo_web02
 
-[osaka_web]
-osaka_web01
-osaka_web02
-```
+    [osaka_web]
+    osaka_web01
+    osaka_web02
+    ```
+
+  </TabItem>
+  <TabItem label="YAML 形式">
+    ```yaml
+    all:
+      children:
+        web:
+          children:
+            tokyo_web:
+              hosts:
+                tokyo_web01:
+                tokyo_web02:
+            osaka_web:
+              hosts:
+                osaka_web01:
+                osaka_web02:
+    ```
+
+  </TabItem>
+</Tabs>
 
 東京と大阪で環境を分け、ansible を実行したい時などに利用できる。
 
@@ -103,68 +242,71 @@ osaka_web02
 
 ターゲットノード単体に対して定義する変数
 
-##### INI 形式
+<Tabs syncKey="host-group">
+  <TabItem label="INI 形式">
+    ```ini
+    [web]
+    web01 ansible_user=ops http_port=80
+    web02 ansible_user=ops http_port=80
+    ```
 
-```ini
-[web]
-web01 ansible_user=ops http_port=80
-web02 ansible_user=ops http_port=80
-```
-
-##### YAML 形式
-
-```yaml
-all:
-  children:
-    web:
-      hosts:
-        web01:
-          ansible_user: ops
-          http_port: 80
-        web02:
-          ansible_user: ops
-          http_port: 80
-```
+  </TabItem>
+  <TabItem label="YAML 形式">
+    ```yaml
+    all:
+      children:
+        web:
+          hosts:
+            web01:
+              ansible_user: ops
+              http_port: 80
+            web02:
+              ansible_user: ops
+              http_port: 80
+    ```
+  </TabItem>
+</Tabs>
 
 #### グループ変数
 
-グループホストに対して定義する変数。`[グループ名:vars]` という形で指定
+ホストで共通で利用できる変数を vars セクションにて指定することで、重複する記述を減らす
 
-##### INI 形式
+<Tabs syncKey="host-group">
+  <TabItem label="INI 形式">
+    グループホストに対して定義する変数。`[グループ名:vars]` という形で指定
 
-```ini
-[web]
-web01 ansible_user=ops http_port=80
-web02 ansible_user=ops http_port=80
-```
+    ```ini
+    [web]
+    web01 ansible_python_interpreter=/usr/bin/python3
+    web02 ansible_python_interpreter=/usr/libexec/platform-python
 
-のをグループ変数で書き換えると
+    [web:vars]
+    ansible_user=ops
+    http_port=80
+    ```
 
-```ini
-[web]
-web01
-web02
+  </TabItem>
+  <TabItem label="YAML 形式">
+    グループホストに対して定義する変数。`vars:` セクションで指定
 
-[web:vars]
-ansible_user=ops
-http_port=80
-```
+    ```yaml
+    all:
+      children:
+        web:
+          hosts:
+            web01: # 個別の値を利用する場合、ここにネストして変数を定義できる
+              ansible_python_interpreter: /usr/bin/python3
+            web02:
+              ansible_python_interpreter: /usr/libexec/platform-python
+          vars:
+            ansible_user: ops
+            http_port: 80
+    ```
 
-`[web:vars]` としてグループで同じ値を利用する時にこのように書くことができる
+  </TabItem>
+</Tabs>
 
-##### YAML 形式
-
-```yaml
-all:
-  children:
-    web:
-      hosts:
-        web01: # 個別の値を利用する場合、ここにネストして変数を定義できる
-        web02:
-      vars:
-        ansible_user: ops
-        http_port: 80
-```
+web グループで `ansible_user` と `http_port` という変数が同一のものを利用できる。
 
 #### ファイルに変数を定義して利用する
 
@@ -173,10 +315,10 @@ Playbook が存在するディレクトリ内に group_vars、host_vars とい�
 
 <FileTree>
 
-- group_vars
+- group_vars # グループ単位で共通の値を定義
   - web
   - app
-- host_vars
+- host_vars # ホストそれぞれの変数を定義
   - web01
   - web02
   - app01

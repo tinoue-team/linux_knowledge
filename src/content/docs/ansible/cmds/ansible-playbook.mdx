@@ -72,7 +72,13 @@ ansible-playbook [-h] [--version] [-v] [--private-key PRIVATE_KEY_FILE] [-u REMO
         "プログラムのバージョン番号、設定ファイルの場所、設定されたモジュール検索パス、モジュールの場所、実行ファイルの場所を表示し終了します",
       ].join("<br>"),
     ],
-    [["-C", "--check"].join("<br>"), ["変更を加えず、代わりに発生する可能性のある変更を予測します"].join("<br>")],
+    [
+      ["-C", "--check"].join("<br>"),
+      [
+        "変更を加えず、代わりに発生する可能性のある変更を予測します",
+        "・[Check Mode について](/ansible/about-ansible/adhoc-command/#check-モードでの実行)",
+      ].join("<br>"),
+    ],
     [
       ["-D", "--diff"].join("<br>"),
       [

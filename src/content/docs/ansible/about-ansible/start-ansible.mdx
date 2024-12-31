@@ -27,7 +27,7 @@ import Table from "@components/Table.astro";
 > - <LinkPreview url="https://qiita.com/tmurakam99/items/8e609f174f5804308a20" type="inline" />
 >   <LinkPreview url="https://zenn.dev/y_mrok/books/ansible-no-tsukaikata/viewer/chapter1" />
 
-## インストール
+## インストール・導入
 
 <LinkPreview url="https://docs.ansible.com/" />
 <LinkPreview url="https://formulae.brew.sh/formula/ansible" />
@@ -75,6 +75,63 @@ import Table from "@components/Table.astro";
 
 </Tabs>
 
+### VScode 拡張機能
+
+<LinkPreview url="https://marketplace.visualstudio.com/items?itemName=redhat.ansible&ssr=false#overview" />
+この拡張機能は、ansible-language-serverを活用することで、Visual Studio CodeとOpenVSX互換のエディタにAnsibleの言語サポートを追加します。
+また、ドキュメントにansible言語が割り当てられている場合にのみ動作します。 拡張機能によって開かれたドキュメントに ansible
+言語を割り当てるには、以下の方法を使用します：
+
+- ファイルによる検査をしない
+
+  .ansible.yml または .ansible.yaml。
+  site.yml または site.yaml のように、ansible によって認識される顕著な yaml 名。
+  ファイル名に playbook を持つ yaml ファイル: _playbook_.yml または*playbook*.yaml。
+  さらに VS Code では、次のように settings.json ファイルに言語用の永続的なファイルの関連付けを追加できる:
+
+  ```json
+  {
+    ...
+
+    "files.associations": {
+      "*plays.yml": "ansible",
+      "*init.yml": "yaml",
+    }
+  }
+  ```
+
+- ファイル検査つき
+
+  - ansible キーワードのファイル検査
+
+    主な方法は、yaml ファイル内の hosts や import_playbook のようなトップレベルの playbook キーワードの検査です。
+
+  - モデルライン(オプション)
+
+    また、この拡張機能はモデルインの使用もサポートしており、モデルインが使用されると、モデルインが最優先され、モデルインに従って言語が設定されます。
+
+    モデルインの例と構文
+
+    ```
+    # code: language=ansible
+    or
+    # code: language=yaml
+    ```
+
+    .yml ファイルや .yaml ファイルは、ユーザーが明示的に言語を ansible に変更しない限り、デフォルトでは yaml のままです。
+
+#### 特徴
+
+- シンタックスハイライト
+- Ansible スクリプトの検証
+  - ansible-lint の統合
+    ドキュメントを開いて保存すると、ansible-lint がバックグラウンドで実行され、発見された内容はエラーとして表示されます。
+    warn_list (Ansible Lint Documentation 参照) に追加されたルール/タグは、警告として表示されます。
+- スマートな自動補完・サジェストの提示
+  - jinja 式の自動クロージング
+- ドキュメント参照
+  - モジュールコードへのジャンプ
+
 ## Ansible の仕組み
 
 ### 概要
@@ -83,7 +140,7 @@ Ansible はリモートシステムの管理を自動化し、システムの望
 
 #### Ansible の特徴
 
-- エージェントレス
+- [エージェントレス](#エージェントレス)
 - [Playbook](/ansible/about-ansible/about-playbook/)
 - サーバー管理以外の管理
 - [冪等性](#冪等性)
@@ -327,7 +384,7 @@ Playbook:
 
 実行コマンド:
 
-```bash
+```bash frame="none"
 ansible-playbook -i inventory.yml playbook.yml
 ```
 
@@ -342,4 +399,96 @@ Ansible は Linux サーバー以外も管理することができます。
 例えば、社内の Linux 環境を Ansible でコード管理できるようにしたが、ネットワーク機器は SSH クライアントが提供するマクロ機能で自動化し、
 Window サーバーは PowerShell でと、自動化の管理コストが上がってしまう懸念を Ansible で最小限の学習・管理コストを実現することができる。
 
-### ansible コマンド
+## ansible コマンド
+
+### ansible-lint
+
+ansible ファイルの構成・リンター機能を行うツール
+
+#### 参照
+
+<LinkPreview url="https://ansible.readthedocs.io/projects/lint/" />
+
+#### インストール
+
+```bash frame=none
+pip3 install ansible-dev-tools
+```
+
+#### 設定ファイルの作成
+
+参考:
+
+<LinkPreview url="https://ansible.readthedocs.io/projects/lint/configuring/" type="inline" />
+
+現在の作業ディレクトリの
+
+- .ansible-lint
+- .ansible-lint.yml
+- .config/ansible-lint.yml
+- .config/ansible-lint.yaml
+
+のいずれかに、Ansible-lint 構成を指定します。
+
+:::note
+
+Ansible-lint が現在のディレクトリに設定ファイルを見つけられない場合、親ディレクトリにある設定ファイルを探そうとします。 しかし、Ansible-lint は git リポジトリの外にある設定を読み込もうとしません。
+
+:::
+
+##### リンター構成設定ファイルの例
+
+<LinkPreview url="https://ansible.readthedocs.io/projects/lint/configuring/#ansible-lint-configuration" />
+
+設定ファイルを指定して実行するには、
+
+```bash frame=none
+ansible-lint -c path/to/ansible-lint-dev.yml
+```
+
+リンターの対象にしない場合ファイルがある場合は、
+.ansible-lint-ignore または .config/ansible-lint-ignore.txt ファイルで指定する
+
+```ini title=".ansible-lint-ignore | .config/ansible-lint-ignore.txt"
+# this is just a comment
+playbook.yml package-latest # disable package-latest rule for playbook.yml
+playbook.yml deprecated-module
+```
+
+##### pre-commit でリント
+
+コミット時にリンターを実行するには、.pre-commit-config.yaml に設定を追加する
+
+```yaml title=".pre-commit-hooks.yaml"
+---
+ci:
+  # This section is specific to pre-commit.ci, telling it to create a pull request
+  # to update the linter version tag every month.
+  autoupdate_schedule: monthly
+  # If you have other Ansible collection dependencies (requirements.yml)
+  # `pre-commit.ci` will not be able to install them because it runs in offline mode,
+  # and you will need to tell it to skip the hook.
+  # skip:
+  #   - ansible-lint
+repos:
+  - repo: https://github.com/ansible/ansible-lint
+    rev: ... # put latest release tag from https://github.com/ansible/ansible-lint/releases/
+    hooks:
+      - id: ansible-lint
+        # Uncomment if you need the full Ansible community bundle instead of ansible-core:
+        # additional_dependencies:
+        #   - ansible
+```
+
+#### ansible-lint の実行
+
+リンターの実行を行うには、
+
+```bash frame=none
+ansible-lint nginx_install.yaml
+WARNING: PATH altered to expand ~ in it. Read https://stackoverflow.com/a/44704799/99834 and correct your system configuration.
+
+Passed: 0 failure(s), 0 warning(s) on 1 files. Last profile that met the validation criteria was 'production'.
+```
+
+リンターの規則に沿わない場合は、指定の行に規則違反の内容が表示される。
