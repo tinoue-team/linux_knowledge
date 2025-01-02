@@ -1,0 +1,75 @@
+---
+title: Zabbix サーバーの構築
+description: Ansible で Zabbix サーバーの構築を行います。
+tags:
+  - "Ansible"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: Zabbix サーバーの構築
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 100
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## 演習の概要
+
+ubuntu の Web サーバーを構築し、それを監視するサーバーを用意する。基本的な Zabbix の利用方法と、ロールを利用した構成を作る。
+
+### 必要なノードと構成
+
+- コントロールノード (Mac)
+- Web サーバー (EC2 インスタンス)
+- Zabbix サーバー (EC2 インスタンス)
+
+<MermaidChart
+    chart={`
+    graph LR
+
+    C_node[(作業用ノード<br>Ansible)]
+
+    web[(Web サーバー<br>Nginx)]
+    zabbix[(監視 サーバー<br>Zabbix)]
+
+    C_node --> web
+    C_node --> zabbix
+
+    `}
+
+/>
+
+プレイブックを作成する上で重要なのは、「何を自動化するかを明確化にする」ことです。
+作業手順書を作成する際には、あらかじめ運用で必要となる作業を洗い出していきます。
+今回は、Web サーバーと Zabbix サーバーを構築し、それぞれの初期構築と Zabbix で Web サーバーを監視する設定までを自動化します。
+
+作業用ノードからターゲットノードに Playbook を実行できる準備を行う。
+
+### インフラストラクチャの用意
+
+今回は、それぞれのサーバーを AWS で作成したいと思います。EC2 でインスタンスを作成するところまでを行う。
+
+## インベントリの作成
+
+Web サーバーと、Zabbix サーバーのホストに接続するためのインベントリを宣言します。
+
+```yaml
+all:
+  children:
+    web:
+      hosts:
+        web_01:
+          ansible_host: 192.168.1.10
+          ansible_user: ubuntu
+    zabbix:
+      hosts:
+        monitor_01:
+          ansible_host: 192.168.1.20
+          ansible_user: ubuntu
+```

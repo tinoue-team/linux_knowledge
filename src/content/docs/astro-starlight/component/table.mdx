@@ -2,16 +2,16 @@
 title: Table
 description: Table コンポーネントの紹介
 tags:
-    - "Astro"
+  - "Astro"
 sidebar:
-    # このリンクのカスタムラベルを設定します
-    label: Table
-    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
-    order: 2
-    # このリンクにバッジを追加します
-    # badge:
-    #     text: ""
-    #     variant: tip
+  # このリンクのカスタムラベルを設定します
+  label: Table
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 2
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
 ---
 
 import Table from "@components/Table.astro";
@@ -26,18 +26,19 @@ import Table from "@components/Table.astro";
 import Table from "@components/Table.astro";
 
 <Table
-    caption=""
-    columns={["コマンド", "説明"]}
-    data={[
-        ["description", ["変数の説明"].join("<br/>")],
-        [
-            "type",
-            [
-                "[変数の型を指定する、string など](https://developer.hashicorp.com/terraform/language/expressions/types)",
-            ].join("<br/>"),
-        ],
-        ["default", ["値が設定されなかった場合の既定値"].join("<br/>")],
-    ]}
+  caption=""
+  colWidth={["6rem"]}
+  columns={["コマンド", "説明"]}
+  data={[
+    ["description", ["変数の説明"].join("<br/>")],
+    [
+      "type",
+      ["[変数の型を指定する、string など](https://developer.hashicorp.com/terraform/language/expressions/types)"].join(
+        "<br/>"
+      ),
+    ],
+    ["default", ["値が設定されなかった場合の既定値"].join("<br/>")],
+  ]}
 />
 ```
 
@@ -48,6 +49,13 @@ import Table from "@components/Table.astro";
 type: `string`
 
 `<caption>`要素に渡す文字
+
+##### colWidth
+
+type: `[] string`
+
+`<th>` の幅(width)を指定できる。
+もし、第一要素を飛ばしたい場合は、指定する要素の前のインデックス要素を空で指定して、対象となる要素に幅の値を指定する。
 
 ##### columns
 
@@ -65,18 +73,19 @@ type: `[][] string`
 ### 出力結果
 
 <Table
-    caption=""
-    columns={["コマンド", "説明"]}
-    data={[
-        ["description", ["変数の説明"].join("<br/>")],
-        [
-            "type",
-            [
-                "[変数の型を指定する、string など](https://developer.hashicorp.com/terraform/language/expressions/types)",
-            ].join("<br/>"),
-        ],
-        ["default", ["値が設定されなかった場合の既定値"].join("<br/>")],
-    ]}
+  caption=""
+  colWidth={["6rem"]}
+  columns={["コマンド", "説明"]}
+  data={[
+    ["description", ["変数の説明"].join("<br/>")],
+    [
+      "type",
+      ["[変数の型を指定する、string など](https://developer.hashicorp.com/terraform/language/expressions/types)"].join(
+        "<br/>"
+      ),
+    ],
+    ["default", ["値が設定されなかった場合の既定値"].join("<br/>")],
+  ]}
 />
 
 :::note[テキストは Markdown が解釈される]
