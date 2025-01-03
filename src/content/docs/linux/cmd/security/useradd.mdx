@@ -1,0 +1,429 @@
+---
+title: useradd
+description: 高度なオプション設定を可能とする Linux ユーザーの作成コマンド
+tags:
+  - "Linux"
+  - "セキュリティ"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: useradd
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 2
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+# author:
+#   - "David MacKenzie"
+#   - "Jim Meyering"
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+新規ユーザーの作成またはデフォルトの新規ユーザー情報の更新
+
+useradd はユーザを追加するための低レベルのユーティリティです。Debian では、管理者は通常 adduser(8) を代わりに使うべきである。
+
+D オプションなしで起動すると、useradd コマンドはコマンドラインで指定された値とシステムのデフォルト値を使用して新しいユーザアカウントを作成します。
+コマンドラインオプションによっては、useradd コマンドはシステムファイルを更新し、新しいユーザーのホームディレクトリを作成して初期ファイルをコピーすることもある。
+
+デフォルトでは、新規ユーザー用にグループも作成される（-g、-N、-U、USERGROUPS_ENAB を参照）。
+
+### 構文
+
+```bash frame=none
+useradd [オプション] ユーザ名
+
+useradd [options] LOGIN
+useradd -D
+useradd -D [options]
+```
+
+ユーザアカウントを作成すると、通常、ホームディレクトリも同時に作成されます。その際、基本的な設定ファイルなど、どのユーザにも必要と思われるファイルも同時に配布できるようにテンプレートを用意しておくことができる。`/etc/skel`(skel は skelton 、テンプレートの意味) ディレクトリに、必要なファイルを構成しておくことで、新規にユーザが作成されるとホームディレクトリ内にコピーされる。
+
+> `/etc/skel` の構成例
+
+```bash frame=none
+ls -lA /etc/skel
+total 12
+-rw-r--r--. 1 root root  18 Feb 15 16:13 .bash_logout
+-rw-r--r--. 1 root root 141 Feb 15 16:13 .bash_profile
+-rw-r--r--. 1 root root 492 Feb 15 16:13 .bashrc
+```
+
+> 表示されるユーザーの構成
+
+```
+ユーザー名 …システム内で一意のアカウント名
+    │      UID …ユーザを識別するための一意なID
+    │        │    GID …グループを識別するための一意なID
+    │        │    │                    ┌───── ホームディレクトリの絶対パス
+    │        │    │             ┌──────┴──────┐
+ec2-user:x:1000:1000:Cloud User:/home/ec2-user:/bin/bash
+         │           └────┬───┘                └───┬───┘
+         │                │                     デフォルトシェル
+         │                └───┐                 ログイン時などに起動されるシェルの絶対パス
+         │                 GECOS …コメント、ユーザーのフルネームやその他情報を記述
+  暗号化されたパスワード
+  シャドウパスワード(x)が使われている
+```
+
+### オプション
+
+#### オプション一覧
+
+<Table
+  colWidth={["20.5rem"]}
+  columns={["オプション", "説明"]}
+  data={[
+    [["`--badname`"].join("<br>"), "基準に準拠しない名前を許可します。"],
+    [
+      ["`-b`", "`--base-dir BASE_DIR`"].join("<br>"),
+      [
+        "ホームディレクトリが `-d HOME_DIR` で指定されていない場合のシステムのデフォルトベースディレクトリ。",
+        "`BASE_DIR` はアカウント名と連結され、ホームディレクトリを定義します。",
+        "`-m` オプションが使用されていない場合、`BASE_DIR` は存在している必要があります。",
+        "指定しない場合、`useradd` は `/etc/default/useradd` の `HOME` 変数で指定されたベースディレクトリ、またはデフォルトで `/home` を使用します。",
+      ].join("<br>"),
+    ],
+    [
+      ["`-c`", "`--comment COMMENT`"].join("<br>"),
+      "任意のテキスト文字列。通常、ログインの簡単な説明として使用され、現在はユーザーのフルネームのフィールドとして使用されています。",
+    ],
+    [
+      ["`-d`", "`--home-dir HOME_DIR`"].join("<br>"),
+      "新しいユーザーのログインディレクトリとして `HOME_DIR` を使用します。デフォルトでは、`LOGIN` 名を `BASE_DIR` に追加してログインディレクトリ名として使用します。`HOME_DIR` ディレクトリは存在する必要はありませんが、存在しない場合は作成されません。",
+    ],
+    [["`-D`", "`--defaults`"].join("<br>"), "以下の「デフォルト値の変更」セクションを参照してください。"],
+    [
+      ["`-e`", "`--expiredate EXPIRE_DATE`"].join("<br>"),
+      "ユーザーアカウントが無効化される日付を指定します。日付は `YYYY-MM-DD` の形式で指定します。指定しない場合、`useradd` は `/etc/default/useradd` の `EXPIRE` 変数で指定されたデフォルトの有効期限日付、またはデフォルトで空文字（無期限）を使用します。",
+    ],
+    [
+      ["`-f`", "`--inactive INACTIVE`"].join("<br>"),
+      "パスワードが期限切れになった後、アカウントが完全に無効化されるまでの日数を指定します。値 `0` はパスワードが期限切れになるとすぐにアカウントを無効化し、`-1` はこの機能を無効化します。指定しない場合、`useradd` は `/etc/default/useradd` の `INACTIVE` 変数で指定されたデフォルトの非アクティブ期間、またはデフォルトで `-1` を使用します。",
+    ],
+    [
+      ["`-g`", "`--gid GROUP`"].join("<br>"),
+      "ユーザーの初期ログイングループのグループ名または番号を指定します。グループ名は存在している必要があります。グループ番号は既存のグループを指す必要があります。指定しない場合、`useradd` の動作は `/etc/login.defs` の `USERGROUPS_ENAB` 変数によって異なります。この変数が `yes` に設定されている場合（またはコマンドラインで `-U/--user-group` が指定されている場合）、ユーザー名と同じ名前のグループが作成されます。`no` に設定されている場合（またはコマンドラインで `-N/--no-user-group` が指定されている場合）、新しいユーザーのプライマリグループは `/etc/default/useradd` の `GROUP` 変数で指定された値、またはデフォルトで `100` に設定されます。",
+    ],
+    [
+      ["`-G`", "`--groups GROUP1[,GROUP2,...[,GROUPN]]`"].join("<br>"),
+      "ユーザーがメンバーとなる補助グループのリストを指定します。各グループはカンマで区切られ、間に空白はありません。グループは `-g` オプションと同じ制限を受けます。デフォルトでは、ユーザーは初期グループのみに所属します。",
+    ],
+    [["`-h`", "`--help`"].join("<br>"), "ヘルプメッセージを表示して終了します。"],
+    [
+      ["`-k`", "`--skel SKEL_DIR`"].join("<br>"),
+      "ユーザーのホームディレクトリが `-m`（または `--create-home`）オプションで作成される場合にコピーされるファイルやディレクトリを含むスケルトンディレクトリを指定します。このオプションは `-m` オプションが指定されている場合にのみ有効です。指定しない場合、スケルトンディレクトリは `/etc/default/useradd` の `SKEL` 変数、またはデフォルトで `/etc/skel` に定義されます。可能であれば、ACLおよび拡張属性もコピーされます。",
+    ],
+    [
+      ["`-K`", "`--key KEY=VALUE`"].join("<br>"),
+      "`/etc/login.defs` のデフォルト（`UID_MIN`, `UID_MAX`, `UMASK`, `PASS_MAX_DAYS` など）を上書きします。例: システムアカウントを作成する際にパスワードエイジングを無効にするために `-K PASS_MAX_DAYS=-1` を使用できます。複数の `-K` オプションを指定できます。例: `-K UID_MIN=100 -K UID_MAX=499`",
+    ],
+    [
+      ["`-l`", "`--no-log-init`"].join("<br>"),
+      "ユーザーを `lastlog` および `faillog` データベースに追加しません。デフォルトでは、ユーザーの `lastlog` および `faillog` データベースへのエントリはリセットされ、以前に削除されたユーザーからのエントリの再利用を避けます。Debianの以前の `useradd` との互換性のために、`-O` オプションもサポートされています。",
+    ],
+    [
+      ["`-m`", "`--create-home`"].join("<br>"),
+      "ユーザーのホームディレクトリが存在しない場合に作成します。スケルトンディレクトリ（`-k` オプションで定義可能）に含まれるファイルおよびディレクトリがホームディレクトリにコピーされます。指定しない場合、`CREATE_HOME` が有効になっていない場合はホームディレクトリは作成されません。",
+    ],
+    [
+      ["`-M`", "`--no-create-home`"].join("<br>"),
+      "システム全体の設定 `/etc/login.defs` の `CREATE_HOME` が `yes` に設定されていても、ユーザーのホームディレクトリを作成しません。",
+    ],
+    [
+      ["`-N`", "`--no-user-group`"].join("<br>"),
+      "ユーザーと同じ名前のグループを作成せず、`-g` オプションまたは `/etc/default/useradd` の `GROUP` 変数で指定されたグループにユーザーを追加します。デフォルトの動作（`-g`, `-N`, `-U` オプションが指定されていない場合）は、`/etc/login.defs` の `USERGROUPS_ENAB` 変数で定義されています。",
+    ],
+    [
+      ["`-o`", "`--non-unique`"].join("<br>"),
+      "重複（非一意）の UID を持つユーザーアカウントの作成を許可します。このオプションは `-u` オプションと組み合わせて使用する場合にのみ有効です。",
+    ],
+    [
+      ["`-p`", "`--password PASSWORD`"].join("<br>"),
+      "暗号化されたパスワードを指定します（`crypt(3)` が返す形式）。デフォルトではパスワードが無効化されます。**注意:** このオプションは推奨されていません。パスワード（または暗号化されたパスワード）がプロセスをリストするユーザーによって見えるためです。パスワードがシステムのパスワードポリシーに準拠していることを確認してください。",
+    ],
+    [
+      ["`-r`", "`--system`"].join("<br>"),
+      "システムアカウントを作成します。システムユーザーは `/etc/shadow` にエイジング情報がなく、数値識別子は `/etc/login.defs` で定義された `SYS_UID_MIN-SYS_UID_MAX` 範囲内で選択され、通常のユーザーの UID 範囲（`UID_MIN-UID_MAX`）ではありません。システムアカウントにはホームディレクトリが作成されず、作成したい場合は `-m` オプションを指定する必要があります。",
+    ],
+    [
+      ["`-R`", "`--root CHROOT_DIR`"].join("<br>"),
+      "`CHROOT_DIR` ディレクトリ内で変更を適用し、`CHROOT_DIR` ディレクトリから設定ファイルを使用します。",
+    ],
+    [
+      ["`-P`", "`--prefix PREFIX_DIR`"].join("<br>"),
+      "`PREFIX_DIR` ディレクトリ内で変更を適用し、`PREFIX_DIR` ディレクトリから設定ファイルを使用します。このオプションは `chroot` しません。クロスコンパイルターゲットを準備するために意図されています。制限事項: NIS および LDAP ユーザー/グループは確認されません。PAM 認証はホストファイルを使用します。SELINUX のサポートはありません。",
+    ],
+    [
+      ["`-s`", "`--shell SHELL`"].join("<br>"),
+      "ユーザーのログインシェルの名前を指定します。デフォルトでは、このフィールドを空のままにし、`/etc/default/useradd` の `SHELL` 変数で指定されたデフォルトのログインシェル、またはデフォルトで空文字を選択します。",
+    ],
+    [
+      ["`-u`", "`--uid UID`"].join("<br>"),
+      "ユーザーの ID の数値値を指定します。この値は `-o` オプションを使用しない限り一意でなければなりません。値は非負でなければなりません。デフォルトでは、`UID_MIN` 以上で、他のすべてのユーザーより大きい最小の ID 値が使用されます。`-r` オプションおよび `UID_MAX` の説明も参照してください。",
+    ],
+    [
+      ["`-U`", "`--user-group`"].join("<br>"),
+      "ユーザーと同じ名前のグループを作成し、ユーザーをこのグループに追加します。デフォルトの動作（`-g`, `-N`, `-U` オプションが指定されていない場合）は、`/etc/login.defs` の `USERGROUPS_ENAB` 変数で定義されています。",
+    ],
+    [
+      ["`-Z`", "`--selinux-user SEUSER`"].join("<br>"),
+      "ユーザーのログイン用SELinuxユーザーを指定します。デフォルトでは、このフィールドを空のままにし、システムがデフォルトのSELinuxユーザーを選択します。",
+    ],
+  ]}
+/>
+
+#### -D オプション
+
+`useradd` のデフォルト値は `/etc/default/useradd` ファイルに設定されている
+
+```bash frame=none
+# useradd defaults file
+GROUP=100
+HOME=/home
+INACTIVE=-1
+EXPIRE=
+SHELL=/bin/bash
+SKEL=/etc/skel
+CREATE_MAIL_SPOOL=yes
+```
+
+#### Changing the default values
+
+`-D`オプションだけを指定して起動すると、`useradd` は現在のデフォルト値を表示する。`-D` と他のオプションをつけて起動すると、`useradd` は指定されたオプションのデフォルト値を更新する。
+
+有効なデフォルト変更オプションは次のとおり。
+
+<Table
+  colWidth={["14.5rem"]}
+  columns={["オプション", "説明"]}
+  data={[
+    [
+      ["`-b`", "`--base-dir BASE_DIR`"].join("<br>"),
+      [
+        "新しいユーザのホームディレクトリのパスプレフィックス。新しいアカウントを作成するときに `-d` オプションを使用しない場合は、 ユーザ名が `BASE_DIR` の末尾に付加され、新しいユーザのホーム・ディレクトリ名になります。",
+        "このオプションは、`/etc/default/useradd` の `HOME` 変数を設定する。",
+      ].join("<br>"),
+    ],
+    [
+      ["`-e`", "`--expiredate EXPIRE_DATE`"].join("<br>"),
+      "ユーザーアカウントが無効化される日付を指定します。<br>このオプションは、`/etc/default/useradd` の `EXPIRE` 変数を設定します。",
+    ],
+    [
+      ["`-f`", "`--inactive INACTIVE`"].join("<br>"),
+      "パスワードが期限切れになった後、アカウントが無効化されるまでの日数を指定します。<br>このオプションは、`/etc/default/useradd` の `INACTIVE` 変数を設定します。",
+    ],
+    [
+      ["`-g`", "`--gid GROUP`"].join("<br>"),
+      "新しいユーザーの初期グループのグループ名またはIDを指定します（`-N/--no-user-group` オプションが使用されている場合や、`/etc/login.defs` の `USERGROUPS_ENAB` 変数が `no` に設定されている場合）。グループ名は存在している必要があり、数値グループIDは既存のグループを指す必要があります。<br>このオプションは、`/etc/default/useradd` の `GROUP` 変数を設定します。",
+    ],
+    [
+      ["`-s`", "`--shell SHELL`"].join("<br>"),
+      "新しいユーザーのログインシェルの名前を指定します。<br>このオプションは、`/etc/default/useradd` に `SHELL` 変数を設定します。",
+    ],
+  ]}
+/>
+
+:::note[Notes]
+
+システム管理者は、デフォルト・ユーザー・ファイルを `/etc/skel/` ディレクトリ（または `/etc/default/useradd` で指定された他のスケルトン・ディレクトリ、またはコマンドラインで指定されたディレクトリ）に配置する責任があります。
+
+:::
+
+### EXAMPLES
+
+#### 新規ユーザーの作成例
+
+```bash frame=none
+useradd -c "Linux User" -d /home/linux -s /bin/bash linuxuser
+```
+
+### CAVEATS
+
+You may not add a user to a NIS or LDAP group. This must be performed on the corresponding server.
+
+```
+Similarly, if the username already exists in an external user database such as NIS or LDAP, useradd will deny the user account creation request.
+
+It is usually recommended to only use usernames that begin with a lower case letter or an underscore, followed by lower case letters, digits, underscores, or dashes.
+
+They can end with a dollar sign. In regular expression terms: [a-z_][a-z0-9_-]*[$]?
+
+On Debian, the only constraints are that usernames must neither start with a dash ('-') nor plus ('+') nor tilde ('~') nor contain a colon (':'), a comma (','), or a whitespace (space: ' ', end of line: '\n', tabulation: '\t', etc.). Note that using a slash ('/') may break the default algorithm for the definition of the user's home directory.
+
+On Ubuntu, the same constraints as Debian are in place, with the additional constraint that the username cannot be fully numeric. This includes octal and hexadecimal syntax.
+
+Usernames may only be up to 32 characters long.
+```
+
+### CONFIGURATION
+
+```
+       The following configuration variables in /etc/login.defs change the behavior of this tool:
+
+       CREATE_HOME (boolean)
+           Indicate if a home directory should be created by default for new users.
+
+           This setting does not apply to system users, and can be overridden on the command line.
+
+       GID_MAX (number), GID_MIN (number)
+           Range of group IDs used for the creation of regular groups by useradd, groupadd, or newusers.
+
+           The default value for GID_MIN (resp.  GID_MAX) is 1000 (resp. 60000).
+
+       HOME_MODE (number)
+           The mode for new home directories. If not specified, the UMASK is used to create the mode.
+
+           useradd and newusers use this to set the mode of the home directory they create.
+
+       LASTLOG_UID_MAX (number)
+           Highest user ID number for which the lastlog entries should be updated. As higher user IDs are usually tracked by remote user identity and authentication services
+           there is no need to create a huge sparse lastlog file for them.
+
+           No LASTLOG_UID_MAX option present in the configuration means that there is no user ID limit for writing lastlog entries.
+
+       MAIL_DIR (string)
+           The mail spool directory. This is needed to manipulate the mailbox when its corresponding user account is modified or deleted. If not specified, a compile-time
+           default is used.
+
+       MAIL_FILE (string)
+           Defines the location of the users mail spool files relatively to their home directory.
+
+       The MAIL_DIR and MAIL_FILE variables are used by useradd, usermod, and userdel to create, move, or delete the user's mail spool.
+
+       MAX_MEMBERS_PER_GROUP (number)
+           Maximum members per group entry. When the maximum is reached, a new group entry (line) is started in /etc/group (with the same name, same password, and same GID).
+
+           The default value is 0, meaning that there are no limits in the number of members in a group.
+
+           This feature (split group) permits to limit the length of lines in the group file. This is useful to make sure that lines for NIS groups are not larger than 1024
+           characters.
+
+           If you need to enforce such limit, you can use 25.
+
+           Note: split groups may not be supported by all tools (even in the Shadow toolsuite). You should not use this variable unless you really need it.
+
+       PASS_MAX_DAYS (number)
+           The maximum number of days a password may be used. If the password is older than this, a password change will be forced. If not specified, -1 will be assumed (which
+           disables the restriction).
+
+       PASS_MIN_DAYS (number)
+           The minimum number of days allowed between password changes. Any password changes attempted sooner than this will be rejected. If not specified, -1 will be assumed
+           (which disables the restriction).
+
+       PASS_WARN_AGE (number)
+           The number of days warning given before a password expires. A zero means warning is given only upon the day of expiration, a negative value means no warning is
+           given. If not specified, no warning will be provided.
+
+       SUB_GID_MIN (number), SUB_GID_MAX (number), SUB_GID_COUNT (number)
+           If /etc/subuid exists, the commands useradd and newusers (unless the user already have subordinate group IDs) allocate SUB_GID_COUNT unused group IDs from the range
+           SUB_GID_MIN to SUB_GID_MAX for each new user.
+
+           The default values for SUB_GID_MIN, SUB_GID_MAX, SUB_GID_COUNT are respectively 100000, 600100000 and 65536.
+
+       SUB_UID_MIN (number), SUB_UID_MAX (number), SUB_UID_COUNT (number)
+           If /etc/subuid exists, the commands useradd and newusers (unless the user already have subordinate user IDs) allocate SUB_UID_COUNT unused user IDs from the range
+           SUB_UID_MIN to SUB_UID_MAX for each new user.
+
+           The default values for SUB_UID_MIN, SUB_UID_MAX, SUB_UID_COUNT are respectively 100000, 600100000 and 65536.
+
+       SYS_GID_MAX (number), SYS_GID_MIN (number)
+           Range of group IDs used for the creation of system groups by useradd, groupadd, or newusers.
+
+           The default value for SYS_GID_MIN (resp.  SYS_GID_MAX) is 101 (resp.  GID_MIN-1).
+
+       SYS_UID_MAX (number), SYS_UID_MIN (number)
+           Range of user IDs used for the creation of system users by useradd or newusers.
+
+           The default value for SYS_UID_MIN (resp.  SYS_UID_MAX) is 101 (resp.  UID_MIN-1).
+
+       UID_MAX (number), UID_MIN (number)
+           Range of user IDs used for the creation of regular users by useradd or newusers.
+
+           The default value for UID_MIN (resp.  UID_MAX) is 1000 (resp. 60000).
+
+       UMASK (number)
+           The file mode creation mask is initialized to this value. If not specified, the mask will be initialized to 022.
+
+           useradd and newusers use this mask to set the mode of the home directory they create if HOME_MODE is not set.
+
+           It is also used by pam_umask as the default umask value.
+
+       USERGROUPS_ENAB (boolean)
+           If set to yes, userdel will remove the user's group if it contains no more members, and useradd will create by default a group with the name of the user.
+
+```
+
+### FILES
+
+```
+       /etc/passwd
+           User account information.
+
+       /etc/shadow
+           Secure user account information.
+
+       /etc/group
+           Group account information.
+
+       /etc/gshadow
+           Secure group account information.
+
+       /etc/default/useradd
+           Default values for account creation.
+
+       /etc/skel/
+           Directory containing default files.
+
+       /etc/subgid
+       /etc/subgid
+           Group account information.
+
+       /etc/gshadow
+           Secure group account information.
+
+       /etc/default/useradd
+           Default values for account creation.
+
+       /etc/skel/
+           Directory containing default files.
+
+       /etc/subgid
+           Per user subordinate group IDs.
+
+       /etc/subuid
+           Per user subordinate user IDs.
+
+       /etc/login.defs
+           Shadow password suite configuration.
+```
+
+### EXIT VALUES
+
+<Table
+  columns={["ステータス値", "説明"]}
+  data={[
+    ["0", "success"],
+    ["1", "can't update password file"],
+    ["2", "invalid command syntax"],
+    ["3", "invalid argument to option"],
+    ["4", "UID already in use (and no -o)"],
+    ["6", "specified group doesn't exist"],
+    ["9", "username already in use"],
+    ["10", "can't update group file"],
+    ["12", "can't create home directory"],
+    ["14", "can't update SELinux user mapping"],
+  ]}
+/>
+
+##### SEE ALSO
+
+chfn(1), chsh(1), passwd(1), crypt(3), groupadd(8), groupdel(8), groupmod(8), login.defs(5), newusers(8), subgid(5), subuid(5), userdel(8), usermod(8).
+
+shadow-utils 4.8.1
