@@ -1,0 +1,60 @@
+---
+title: ユーザー情報の運用管理
+description: ユーザーの作成・編集。
+tags:
+  - "Linux"
+  - "System Management"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: ユーザー情報の運用管理
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 2
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## Linux ユーザー
+
+### 主なコマンド
+
+<Table
+  caption="ユーザー・ログイン設定"
+  columns={["コマンド", "説明"]}
+  data={[
+    ["adduser", "ユーザーを作成する。`useradd` のラッパーコマンド。"],
+    ["useradd", "ユーザーアカウントを作成する"],
+    ["usermod", "ユーザーアカウントの設定を変更する"],
+    ["userdel", "ユーザーアカウントを削除する"],
+    ["chage", "パスワードの有効期限設定を行う"],
+    ["id", "ユーザーが所属しているグループ ID を調べる"],
+    ["last", "最近のログインユーザーを一覧表示"],
+    ["passwd", "パスワードを変更する"],
+    ["su", "ログイン中のユーザーを切り替える"],
+    ["visudo", "/etc/sudoers ファイルを vi で編集するための専用コマンド"],
+    ["who", "ユーザーのログイン状況やログイン履歴を把握する。"],
+  ]}
+/>
+
+## Linux ユーザーのライフサイクル
+
+### ユーザーを作成する
+
+#### useradd
+
+#### adduser
+
+### ユーザー情報の表示
+
+### ユーザー情報の変更
+
+#### usermod
+
+### ユーザーの削除
+
+#### userdel

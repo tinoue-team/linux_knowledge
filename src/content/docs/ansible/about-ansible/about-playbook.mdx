@@ -73,41 +73,506 @@ Ansible では、Python 向けの YAML を操作するライブラリとして�
 
 ## Playbook の構文
 
-### rescue ブロック
+### Playbook のセクション
+
+- targets セクション(必須)
+- vars セクション
+- tasks セクション(必須)
+- handlers セクション
+
+#### targets セクション
+
+<Table
+  columns={["ディレクティブ", "説明"]}
+  data={[
+    ["name", "プレイ名を指定する"],
+    ["hosts(必須)", "プレイの実行対象になるグループや管理対象ノードを指定する"],
+    [
+      "become",
+      [
+        "プレイを管理者権限で実行するか否かを指定する",
+        "・yes ->  管理者権限で実行する",
+        "・no  ->  管理者権限で実行しない(デフォルト)",
+      ].join("<br>"),
+    ],
+    [
+      "gather_facts",
+      [
+        "管理対象ノードのファクト変数を収集するか否かを指定する",
+        "・yes ->  ファクト変数を収集する (デフォルト)",
+        "・no  ->  ファクト変数を収集しない",
+      ].join("<br>"),
+    ],
+  ]}
+/>
+
+```bash frame=none
+- name: Install Nginx.
+  hosts: web01
+  become: true
+  gather_facts: false
+```
+
+#### vars セクション
+
+プレイ内で使用する変数を vars セクションで宣言する。
+
+```bash frame=none
+vars:
+  web_service: nginx
+  web_source_dest: /var/www/html
+```
+
+#### tasks セクション
+
+ターゲットノードで実行するタスクの手順書を記述していく
+
+```yaml
+tasks:
+  - name: Ensure nginx is installed
+    ansible.builtin.apt:
+      name: nginx
+      state: present
+
+  - name: Start nginx service
+    ansible.builtin.systemd:
+      name: nginx
+      state: started
+
+  - name: Enable nginx service
+    ansible.builtin.systemd:
+      name: nginx
+      enabled: true
+
+  - name: Get nginx Installed version
+    ansible.builtin.command: nginx -v
+    changed_when: false
+
+  - name: Get status of nginx service
+    ansible.builtin.command: systemctl status nginx
+    changed_when: false
+```
+
+#### handlers セクション
+
+tasks セクション内のタスクの実行内容を待ち受け、
+そのタスクの実行結果に応じて反応するタスクをハンドリングするセクションです。
+
+```yaml
+handlers:
+  - name: ハンドラータスク名
+    モジュール: ...
+    listen:
+      - tasks の notify を指定する
+```
+
+<Steps>
+
+1. tasks セクションで以下のようにタスクが定義されている notify を指定しておく
+
+   ```yaml
+   tasks:
+     - name: Ensure nginx is installed
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+      notify:
+        - start web service
+   ```
+
+1. handlers セクションで "start web service" を待ち受けて実行する内容を書く
+
+   ```yaml
+   handlers:
+     - name: ハンドラータスク名
+       モジュール: 実行する内容...
+       listen:
+         - start web service
+   ```
+
+</Steps>
+
+## 変数
+
+変数の利用は vars セクションで定義して利用できる。
+
+### それぞれの型での変数宣言
+
+- 文字列 ( `web_server = "nginx"` みたいなもの )
+
+  ```yaml
+  vars:
+    web_server: nginx
+  ```
+
+- オブジェクト ( `web_server = { "name" = nginx, "root_path" = /var/www/html }` )
+
+  ```yaml
+  vars:
+    web_server:
+      name: nginx
+      root_path: /var/www/html
+  ```
+
+- 配列 ( `web_servers = [ "nginx", "apache" ]` )
+
+  ```yaml
+  vars:
+    web_servers:
+      - nginx
+      - apache
+  ```
+
+- マッピング ( `web_servers = [ { "name" = nginx, "root_path" = /var/www/html }, { "name" = nginx, "root_path" = /var/www/html } ]` )
+
+  ```yaml
+  vars:
+    web_servers:
+      - name: nginx
+        root_path: /var/www/html
+      - name: apache
+        root_path: /var/www/html
+  ```
+
+### vars_files セクション
+
+vars セクションで変数の管理面で、
+
+- 役割分担
+- 環境ごとでの管理
+- 機密性の担保
+
+を考慮して、vars セクションの内容を別ファイルに切り出す。
+
+例えば、アカウントなどの機密性の高い内容を切り分ける場合
+
+```yaml
+vars: ... # 直接変数宣言した内容
+
+vars_files:
+  - ./vars/secret.yaml
+```
+
+```yaml title="vars/secret.yaml"
+account_name: hoge
+account_password: hogepasshoge
+```
+
+### vars_prompt セクション
+
+vars_prompt セクションを定義することで、プレイの実行時に定義した変数に値を渡すことができる。
+
+```yaml
+vars_prompt:
+  - name: hostname
+    prompt: Input hostname.
+    private: yes
+  - name: server_password
+    prompt: Input server pass.
+    private: no
+    encrypt: sha512_crypt
+    confirm: yes
+
+tasks:
+  - name: hostname 変数を利用したタスク
+    ...
+  - name: server_password 変数を利用したタスク
+    ...
+```
+
+<Table
+  columns={["パラメーター", "説明"]}
+  data={[
+    ["name", ["・入力した値を格納する", "・`prompt` パラメーターの省略時は変数名が入力プロンプトになる"].join("<br>")],
+    ["prompt", ["入力時に表示するプロンプト"].join("<br>")],
+    [
+      "private",
+      ["入力した文字列を画面に表示するか否か", "・yes  : 表示しない(デフォルト)", "・no   : 表示する"].join("<br>"),
+    ],
+    [
+      "encrypt",
+      [
+        "入力した文字列を暗号化するときの形式 (ハッシュ化のアルゴリズム)",
+        "・sha512_crypt",
+        "・sha256_crypt",
+        "・md5_crypt",
+      ].join("<br>"),
+    ],
+    [
+      "confirm",
+      [
+        "入力した文字列を再度入力するか否か (入力確認)",
+        "・yes  : 再度入力する",
+        "・no   : 再度入力しない (デフォルト)",
+      ].join("<br>"),
+    ],
+  ]}
+/>
+
+### タスク変数
+
+tasks セクション内の 1 タスク内で vars セクションを定義した、1 タスク範囲(スコープ)の変数
+
+```yaml
+tasks:
+  - name: Install the latest version of the Apache package
+    ansible.builtin.yum:
+      name: "{{ packages }}"
+      state: latest
+    vars:
+      packages:
+        - httpd
+        - httpd-tools
+        - httpd-devel
+        - httpd-manual
+    become: yes
+```
+
+:::tip[変数スコープ]
+
+<Table
+  columns={["変数の種類", "範囲(スコープ)", "説明"]}
+  data={[
+    [
+      "インベントリー変数",
+      "インベントリーが参照可能な場所",
+      ["インベントリー内で定義した変数", "「ホスト変数」、「グループ変数」はインベントリー変数の一部です"].join("<br>"),
+    ],
+    ["ホスト変数", "インベントリーが参照可能な場所", ["インベントリー内の管理対象ノードに割り当てた変数"].join("<br>")],
+    ["グループ変数", "インベントリーが参照可能な場所", ["インベントリー内のグループに割り当てた変数"].join("<br>")],
+    [
+      "プレイ変数",
+      "プレイ内",
+      [
+        "vars セクションで定義した変数",
+        "vars セクションで定義はしないが「タスク変数」、「ロール変数」、「ブロック変数」もプレイ変数として理解",
+      ].join("<br>"),
+    ],
+    [
+      "タスク変数",
+      "タスク内",
+      ["vars セクションで定義した変数", "tasks 内で vars セクションで定義した変数"].join("<br>"),
+    ],
+    ["ロール変数", "role 内", ["role 内での vars セクションで定義した変数"].join("<br>")],
+    ["ブロック変数", "block 内", ["block 内での vars セクションで定義した変数"].join("<br>")],
+    [
+      "マジック変数",
+      "プレイ内",
+      ["Ansible があらかじめ用意(定義)している変数", "ファクト変数はマジック変数の一部"].join("<br>"),
+    ],
+    [
+      "ファクト変数",
+      "ターゲットノードがタスクを実行時",
+      ["ターゲットノードごとのシステム情報が設定される変数", "変数宣言は不要(自動で定義される)"].join("<br>"),
+    ],
+    [
+      "レジスター変数",
+      "プレイ内",
+      ["`register`ディレクティブで定義した変数", "タスクの実行結果が設定される"].join("<br>"),
+    ],
+  ]}
+/>
+
+:::
+
+### ファクト変数
+
+ターゲットノードから収集されるマシン情報を格納した変数。ansible 実行時の `TASK [Gathering Facts]` のタイミングで収集される。
+
+ファクト変数に設定される値を確認
+
+```bash frame=none
+ansible pattern -i INVENTORY -m ansible.builtin.setup
+
+# ex.
+# ansible ec2 -i ./ansible/inventory/hosts.yaml -m ansible.builtin.setup
+```
+
+実行が成功すれば、`ansible_facts` というプロパティにファクト変数が格納される。
+
+### マジック変数
+
+Ansible があらかじめ用意している複数の変数をまとめてマジック変数と呼ぶ。
+マジック変数の中で、ターゲットノードに関する情報を設定した変数をファクト変数と呼びます。
+
+#### 主なマジック変数
+
+- `hostvers`: 実行対象となるすべてのターゲットノードのファクト変数
+- `inventory_hostname`: インベントリ内のターゲットノード名
+- `group_names`: ターゲットノードが属するグループ名 (all グループは除く)
+- `groups`: 全グループとグループに含まれるターゲットノード名
+
+<LinkPreview url="https://docs.ansible.com/ansible/latest/reference_appendices/special_variables.html#magic-variables" />
+
+<Steps>
+1. デバッグで、マジック変数を確認
+
+      ```yaml
+      ---
+      - name: Check the value of the Magic variable.
+        hosts: all
+        gather_facts: false
+
+        tasks:
+          - name: Displays the value of inventor_hostname.
+            ansible.builtin.debug:
+              var: inventory_hostname
+          - name: Displays the value of group_names
+            ansible.builtin.debug:
+              var: group_names
+          - name: Displays the value of groups
+            ansible.builtin.debug:
+              var: groups
+          - name: Displays the value of hostvars
+            ansible.builtin.debug:
+              var: hostvars
+      ```
+
+1.  こちらを実行すると
+
+        ```bash frame=none
+        ansible-playbook -i ansible/inventory/hosts.yaml ansible/playbook/debug_magic_vars.yaml
+
+        PLAY [Check the value of the Magic variable.] ************************************************************************************************************************
+
+        TASK [Displays the value of inventor_hostname.] **********************************************************************************************************************
+        ok: [web01] => {
+            "inventory_hostname": "web01"
+        }
+
+        TASK [Displays the value of group_names] *****************************************************************************************************************************
+        ok: [web01] => {
+            "group_names": [
+                "ec2"
+            ]
+        }
+
+        TASK [Displays the value of groups] **********************************************************************************************************************************
+        ok: [web01] => {
+            "groups": {
+                "all": [
+                    "web01"
+                ],
+                "ec2": [
+                    "web01"
+                ],
+                "ungrouped": []
+            }
+        }
+
+        TASK [Displays the value of hostvars] ********************************************************************************************************************************
+        ok: [web01] => {
+            "hostvars": {
+                "web01": {
+                    "ansible_check_mode": false,
+                    "ansible_config_file": "/Users/t_inoue/Documents/01_ProjectsApp/11_Practices/10_AWS/udemy/terraform-practice/project-zabbix/ansible.cfg",
+                    "ansible_diff_mode": false,
+                    "ansible_facts": {},
+                    "ansible_forks": 5,
+                    "ansible_host": "52.195.179.111",
+                    "ansible_inventory_sources": [
+                        "/Users/t_inoue/Documents/01_ProjectsApp/11_Practices/10_AWS/udemy/terraform-practice/project-zabbix/ansible/inventory/hosts.yaml"
+                    ],
+                    "ansible_playbook_python": "/opt/homebrew/Cellar/ansible/11.1.0/libexec/bin/python",
+                    "ansible_python_interpreter": "/usr/bin/python3",
+                    "ansible_run_tags": [
+                        "all"
+                    ],
+                    "ansible_skip_tags": [],
+                    "ansible_ssh_private_key_file": "~/.ssh/t_admin_key.pem",
+                    "ansible_user": "ubuntu",
+                    "ansible_verbosity": 0,
+                    "ansible_version": {
+                        "full": "2.18.1",
+                        "major": 2,
+                        "minor": 18,
+                        "revision": 1,
+                        "string": "2.18.1"
+                    },
+                    "group_names": [
+                        "ec2"
+                    ],
+                    "groups": {
+                        "all": [
+                            "web01"
+                        ],
+                        "ec2": [
+                            "web01"
+                        ],
+                        "ungrouped": []
+                    },
+                    "inventory_dir": "/Users/t_inoue/Documents/01_ProjectsApp/11_Practices/10_AWS/udemy/terraform-practice/project-zabbix/ansible/inventory",
+                    "inventory_file": "/Users/t_inoue/Documents/01_ProjectsApp/11_Practices/10_AWS/udemy/terraform-practice/project-zabbix/ansible/inventory/hosts.yaml",
+                    "inventory_hostname": "web01",
+                    "inventory_hostname_short": "web01",
+                    "omit": "__omit_place_holder__455e5b910f16027f2a046c9388cd0e926d162b16",
+                    "playbook_dir": "/Users/t_inoue/Documents/01_ProjectsApp/11_Practices/10_AWS/udemy/terraform-practice/project-zabbix/ansible/playbook"
+                }
+            }
+        }
+
+        PLAY RECAP ***********************************************************************************************************************************************************
+        web01                      : ok=4    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+        ```
+
+</Steps>
+
+### 変数を参照(呼び出す)方法
+
+変数を参照する時は、`"{{ variable }}"` として呼び出す。
+Playbook 内のパラメータとして利用すると
 
 ```yaml
 ---
-- hosts: all
+- name: Install and Configure Nginx on EC2 Instances
+  hosts: ec2
   vars:
-    ansible_become: yes
+    ansible_become: true
     ansible_become_method: sudo
+    hostname: "web01"
   tasks:
-    - name: Install Nginx
-      block:
-        - yum:
-            name: nginx
-            state: latest
-      rescue:
-        - debug:
-          msg: "Error!"
-      always:
-        - debug:
-          msg: "Always run this section"
+    - name: Configure set hostname
+      ansible.builtin.hostname:
+        name: "{{ hostname }}"
+        use: systemd
 ```
 
-プレイブック内で block を指定すると、block 内でのエラーが発生した場合、rescue ブロックが処理される。いわゆる例外処理を行う。
-単に block の処理にエラーが起きると failed とせず、rescue を行う(エラーハンドリング)。
+マッピング変数を参照する時などは以下のよう
 
-#### block
+```yaml
+vars:
+  file_path:
+    source_path: ./textfile.txt # file_path['source_path']
+    destination_path: /tmp/ # file_path['destination_path']
+  file_path2:
+    - ./textfile.txt # file_path2[0]
+    - /tmp/ # file_path2[1]
+```
 
-このセクションに実行するタスクを記述して、以降の rescue、always のセクションはこの block の処理次第で実行される。
+### ファクト変数の参照方法
 
-#### rescue
+ansible_facts というファクト変数のトップレベルのプロパティをマッピングで参照する。
 
-block 内の処理でエラーが発生した際に、このセクションに記述されている処理が実行される。
+```yaml
+---
+- name: Display the Fact variable.
+  hosts: ec2
 
-#### always
-
-block 内の処理が終了した際、タスクの成功、失敗に問わず必ず実行される。
-ここでは、block 内の処理が成功した場合は、"Always run this section" という文字が出力されエラーが発生した場合は rescue 内の "Error!"
-が出力された後に、"Always run this section" の文字が出力される。
+  tasks:
+    - name: Displays the distribution name.
+      ansible.builtin.debug:
+        msg: "Distribution name -> {{ ansible_facts['distribution'] }}"
+    - name: Displays the distribution name.
+      ansible.builtin.debug:
+        msg: "OS family -> {{ ansible_facts['os_family'] }}"
+    - name: Displays the IPv4 address
+      ansible.builtin.debug:
+        msg: "IPv4 address -> {{ item }}"
+      loop: "{{ ansible_facts['all_ipv4_addresses'] }}"
+    - name: Displays hostname.
+      ansible.builtin.debug:
+        msg: "hostname -> {{ ansible_facts['hostname'] }}"
+    - name: Displays fqdn.
+      ansible.builtin.debug:
+        msg: "hostname -> {{ ansible_facts['fqdn'] }}"
+```

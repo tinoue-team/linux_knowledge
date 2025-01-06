@@ -1,0 +1,97 @@
+---
+title: handlers セクション
+description: handlers セクションについての説明。使用方法
+tags:
+  - "Ansible"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: handlers セクション
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 30
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## changed の時だけタスクを実行する
+
+<LinkPreview url="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_handlers.html" />
+
+特定のタスクでターゲットノードに変更を加えた時をトリガーとして実行するアクション(タスク)を定義する方法として、handlers セクションがある。
+
+```yaml
+---
+- name: Test exec handlers.
+  hosts: ec2
+  gather_facts: false
+
+  tasks:
+    - name: Send command
+      ansible.builtin.command: echo "CookBook"
+      register: res_command
+      notify:
+        - handler1
+        - After debug2
+      changed_when: true
+
+  handlers:
+    - name: After debug1
+      ansible.builtin.debug:
+        msg: "{{ res_command['stdout_lines'] }}"
+      listen: "handler1"
+    - name: After debug2
+      ansible.builtin.debug:
+        msg: "handler2"
+```
+
+`changed` の時だけ実行するタスクを定義するには、`handlers` と `notify` ディレクティブを利用します。
+`changed` の時だけ実行するタスクを `handlers` で定義し、タスクに設定する `notify` ディレクティブで、どのハンドラを呼び出すかをシーケンス型で定義します。
+
+`notify` ディレクティブでハンドラの呼び出し先を指定する(ハンドラのタスクで定義した `name` もしくは `listen` の値を指定する)
+
+:::caution[タスク名は一意にする]
+
+ハンドラ内で定義しているタスクの `name` や `listen` は一意である方が良い。
+仮にハンドラ内の `name` や `listen` の値が重複していた場合、それを `tasks` セクションのタスク内の `notify` 内で指定していると
+最初に定義されたハンドラが実行されるようになります。
+
+また、`tasks` セクションの複数のタスクから `notify` で指定されているハンドラがあり、それらが実行時に `changed` となっても、
+`handlers` で定義されているタスクが実行されるのは 1 回だけです。
+
+また、ハンドラで `import_role` または `include_role` モジュールを実行することができない。
+
+:::
+
+実行結果
+
+```bash frame=none
+ansible-playbook -i ansible/inventory/hosts.yaml ansible/playbook/handlers.yaml
+```
+
+```
+PLAY [Test exec handlers.] *******************************************************************************************
+
+TASK [Send command] **************************************************************************************************
+changed: [web01]
+
+RUNNING HANDLER [After debug1] ***************************************************************************************
+ok: [web01] => {
+    "msg": [
+        "CookBook"
+    ]
+}
+
+RUNNING HANDLER [After debug2] ***************************************************************************************
+ok: [web01] => {
+    "msg": "handler2"
+}
+
+PLAY RECAP ***********************************************************************************************************
+web01                      : ok=3    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```

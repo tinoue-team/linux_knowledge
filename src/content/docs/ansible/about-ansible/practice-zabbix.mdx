@@ -73,3 +73,68 @@ all:
           ansible_host: 192.168.1.20
           ansible_user: ubuntu
 ```
+
+## ロールに分割
+
+ロールは、プレイブックを役割別でファイル分割することで以下のメリットを享受できるようになります。
+
+- 大きくなっていくプレイブックをロールに分割することで、他のプレイブックでの再利用ができる。
+- 肥大化したプレイブックの可読性が上がる
+- チーム開発時に作業分担ができるようになる
+
+### web サーバーを構築するプレイブックをロールで分割してみる
+
+まだ未分割のプレイブックが以下のようになっている。
+
+```yaml
+---
+- name: Install and Configure Nginx on EC2 Instances
+  hosts: ec2
+  vars:
+    ansible_become: true
+    ansible_become_method: sudo
+  tasks:
+    - name: Configure set hostname
+      ansible.builtin.hostname:
+        name: web01
+        use: systemd
+
+    - name: Ensure nginx is installed
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Copy content
+      ansible.builtin.copy:
+        src: ../../content/index.nginx-debian.html
+        dest: /var/www/html
+        owner: root
+        mode: "0644"
+
+    - name: Start nginx service
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+
+    - name: Enable nginx service
+      ansible.builtin.systemd:
+        name: nginx
+        enabled: true
+
+    - name: Get nginx Installed version
+      ansible.builtin.command: nginx -v
+      changed_when: false
+
+    - name: Get status of nginx service
+      ansible.builtin.command: systemctl status nginx
+      changed_when: false
+```
+
+こちらを以下の役割で分割していく
+
+- ホスト名変更
+- Nginx インストール
+- コンテンツの転送
+- Nginx の起動
+
+ファイルとしては

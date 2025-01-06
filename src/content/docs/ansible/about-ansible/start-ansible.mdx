@@ -34,24 +34,49 @@ import Table from "@components/Table.astro";
 
 ### インストール方法
 
+コントロールノードとなるホストに Ansible をインストールします。
+
 <Tabs syncKey="ansible">
     <TabItem label="MacOS">
-        ```bash frame=none
-        brew install ansible
+      ```bash frame=none
+      brew install ansible
 
-        # インストール後 ansible コマンドの実行確認
-        ansible --version
-        ansible [core 2.17.4]
-        config file = None
-        configured module search path = ['/Users/t_inoue/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
-        ansible python module location = /opt/homebrew/Cellar/ansible/10.4.0/libexec/lib/python3.12/site-packages/ansible
-        ansible collection location = /Users/t_inoue/.ansible/collections:/usr/share/ansible/collections
-        executable location = /opt/homebrew/bin/ansible
-        python version = 3.12.7 (main, Oct  1 2024, 02:05:46) [Clang 15.0.0 (clang-1500.3.9.4)] (/opt/homebrew/Cellar/ansible/10.4.0/libexec/bin/python)
-        jinja version = 3.1.4
-        libyaml = True
-        ```
-        更新するには、`brew upgrade ansible`
+      # インストール後 ansible コマンドの実行確認
+      ansible --version
+      ansible [core 2.17.4]
+      config file = None
+      configured module search path = ['/Users/t_inoue/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+      ansible python module location = /opt/homebrew/Cellar/ansible/10.4.0/libexec/lib/python3.12/site-packages/ansible
+      ansible collection location = /Users/t_inoue/.ansible/collections:/usr/share/ansible/collections
+      executable location = /opt/homebrew/bin/ansible
+      python version = 3.12.7 (main, Oct  1 2024, 02:05:46) [Clang 15.0.0 (clang-1500.3.9.4)] (/opt/homebrew/Cellar/ansible/10.4.0/libexec/bin/python)
+      jinja version = 3.1.4
+      libyaml = True
+      ```
+      更新するには、`brew upgrade ansible`
+
+    </TabItem>
+
+    <TabItem label="pip">
+      Python の仮想環境である venv で環境を切り分けるメリットを享受できる pip を利用したインストール手順
+
+      ```bash frame=none
+      # Python 3.8 以上のインストール後
+
+      python3 -m venv myvenv
+
+      source myvenv/bin/activate
+      pip install pip --upgrade
+
+      pip install ansible==4.2.0
+
+      # インストール後 ansible コマンドの実行確認(ansible-core としてのバージョンが確認される)
+      ansible --version
+
+      # pip でインストールされたパッケージを確認できる。これで、ansible、ansible-core のチェックができる。
+      pip list
+      ```
+      これにより、ansible、ansible-core、Jinja2 などの依存パッケージがインストールされます。
 
     </TabItem>
 
@@ -74,6 +99,60 @@ import Table from "@components/Table.astro";
     </TabItem>
 
 </Tabs>
+
+#### ansible-core
+
+Ansible は バージョン 2.9 まで、Ansible の本体と 3000 を超えるモジュールが含まれたパッケージとなっていました。
+しかし、この管理方法はモジュールが増えるにつれ、肥大化し、管理方法などを含めリリースサイクルが遅くなってしまうという課題がありました。
+
+この課題を解決するために、2.10 以降では本体と基本的なモジュールやプラグインをコア部分とし、その他のモジュール・プラグインはコレクションとしてパッケージ管理の方法を分割しました。つまり、コア部分とコレクションはリリースサイクルが別となっている。
+コアのバージョンアップを待たずに、新機能をコレクション経由で素早く利用できるようになりました。
+2.10 の時点では、コア部分を ansible-base と呼び、2.11 以降で、ansible-core と呼ぶようになりました。
+
+##### [コレクション](/ansible/about-ansible/about-collection/)
+
+<MermaidChart
+    chart={`
+    graph LR
+
+    subgraph Ansible2.9
+      A[モジュール<br>プラグイン]
+      1[本体]
+    end
+
+    subgraph ansible-base2.10
+      2[本体<br>基本モジュール]
+    end
+
+    subgraph ansible-core2.11
+      3[本体<br>基本モジュール]
+    end
+
+    B[(コレクション)]
+
+    A -->|管理・配布の変更| B
+    A ~~~ 1
+
+    Ansible2.9 ~~~ B
+
+    1 -->|バージョンアップ<br>コア部分のみに分離| 2
+
+    2 -->|バージョンアップ<br>名前が変更<br>base から core へ| 3
+
+    Ansible2.9 ~~~ ansible-base2.10
+
+    ansible-base2.10 ~~~ ansible-core2.11
+
+
+
+    `}
+
+/>
+
+#### Ansible Community Package
+
+ansible-core のみをインストールした場合、必要なコレクションを別途インストールする必要があります。
+2.9 の時代までのようにさまざまなコレクションをコアと一緒にインストールするようにした便利なものが、Ansible Community Package です。ansible-core と コミュニティが選択したコレクションをセットにしたパッケージのことです。
 
 ### VScode 拡張機能
 
@@ -221,6 +300,7 @@ Ansible がインストールされている必要はないが、Ansible によ�
 
 - **OS**: Linux、Solaris や AIX などの UNIX 系 OS、Windows、ネットワーク機器など
 - **Python**: Python 2 (2.7 移行) ~ Python 3
+- コントロールノードからの SSH 接続(ファイル転送では SFTP、SCP も必要)
 
 #### Ansible の主要なコンポーネント
 
@@ -492,3 +572,40 @@ Passed: 0 failure(s), 0 warning(s) on 1 files. Last profile that met the validat
 ```
 
 リンターの規則に沿わない場合は、指定の行に規則違反の内容が表示される。
+
+## ansible.cfg
+
+ansible.cfg は Ansible 自体の動作を設定するファイルです。ファイルは INI 形式で定義される。
+
+> ansible.cfg の設定例
+
+```ini
+[defaults]
+host_key_checking=false
+interpreter_python=/home/ansible/myvenv/bin/python
+```
+
+- host_key_checking:
+  ターゲットノードへの SSH 接続時に、公開鍵のフィンガープリントをチェックするかどうか。デフォルトは true
+- interpreter_python:
+  ターゲットノード上で実行する Python インタープリターのパス。または自動的に探索するモードの名前を指定する。
+  デフォルトは 'auto_legacy' モード
+
+### 優先順位
+
+ansible.cfg が配置される場所と読み込まれる優先順位
+
+1. 環境変数 `ANSIBLE_CONFIG` で指定したパスのファイル
+1. カレントディレクトリの `ansible.cfg`
+1. `~/.ansible.cfg` (ユーザーホームディレクトリ直下の隠しファイルとしての設定ファイル `.` を先頭につけて隠しファイルにしていください。)
+1. `/etc/ansible/ansible.cfg`
+
+### 設定確認コマンド `ansible-config`
+
+```bash frame=none
+# ansible.cfg を読み込んで、その設定値を出力
+ansible-config dump
+
+# デフォルトからの変更値差分のみを表示するには
+ansible-config dump --only-changed
+```

@@ -1,0 +1,127 @@
+---
+title: adduser
+description: useradd コマンドのラッパー
+tags:
+  - "Linux"
+  - "セキュリティ"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: adduser
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 2
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+# author:
+#   - "David MacKenzie"
+#   - "Jim Meyering"
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+`adduser` は、`useradd` コマンドの高レベルなラッパーであり、対話的にユーザーアカウントを作成する際に便利です。多くの設定がデフォルトで行われ、ユーザーに関する情報を順次入力するプロンプトが表示されるため、初心者でも簡単に使用できます。
+
+### 構文
+
+```bash frame=none
+# FILE のグループを GROUP に変更する
+chgrp [OPTION]... GROUP FILE...
+# `--reference` で各 FILE を RFILE のグループに変更する。
+chgrp [OPTION]... --reference=RFILE FILE...
+```
+
+### EXAMPLES
+
+```bash frame=none
+sudo adduser ユーザー名
+```
+
+#### 使い方
+
+##### ユーザーの作成
+
+```bash frame=none
+sudo adduser bob
+```
+
+このコマンドを実行すると対話形式のプロンプトが表示される。
+
+```bash frame=none
+Adding user `bob` ...
+Adding new group `bob` (1001) ...
+Adding new user `bob` (1001) with group `bob` ...
+Creating home directory `/home/bob` ...
+Copying files from `/etc/skel` ...
+Enter new UNIX password:
+Retype new UNIX password:
+passwd: password updated successfully
+Changing the user information for bob
+Enter the new value, or press ENTER for the default
+        Full Name []:
+        Room Number []:
+        Work Phone []:
+        Home Phone []:
+        Other []:
+Is the information correct? [Y/n]
+```
+
+1. **パスワードの有効期限設定**: 新しいユーザーのパスワードを設定する
+1. **ユーザー情報の入力**: 任意の追加情報を入力
+1. **確認**: 入力内容の確認、正しければ Y を実行する
+
+#### 作成後にユーザーをグループに追加する
+
+`adduser` コマンド自体にはグループを追加するオプションはありませんが、作成後にユーザーをグループに追加することができます。
+
+```bash frame=none
+# ユーザー (charlie) を sudo グループに追加する
+sudo adduser charlie sudo
+```
+
+### オプション
+
+#### オプション一覧
+
+<Table
+  colWidth={["10.5rem"]}
+  columns={["オプション", "説明"]}
+  data={[
+    [["`-c`", "`--changes`"].join("<br>"), "詳細表示に似ていますが、変更があった場合のみ報告します"],
+    [["`-f`", "`--silent`", "`--quiet`"].join("<br>"), "ほとんどのエラーメッセージを抑制します"],
+  ]}
+/>
+
+以下のオプションは、`-R` オプションも指定した場合の階層の走査方法を変更する。
+複数指定した場合は、最後の 1 つだけが有効になる。
+
+<Table
+  columns={["オプション", "説明"]}
+  data={[
+    [["`-H`"].join("<br>"), "コマンドライン引数がディレクトリへのシンボリックリンクである場合、それを辿ります"],
+    [["`-L`"].join("<br>"), "遭遇したすべてのディレクトリへのシンボリックリンクを辿ります"],
+    [["`-P`"].join("<br>"), "シンボリックリンクを一切辿りません（デフォルト）"],
+  ]}
+/>
+
+##### REPORTING BUGS
+
+[GNU coreutils online help](https://www.gnu.org/software/coreutils/)
+[Report any translation bugs to](https://translationproject.org/team/)
+
+##### COPYRIGHT
+
+Copyright © 2020 Free Software Foundation, Inc. License GPLv3+: GNU GPL version 3 or later https://gnu.org/licenses/gpl.html.
+This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
+
+##### SEE ALSO
+
+chown(1), chown(2)
+
+Full [documentation](https://www.gnu.org/software/coreutils/chgrp) or available locally via: info '(coreutils) chgrp invocation'
+
+GNU coreutils 8.32

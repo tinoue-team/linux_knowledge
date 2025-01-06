@@ -1,0 +1,54 @@
+---
+title: タスクとロールの管理
+description: import_tasks, include_tasks, import_role, include_role それぞれの違いについて
+tags:
+  - "Ansible"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: タスクとロールの管理
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 30
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## 切り出したタスクとロールの違い
+
+### タスクの切り出し
+
+実行するプレイブックの内容が 1 ファイルのみですと肥大化していき、可読性などの点で管理が難しくなってくる。
+例えば、サーバー構成を実行していく中で、
+
+- アカウントの作成
+- web サーバーの設定
+- 監視サーバーの設定
+- os による実行内容の違い
+
+などタスクも系統で分けることができる。
+その時に、タスクを別ファイルで管理してメインとなるプレイブックで呼び出すような構成でファイルを管理することで、管理しやすくなります。
+
+<FileTree>
+
+- ansible/
+  - playbook/
+    - main.yaml
+    - role/
+      - rhel/
+        - create_account.yaml
+        - set_web_server.yaml
+        - set_zabbix.yaml
+      - ubuntu
+        - create_account.yaml
+        - set_web_server.yaml
+        - set_zabbix.yaml
+
+</FileTree>
+おおよそ、このようなファイル構成で切り分けることで、どこで、どのような管理が行われているかをファイル名で理解することができる。
+ここから実際にどのようにファイルを切り出し、main.yaml で読み込むかの手順を実行していく。

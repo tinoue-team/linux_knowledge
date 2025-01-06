@@ -1,0 +1,596 @@
+---
+title: 制御ディレクティブ
+description: 制御ディレクティブ、loop、rescue などの制御について
+tags:
+  - "Ansible"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: 制御ディレクティブ
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 30
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## タスクの繰り返し制御のディレクティブ
+
+タスク内で実行する処理に制御をかけるディレクティブ
+
+### `loop` ディレクティブ
+
+同一タスクを複数回実行するためのディレクティブ。loop ディレクティブには item という変数(シーケンス型)が用意されており、
+タスクに item を渡すことで複数処理の実行が行える
+
+<Steps>
+
+1. 以下のようなユーザーアカウントを 3 つ作成するプレイがある
+
+   ```yaml
+   ---
+   - name: Register a user account.
+     hosts: ec2
+     become: true
+
+     tasks:
+       - name: Create user account 1
+         ansible.builtin.user:
+           name: taro
+       - name: Create user account 2
+         ansible.builtin.user:
+           name: jiro
+       - name: Create user account 3
+         ansible.builtin.user:
+           name: hanako
+   ```
+
+1. loop ディレクティグによって書き換えると
+
+   ```yaml
+   ---
+   - name: Register a user account.
+     hosts: ec2
+     become: true
+
+     tasks:
+       - name: Create user account
+         ansible.builtin.user:
+           name: "{{ item }}"
+         loop:
+           - taro
+           - jiro
+           - hanako
+   ```
+
+</Steps>
+
+#### シーケンスにマッピングを利用した loop
+
+デバッグで、シーケンスに格納したマッピングを利用した場合の処理を確認するプレイブックを用意しました。
+
+```yaml
+---
+- name: Check the value to be set to the loop variable.
+  hosts: ec2
+  gather_facts: false
+
+  tasks:
+    - name: Check the value of the loop variable.
+      ansible.builtin.debug:
+        var: item
+      loop:
+        - user_name: taro
+          user_password: password@taro
+        - user_name: jiro
+          user_password: password@jiro
+        - user_name: hanako
+          user_password: password@hanako
+```
+
+こちらをデバッグ目的のため実行すると
+
+```bash frame=none
+ansible-playbook -i ansible/inventory/hosts.yaml ansible/playbook/debug_loop_directive.yaml
+
+PLAY [Check the value to be set to the loop variable.] ********************************************************************
+
+TASK [Check the value of the loop variable.] ******************************************************************************
+ok: [web01] => (item={'user_name': 'taro', 'user_password': 'password@taro'}) => {
+    "ansible_loop_var": "item",
+    "item": {
+        "user_name": "taro",
+        "user_password": "password@taro"
+    }
+}
+ok: [web01] => (item={'user_name': 'jiro', 'user_password': 'password@jiro'}) => {
+    "ansible_loop_var": "item",
+    "item": {
+        "user_name": "jiro",
+        "user_password": "password@jiro"
+    }
+}
+ok: [web01] => (item={'user_name': 'hanako', 'user_password': 'password@hanako'}) => {
+    "ansible_loop_var": "item",
+    "item": {
+        "user_name": "hanako",
+        "user_password": "password@hanako"
+    }
+}
+
+PLAY RECAP ****************************************************************************************************************
+web01                      : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+デバッグ内容が確認できたので、マッピング変数の配列を利用してユーザー作成を行なった処理が以下となる。
+
+```yaml
+---
+- name: Register a user account.
+  hosts: ec2
+  become: true
+
+  tasks:
+    - name: Create user account
+      ansible.builtin.user:
+        name: "{{ item['user_name'] }}"
+        password: "{{ item['user_password'] | password_hash('sha512') }}"
+      loop:
+        - user_name: taro
+          user_password: password@taro
+        - user_name: jiro
+          user_password: password@jiro
+        - user_name: hanako
+          user_password: password@hanako
+```
+
+#### vars セクションで定義した変数を loop で利用する
+
+パスワードなど機密性の高い内容をバージョン管理に含めないように、var_files で定義したい。
+まずは、vars セクションで item の内容をあらかじめ宣言して利用する方法を踏まえ、その後、var_files からの変数を利用した loop 処理実行の確認まで行ってみようと思います。
+
+<Steps>
+
+1. まず、前章の `loop` で定義したシーケンスの値を `vars` で宣言して利用したプレイブックの書き方
+
+   ```yaml
+   ---
+   - name: Register a user account.
+     hosts: ec2
+     become: true
+
+     vars:
+       accounts:
+         - user_name: taro
+           user_password: password@taro
+         - user_name: jiro
+           user_password: password@jiro
+         - user_name: hanako
+           user_password: password@hanako
+
+     tasks:
+       - name: Create user account
+         ansible.builtin.user:
+           name: "{{ item['user_name'] }}"
+           password: "{{ item['user_password'] | password_hash('sha512') }}"
+         loop: "{{ accounts }}"
+   ```
+
+1. vars での宣言を var_files で書き換えるようにする
+
+   ```yaml title="ansible/vars/accounts.yaml"
+   ---
+   accounts:
+     - user_name: taro
+       user_password: password@taro
+     - user_name: jiro
+       user_password: password@jiro
+     - user_name: hanako
+       user_password: password@hanako
+   ```
+
+   ```yaml title="ansible/create_user.yaml"
+    ---
+    - name: Register a user account.
+      hosts: ec2
+      become: true
+
+      vars_files:
+        - ./vars/accounts.yaml
+
+      tasks:
+        - name: Create user account
+          ansible.builtin.user:
+            name: "{{ item['user_name'] }}"
+            password: "{{ item['user_password'] | password_hash('sha512') }}"
+          loop: "{{ accounts }}"
+   ```
+
+</Steps>
+
+#### スコープを絞る(タスク変数として定義)
+
+プレイブック内で、一つのタスク内でのみ利用する変数であるのであれば、スコープを絞って変数を定義するのも一つの手です。
+
+```yaml
+---
+- name: Register a user account.
+  hosts: ec2
+  become: true
+
+  tasks:
+    - name: Create user account
+      ansible.builtin.user:
+        name: "{{ item['user_name'] }}"
+        password: "{{ item['user_password'] | password_hash('sha512') }}"
+      loop: "{{ accounts }}"
+      vars:
+        accounts:
+          - user_name: taro
+            user_password: password@taro
+          - user_name: jiro
+            user_password: password@jiro
+          - user_name: hanako
+            user_password: password@hanako
+```
+
+今回のバージョン管理ファイルに含めないことを考えれば、`var_files` を利用することが適切
+
+### `loop_control`
+
+#### `loop_var` ループ変数を指定する
+
+loop ディレクティブを利用するときは、item 変数にシーケンス型の値が格納される。
+loop_var ディレクティブを利用すると、item 以外の変数でループ変数を定義できる。これによりコードの可読性が上げられます。
+
+```yaml title="ansible/playbook/install_apache.yaml"
+---
+- name: Install the packages related to Apache.
+  hosts: ec2
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Install the package.
+      ansible.builtin.apt:
+        name: "{{ package_name }}"
+        state: present
+      loop: "{{ packages }}"
+      loop_control:
+        loop_var: package_name
+      vars:
+        packages:
+          - apache2
+          - apache2-utils
+          - apache2-dev
+          - apache2-doc
+```
+
+#### `index_var` インデックス番号を利用した処理
+
+ループ処理の中で、インデックス番号を利用した処理を使うには index_var パラメータでインデックス値の変数を定義します。
+インデックスの最初は 0 番です。
+
+```yaml title="ansible/playbook/install_apache.yaml"
+---
+- name: Install the packages related to Apache.
+  hosts: ec2
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Install the package.
+      ansible.builtin.debug:
+        msg: "{{ loop_count }} -> {{ item }}"
+      loop: "{{ packages }}"
+      loop_control:
+        index_var: loop_count
+      vars:
+        packages:
+          - apache2
+          - apache2-utils
+          - apache2-dev
+          - apache2-doc
+```
+
+ループのログ
+
+```bash frame=none
+ansible-playbook -i ansible/inventory/hosts.yaml ansible/playbook/install_apache.yaml
+
+PLAY [Install the packages related to Apache.] ****************************************************************************
+
+TASK [Install the package.] ***********************************************************************************************
+ok: [web01] => (item=apache2) => {
+    "msg": "0 -> apache2"
+}
+ok: [web01] => (item=apache2-utils) => {
+    "msg": "1 -> apache2-utils"
+}
+ok: [web01] => (item=apache2-dev) => {
+    "msg": "2 -> apache2-dev"
+}
+ok: [web01] => (item=apache2-doc) => {
+    "msg": "3 -> apache2-doc"
+}
+
+PLAY RECAP ****************************************************************************************************************
+web01                      : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+#### `pause` ループの一定時間停止
+
+##### `pause` の基本的な使い方
+
+`pause` ディレクティブを使用するとタスクの実行後、指定秒数でだけ実行を停止 (ポーズ) します。
+タスクを実行すると 10 秒停止後、タスクの実行を再開します。
+10 秒ごとに `date` コマンドを 3 回実行するプレイブックです。
+
+<Steps>
+
+1. pause を利用したプレイブック
+
+   ```yaml title="pause.yaml"
+   ---
+   - name: Pause tasks
+     hosts: localhost
+     gather_facts: false
+     connection: ansible.builtin.local
+
+     tasks:
+       - name: Pause 10 seconds
+         ansible.builtin.pause:
+           seconds: 10
+       - name: Pause 1 minutes
+         ansible.builtin.pause:
+           minutes: 1
+   ```
+
+1. プレイブックの実行
+
+   ```bash frame=none
+   ansible-playbook -i ./ansible/inventory/local.ini ./ansible/playbook/pause.yaml
+   ```
+
+   実行結果
+
+   ```
+   PLAY [Pause tasks] ********************************************************************************************************
+
+   TASK [Pause 10 seconds] ***************************************************************************************************
+   Pausing for 10 seconds
+   (ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+   ok: [127.0.0.1]
+
+   TASK [Pause 1 minutes] ****************************************************************************************************
+   Pausing for 60 seconds
+   (ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+   ok: [127.0.0.1]
+
+   PLAY RECAP ****************************************************************************************************************
+   127.0.0.1                  : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+   ```
+
+   10 秒まって、次のタスク、60 秒待って次のタスクを実行している。
+
+</Steps>
+
+<Table
+  columns={["パラメータ名", "説明"]}
+  data={[
+    ["minutes", "停止する分を指定する"],
+    ["seconds", "停止する秒数を指定する"],
+  ]}
+/>
+
+停止中に `ctrl + C` 後に `C` を入力すると停止時間を待たずに次のタスクに移る。
+`ctrl + C` 後に `ctrl + A` を入力すると処理が中断される。
+
+##### ループ処理内での `pause` 実行
+
+```yaml
+---
+- name: Stops the execution of the tas for the specified time.
+  hosts: ec2
+  gather_facts: false
+
+  tasks:
+    - name: Get the date and time
+      ansible.builtin.command:
+        cmd: date
+      register: result
+      loop:
+        - 1
+        - 2
+        - 3
+      loop_control:
+        pause: 10
+      changed_when: false
+    - name: Display the result
+      ansible.builtin.debug:
+        var: result
+```
+
+```bash frame=none
+ansible-playbook -i ansible/inventory/hosts.yaml ansible/playbook/pause_task.yaml
+```
+
+```title="実行ログ"
+PLAY [Stops the execution of the tas for the specified time.] **************************************************
+
+TASK [Get the date and time] ***********************************************************************************
+ok: [web01] => (item=1)
+ok: [web01] => (item=2)
+ok: [web01] => (item=3)
+
+TASK [Display the result] **************************************************************************************
+ok: [web01] => {
+    "result": {
+        "changed": false,
+        "msg": "All items completed",
+        "results": [
+            {
+                "ansible_loop_var": "item",
+                "changed": false,
+                "cmd": [
+                    "date"
+                ],
+                "delta": "0:00:00.003858",
+                "end": "2025-01-05 04:07:08.559973",
+                "failed": false,
+                "invocation": {
+                    "module_args": {
+                        "_raw_params": "date",
+                        "_uses_shell": false,
+                        "argv": null,
+                        "chdir": null,
+                        "creates": null,
+                        "executable": null,
+                        "expand_argument_vars": true,
+                        "removes": null,
+                        "stdin": null,
+                        "stdin_add_newline": true,
+                        "strip_empty_ends": true
+                    }
+                },
+                "item": 1,
+                "msg": "",
+                "rc": 0,
+                "start": "2025-01-05 04:07:08.556115",
+                "stderr": "",
+                "stderr_lines": [],
+                "stdout": "Sun Jan  5 04:07:08 UTC 2025",
+                "stdout_lines": [
+                    "Sun Jan  5 04:07:08 UTC 2025"
+                ]
+            },
+            {
+                "ansible_loop_var": "item",
+                "changed": false,
+                "cmd": [
+                    "date"
+                ],
+                "delta": "0:00:00.007001",
+                "end": "2025-01-05 04:07:22.197788",
+                "failed": false,
+                "invocation": {
+                    "module_args": {
+                        "_raw_params": "date",
+                        "_uses_shell": false,
+                        "argv": null,
+                        "chdir": null,
+                        "creates": null,
+                        "executable": null,
+                        "expand_argument_vars": true,
+                        "removes": null,
+                        "stdin": null,
+                        "stdin_add_newline": true,
+                        "strip_empty_ends": true
+                    }
+                },
+                "item": 2,
+                "msg": "",
+                "rc": 0,
+                "start": "2025-01-05 04:07:22.190787",
+                "stderr": "",
+                "stderr_lines": [],
+                "stdout": "Sun Jan  5 04:07:22 UTC 2025",
+                "stdout_lines": [
+                    "Sun Jan  5 04:07:22 UTC 2025"
+                ]
+            },
+            {
+                "ansible_loop_var": "item",
+                "changed": false,
+                "cmd": [
+                    "date"
+                ],
+                "delta": "0:00:00.003587",
+                "end": "2025-01-05 04:07:35.748914",
+                "failed": false,
+                "invocation": {
+                    "module_args": {
+                        "_raw_params": "date",
+                        "_uses_shell": false,
+                        "argv": null,
+                        "chdir": null,
+                        "creates": null,
+                        "executable": null,
+                        "expand_argument_vars": true,
+                        "removes": null,
+                        "stdin": null,
+                        "stdin_add_newline": true,
+                        "strip_empty_ends": true
+                    }
+                },
+                "item": 3,
+                "msg": "",
+                "rc": 0,
+                "start": "2025-01-05 04:07:35.745327",
+                "stderr": "",
+                "stderr_lines": [],
+                "stdout": "Sun Jan  5 04:07:35 UTC 2025",
+                "stdout_lines": [
+                    "Sun Jan  5 04:07:35 UTC 2025"
+                ]
+            }
+        ],
+        "skipped": false
+    }
+}
+
+PLAY RECAP *****************************************************************************************************
+web01                      : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+#### `until`、`retries`、`delay`で繰り返しの制御
+
+[不定回の繰り返し](https://zenn.dev/y_mrok/books/ansible-no-tsukaikata/viewer/chapter13#%E4%B8%8D%E5%AE%9A%E5%9B%9E%E3%81%AE%E7%B9%B0%E3%82%8A%E8%BF%94%E3%81%97)
+
+## 条件分岐で制御するディレクティブ
+
+### `when` 指定した条件が成立した時に実行する
+
+### `block`、`rescue`、`always` 例外処理で対応する
+
+```yaml
+---
+- hosts: all
+  vars:
+    ansible_become: yes
+    ansible_become_method: sudo
+  tasks:
+    - name: Install Nginx
+      block:
+        - yum:
+            name: nginx
+            state: latest
+      rescue:
+        - debug:
+          msg: "Error!"
+      always:
+        - debug:
+          msg: "Always run this section"
+```
+
+プレイブック内で block を指定すると、block 内でのエラーが発生した場合、rescue ブロックが処理される。いわゆる例外処理を行う。
+単に block の処理にエラーが起きると failed とせず、rescue を行う(エラーハンドリング)。
+
+#### block
+
+このセクションに実行するタスクを記述して、以降の rescue、always のセクションはこの block の処理次第で実行される。
+
+#### rescue
+
+block 内の処理でエラーが発生した際に、このセクションに記述されている処理が実行される。
+
+#### always
+
+block 内の処理が終了した際、タスクの成功、失敗に問わず必ず実行される。
+ここでは、block 内の処理が成功した場合は、"Always run this section" という文字が出力されエラーが発生した場合は rescue 内の "Error!"
+が出力された後に、"Always run this section" の文字が出力される。
