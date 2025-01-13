@@ -420,7 +420,7 @@ web01                      : ok=1    changed=0    unreachable=0    failed=0    s
 ansible-playbook -i ansible/inventory/hosts.yaml ansible/playbook/pause_task.yaml
 ```
 
-```title="実行ログ"
+```text title="実行ログ"
 PLAY [Stops the execution of the tas for the specified time.] **************************************************
 
 TASK [Get the date and time] ***********************************************************************************
@@ -550,11 +550,294 @@ web01                      : ok=2    changed=0    unreachable=0    failed=0    s
 
 #### `until`、`retries`、`delay`で繰り返しの制御
 
+##### `until` による条件付き繰り返し処理
+
+`until` は条件が満たされるまでタスクを繰り返し実行するディレクティブです。`retries` で最大試行回数を、`delay` で試行間隔を秒単位で指定できます。
+
+以下は、Web サーバーの起動を確認するまで最大 5 回、10 秒間隔で繰り返すプレイブックの例です：
+
+```yaml
+---
+- name: Check if the web server is running.
+  hosts: localhost
+  gather_facts: false
+  connection: ansible.builtin.local
+  tasks:
+    - name: Check if the web server is running.
+      ansible.builtin.command:
+        cmd: systemctl is-active httpd
+      register: result
+      until: result.stdout == 'active'
+      retries: 5
+      delay: 10
+```
+
 [不定回の繰り返し](https://zenn.dev/y_mrok/books/ansible-no-tsukaikata/viewer/chapter13#%E4%B8%8D%E5%AE%9A%E5%9B%9E%E3%81%AE%E7%B9%B0%E3%82%8A%E8%BF%94%E3%81%97)
+
+はい、Web サーバーの起動確認についてより実用的な例を示します。
+
+以下は、Nginx をインストールして起動し、サービスが完全に起動するまで待機する実践的な例です：
+
+```yaml
+---
+- name: Deploy and verify Nginx
+  hosts: web_servers
+  become: true
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Wait for Nginx to be ready
+      ansible.builtin.uri:
+        url: "http://localhost"
+        return_content: yes
+      register: result
+      until: result.status == 200
+      retries: 6 # 合計60秒待機
+      delay: 10 # 10秒間隔
+      failed_when: false # 初期の失敗を許容
+
+    - name: Verify Nginx configuration
+      ansible.builtin.command:
+        cmd: nginx -t
+      register: nginx_config
+      changed_when: false
+```
+
+このプレイブックの特徴：
+
+1. Nginx のインストールと起動を行います
+2. `uri`モジュールを使って実際に HTTP リクエストを送信し、サービスが応答するまで待機します
+3. 最大 60 秒（10 秒 × 6 回）待機します
+4. 設定ファイルの構文チェックも行います
+
+より高度な例として、HTTPS の確認やカスタムページの存在確認を含めた版：
+
+```yaml
+---
+- name: Deploy and verify Nginx with advanced checks
+  hosts: web_servers
+  become: true
+  vars:
+    site_url: "http://{{ ansible_host }}"
+    expected_response: "Welcome to nginx"
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Wait for Nginx to be fully operational
+      block:
+        - name: Check HTTP response
+          ansible.builtin.uri:
+            url: "{{ site_url }}"
+            return_content: yes
+          register: result
+          until:
+            - result.status == 200
+            - expected_response in result.content
+          retries: 6
+          delay: 10
+      rescue:
+        - name: Check Nginx error logs
+          ansible.builtin.command:
+            cmd: tail -n 20 /var/log/nginx/error.log
+          register: error_log
+
+        - name: Display error logs
+          ansible.builtin.debug:
+            var: error_log.stdout_lines
+
+        - name: Fail with meaningful message
+          ansible.builtin.fail:
+            msg: "Nginxの起動確認に失敗しました。エラーログを確認してください。"
+      always:
+        - name: Verify Nginx process
+          ansible.builtin.command:
+            cmd: pgrep nginx
+          changed_when: false
+```
+
+この高度な例の特徴：
+
+1. `block`/`rescue`/`always`を使用してエラーハンドリングを実装
+2. エラー時に Nginx のログを確認
+3. 期待される応答内容も確認
+4. プロセスの存在確認も実施
+
+これらの例は実際の本番環境でより信頼性の高いデプロイメントを実現できます。
 
 ## 条件分岐で制御するディレクティブ
 
 ### `when` 指定した条件が成立した時に実行する
+
+when ディレクティブを使用して、タスクを実行する時の条件を設定できる。タスクは指定した条件が成立したときだけ実行する。
+
+```yaml
+---
+- name: Check if the web server is running.
+  hosts: localhost
+  gather_facts: false
+  connection: ansible.builtin.local
+  tasks:
+    - name: Check if the web server is running.
+      ansible.builtin.command:
+        cmd: systemctl is-active httpd
+      when: result.stdout == 'active'
+```
+
+#### 比較演算子
+
+<Table
+  colWidth={["8rem", "auto"]}
+  columns={["比較演算子", "説明"]}
+  data={[
+    ["A == B", "A と B が等しい"],
+    ["A != B", "A と B が等しくない"],
+    ["A > B", "A が B より大きい"],
+    ["A >= B", "A が B 以上"],
+    ["A < B", "A が B より小さい"],
+    ["A <= B", "A が B 以下"],
+  ]}
+/>
+
+##### 比較演算子の使用例
+
+使用されている OS が ubuntu の時は、ubuntu のパッケージをインストールするプレイブック。
+nginx のインストールは、ubuntu と rhel ではパッケージ名が異なるため、when ディレクティブを使用して分岐する。
+
+```yaml
+---
+- name: Install Nginx
+  hosts: localhost
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+      when: ansible_os_family == 'Debian'
+```
+
+#### 論理演算子
+
+<Table
+  colWidth={["8rem", "auto"]}
+  columns={["論理演算子", "説明"]}
+  data={[
+    ["A and B", "A と B が成立"],
+    ["A or B", "A または B が成立"],
+    ["not A", "A が成立しない"],
+  ]}
+/>
+
+##### 論理演算子の使用例
+
+条件式を結合した例として、RedHat 系の OS かつ、メジャーバージョンが 8 以上の時に、管理対象のノードだけリブートする。
+
+```yaml
+---
+- name: Reboot the managed node.
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Only RedHat and major version 8 will reboot.
+      ansible.builtin.reboot:
+      when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "8"
+```
+
+when 内の and 以下のように書くこともできる。
+
+```yaml
+when: ansible_facts['os_family'] == "RedHat"
+  and ansible_facts ['distribution_major_version'] == "8"
+```
+
+```yaml
+when:
+  - ansible_facts['os_family'] == "RedHat"
+  - ansible_facts ['distribution_major_version'] == "8"
+```
+
+A かつ B または C の場合は、
+
+```yaml
+when: ansible_facts['os_family'] == "RedHat"
+  and ansible_facts ['distribution_major_version'] == "8"
+  or ansible_facts ['distribution_major_version'] == "9"
+```
+
+`()` を使用して、条件式を書くこともできる。
+
+```yaml
+when: ansible_facts['os_family'] == "RedHat"
+  and (ansible_facts ['distribution_major_version'] == "8" or
+  ansible_facts ['distribution_major_version'] == "9")
+```
+
+`()`を同等の条件ブロック同士でグループ指定することも考えて書く
+
+```yaml
+when: (ansible_facts['os_family'] == "RedHat" )
+  and (ansible_facts ['distribution_major_version'] == "8" or
+  ansible_facts ['distribution_major_version'] == "9")
+```
+
+##### not を使用した例
+
+RedHat 系の OS ではない場合に、パッケージをインストールするプレイブック。
+
+```yaml
+---
+- name: Install Nginx
+  hosts: localhost
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+      when: not ansible_facts['os_family'] == "RedHat"
+```
+
+#### in / not in
+
+<Table
+  colWidth={["8rem", "auto"]}
+  columns={["in", "説明"]}
+  data={[
+    [["A in B", "A in [B, C, D]"].join("<br/>"), "A が B に含まれる"],
+    [["A not in B", "A not in [B, C, D]"].join("<br/>"), "A が B に含まれない"],
+  ]}
+/>
+
+```yaml
+---
+- name: Install Nginx
+  hosts: localhost
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+      when: ansible_facts['os_family'] in ["Debian", "Ubuntu"]
+```
 
 ### `block`、`rescue`、`always` 例外処理で対応する
 

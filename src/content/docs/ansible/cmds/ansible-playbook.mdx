@@ -14,7 +14,7 @@ sidebar:
   #     variant: tip
 ---
 
-import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
 import LinkPreview from "@components/LinkPreview.astro";
 import MermaidChart from "@components/MermaidChart.astro";
 import Table from "@components/Table.astro";
@@ -174,3 +174,73 @@ ansible-playbook [-h] [--version] [-v] [--private-key PRIVATE_KEY_FILE] [-u REMO
     [["-b, --become"].join("<br>"), "権限昇格を使用して操作を実行します（パスワードのプロンプトを意味しません）"],
   ]}
 />
+
+### -i オプション
+
+`-i` オプションを指定しない場合、`ansible.cfg` ファイル内の `inventory` の値が使用される。
+
+```ini
+[defaults]
+inventory = /etc/ansible/hosts
+```
+
+[ansible.cfg 設定値の優先順位](/ansible/about-ansible/start-ansible/#優先順位)
+
+運用的には、プロジェクトごとにインベントリファイルを作成し、そのパスを指定することが多い。
+
+<FileTree>
+
+- project-root/
+  - ansible/
+    - inventory/
+      - hosts.yaml # 名前は任意
+
+</FileTree>
+
+### -e オプション
+
+```bash frame=none
+ansible-playbook -e "key=value" playbook.yml
+```
+
+#### 使用例. ansible_host の値を動的に渡す
+
+Ansible プレイブックを実行する際に、`ansible_host` の値をコマンドで動的に変更する手順です。
+
+#### 概要
+
+- インベントリファイルで `ansible_host` を変数として設定する。
+- プレイブック実行時に `-e` オプションで変数を上書きする。
+- 必要に応じて環境変数を使用して柔軟に管理する。
+
+<Steps>
+
+1. インベントリファイルの設定
+
+   `hosts.yaml` ファイルで `ansible_host` を変数として定義します。例えば、以下のようにデフォルト値を設定し、後で上書きできるようにします。
+
+   ```yaml title="project-root/ansible/inventory/hosts.yaml"
+   all:
+     children:
+       ec2:
+         hosts:
+           web01:
+             ansible_host: "{{ web01_ip | default('3.113.21.97') }}"
+             ansible_user: ubuntu
+             ansible_ssh_private_key_file: ~/.ssh/t_admin_key.pem
+             ansible_python_interpreter: /usr/bin/python3
+   ```
+
+2. `ansible-playbook` コマンドで変数を上書きして実行
+
+   プレイブック実行時に `-e` オプションを使用して `web01_ip` を指定します。これにより、インベントリファイル内の `ansible_host` が動的に変更されます。
+
+   ```bash frame=none
+   $INVENTORY_FILE=project-root/ansible/inventory/hosts.yaml
+   $PLAYBOOK_FILE=project-root/ansible/playbook/handlers.yaml
+   $WEB01_IP=新しいIPアドレス
+
+   ansible-playbook -i $INVENTORY_FILE $PLAYBOOK_FILE -e "web01_ip=$WEB01_IP"
+   ```
+
+</Steps>
