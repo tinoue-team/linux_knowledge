@@ -877,3 +877,270 @@ block 内の処理でエラーが発生した際に、このセクションに�
 block 内の処理が終了した際、タスクの成功、失敗に問わず必ず実行される。
 ここでは、block 内の処理が成功した場合は、"Always run this section" という文字が出力されエラーが発生した場合は rescue 内の "Error!"
 が出力された後に、"Always run this section" の文字が出力される。
+
+## 実行結果で制御を行う
+
+### register
+
+`register` ディレクティブは、利用しているタスクブロックの実行結果をオブジェクトとして変数に格納することができる。
+また、`register` で定義した変数は後続のタスクで参照・利用することができる。
+これにより動的なプレイブックの処理を実現し、条件分岐、デバッグなどを行うことができる。
+
+#### register の使用例
+
+主な register の用途は以下のように鳴ります。
+
+- タスク結果の保存: コマンドやモジュールの実行結果を変数に保存。
+- 条件分岐: 保存した結果に基づいてタスクの実行を制御。
+- デバッグ: 実行結果を確認し、問題の特定を支援。
+- ループ処理: 複数のアイテムに対して繰り返し処理を行い、その結果を管理。
+
+これらの機能を活用して、Ansible プレイブックの柔軟性と効率性を向上させましょう。
+
+#### 参考
+
+<LinkPreview url="https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#registering-variables" />
+<LinkPreview url="https://docs.ansible.com/ansible/latest/user_guide/playbooks_blocks.html" />
+
+#### シンプルなコマンドの実行結果を登録する
+
+```yaml
+---
+- name: シンプルなコマンド結果の登録
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: ホストの現在の日時を取得
+      ansible.builtin.command:
+        cmd: date
+      register: current_date # 実行結果を変数に格納
+
+    - name: 取得した日時を表示
+      ansible.builtin.debug:
+        # register で定義した変数を参照
+        msg: "現在の日時は {{ current_date.stdout }} です。"
+```
+
+こちらの実行結果は以下の通り。
+
+```
+PLAY [シンプルなコマンド結果の登録] **********************************************************************
+
+TASK [ホストの現在の日時を取得] ******************************************************************************
+changed: [web01]
+
+TASK [取得した日時を表示] ********************************************************************************
+ok: [web01] => {
+    "msg": "現在の日時は Wed Jan 15 13:05:08 UTC 2025 です。"
+}
+
+PLAY RECAP ***********************************************************************************************
+web01                      : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+#### 条件分岐に利用する
+
+リモートホスト上に特定のファイルが存在するかどうかを確認し、その結果に基づいて異なるタスクを実行します。
+
+```yaml
+---
+- name: ファイル存在確認と条件分岐
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: 特定のファイルが存在するか確認
+      ansible.builtin.stat:
+        path: /etc/passwd
+      register: passwd_file
+
+    - name: ファイルが存在する場合のメッセージ
+      ansible.builtin.debug:
+        msg: "/etc/passwd ファイルが存在します。"
+      when: passwd_file.stat.exists
+
+    - name: ファイルが存在しない場合のメッセージ
+      ansible.builtin.debug:
+        msg: "/etc/passwd ファイルが存在しません。"
+      when: not passwd_file.stat.exists
+```
+
+こちらの実行結果は以下の通り。
+
+```
+PLAY [ファイル存在確認と条件分岐] ***********************************************************************************
+
+TASK [特定のファイルが存在するか確認] **************************************************************************
+ok: [web01]
+
+TASK [ファイルが存在する場合のメッセージ] ************************************************************************
+ok: [web01] => {
+    "msg": "/etc/passwd ファイルが存在します。"
+}
+
+TASK [ファイルが存在しない場合のメッセージ] ********************************************************************
+skipping: [web01]
+
+PLAY RECAP *****************************************************************************************************
+web01                      : ok=2    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+```
+
+#### サービスの状態を取得し、再起動を行う
+
+リモートホスト上のサービスの状態を取得し、必要に応じてサービスを再起動します。
+
+```yaml
+---
+- name: サービスの状態取得と再起動
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: nginx サービスの状態を取得
+      ansible.builtin.systemd:
+        name: nginx
+        state: status
+      register: nginx_status # サービスの状態を変数に格納
+
+    - name: nginx サービスがアクティブでない場合に再起動
+      ansible.builtin.systemd:
+        name: nginx
+        state: restarted
+      when: not nginx_status.status.ActiveState == "active"
+
+    - name: nginx サービスの再起動結果を表示
+      ansible.builtin.debug:
+        msg: "nginx サービスを再起動しました。"
+      when: not nginx_status.status.ActiveState == "active"
+```
+
+実行結果例（サービスがアクティブでない場合）
+
+```
+PLAY [サービスの状態取得と再起動] *******************************************************************************
+
+TASK [nginx サービスの状態を取得] **********************************************************************************
+ok: [web01]
+
+TASK [nginx サービスがアクティブでない場合に再起動] ******************************************************************
+changed: [web01]
+
+TASK [nginx サービスの再起動結果を表示] ****************************************************************************
+ok: [web01] => {
+    "msg": "nginx サービスを再起動しました。"
+}
+
+PLAY RECAP *****************************************************************************************************
+web01                      : ok=3    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+#### 条件付き処理とループ内での register の使用
+
+複数のサービスの状態を取得し、それぞれの状態に基づいて必要なアクションを実行します。
+
+```yaml
+---
+- name: 複数サービスの状態確認とアクション
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    services:
+      - nginx
+      - mysql
+      - redis
+
+  tasks:
+    - name: 各サービスの状態を取得
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: status
+      loop: "{{ services }}"
+      register: services_status # サービスの状態を変数に格納
+
+    - name: 非アクティブなサービスを再起動
+      ansible.builtin.systemd:
+        name: "{{ item.item }}"
+        state: restarted
+      loop: "{{ services_status.results }}"
+      when: not item.status.ActiveState == "active"
+      register: restarted_services # 再起動したサービスを変数に格納
+
+    - name: 再起動したサービス一覧を表示
+      ansible.builtin.debug:
+        msg: "再起動されたサービス: {{ restarted_services.results | map(attribute='item.item') | list }}"
+      when: restarted_services is defined and restarted_services.results | length > 0 # 再起動したサービスがある場合
+```
+
+実行結果例（いくつかのサービスが非アクティブの場合）
+
+```
+PLAY [複数サービスの状態確認とアクション] ***************************************************************************
+
+TASK [各サービスの状態を取得] *******************************************************************************************
+ok: [web01] => (item=nginx)
+ok: [web01] => (item=mysql)
+ok: [web01] => (item=redis)
+
+TASK [非アクティブなサービスを再起動] *********************************************************************************
+changed: [web01] => (item={'item': 'redis', 'status': {...}})
+
+TASK [再起動したサービス一覧を表示] *************************************************************************************
+ok: [web01] => {
+    "msg": "再起動されたサービス: ['redis']"
+}
+
+PLAY RECAP *****************************************************************************************************
+web01                      : ok=3    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+#### コマンド実行結果に基づく条件分岐と変数の活用
+
+特定のコマンドの実行結果を取得し、その結果に基づいて後続のタスクを制御します。
+
+```yaml
+---
+- name: コマンド実行結果に基づく処理
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: ディスク使用量を確認
+      ansible.builtin.command:
+        cmd: df -h / | tail -1 | awk '{print $5}' | tr -d '%'
+      register: disk_usage
+
+    - name: ディスク使用量を表示
+      ansible.builtin.debug:
+        msg: "ルートディスクの使用率は {{ disk_usage.stdout }}% です。"
+
+    - name: ディスク使用率が80%以上の場合に警告を表示
+      ansible.builtin.debug:
+        msg: "警告: ルートディスクの使用率が80%を超えています。"
+      when: disk_usage.stdout | int >= 80
+```
+
+実行結果例（ディスク使用率が 85%の場合）
+
+```
+PLAY [コマンド実行結果に基づく処理] *************************************************************************************
+
+TASK [ディスク使用量を確認] ***********************************************************************************************
+changed: [web01]
+
+TASK [ディスク使用量を表示] *********************************************************************************************
+ok: [web01] => {
+    "msg": "ルートディスクの使用率は 85% です。"
+}
+
+TASK [ディスク使用率が80%以上の場合に警告を表示] ***********************************************************************
+ok: [web01] => {
+    "msg": "警告: ルートディスクの使用率が80%を超えています。"
+}
+
+PLAY RECAP *****************************************************************************************************
+web01                      : ok=3    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```

@@ -235,6 +235,10 @@ export default defineConfig({
                             label: 'Ansible コマンド',
                             autogenerate: { directory: 'ansible/cmds' },
                         },
+                        {
+                            label: 'モジュールの使用例',
+                            autogenerate: { directory: 'ansible/modules' },
+                        },
                     ],
                 },
             ],
