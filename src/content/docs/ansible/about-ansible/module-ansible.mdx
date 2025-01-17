@@ -2,16 +2,16 @@
 title: Ansible のモジュール
 description: Ansible のモジュールについて
 tags:
-    - "Ansible"
+  - "Ansible"
 sidebar:
-    # このリンクのカスタムラベルを設定します
-    label: Ansible のモジュール
-    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
-    order: 2
-    # このリンクにバッジを追加します
-    # badge:
-    #     text: ""
-    #     variant: tip
+  # このリンクのカスタムラベルを設定します
+  label: Ansible のモジュール
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 20
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
 ---
 
 import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
@@ -22,3 +22,216 @@ import Table from "@components/Table.astro";
 ## Ansible のモジュールについて
 
 <LinkPreview url="https://docs.ansible.com/ansible/2.9_ja/modules/modules_by_category.html" />
+
+Ansible のモジュールは特定の処理が作り込まれた機能のことです。
+
+### Ansible 組み込みモジュール一覧
+
+<LinkPreview url="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html" />
+
+### コマンド系
+
+<Table
+  columns={["モジュール", "説明"]}
+  data={[
+    [
+      "[ansible.builtin.command](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/command_module.html)",
+      "ターゲット上でコマンドを実行する",
+    ],
+    [
+      "[ansible.builtin.shell](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/shell_module.html)",
+      ["ターゲット上でシェルコマンドを実行する", "command の違いとしてはパイプやリダイレクトが使える"].join("<br>"),
+    ],
+    [
+      "[ansible.builtin.script](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/script_module.html)",
+      "ローカルスクリプトをリモートに転送してから実行",
+    ],
+  ]}
+/>
+
+### コネクションプラグイン
+
+<Table
+  columns={["モジュール", "説明"]}
+  data={[
+    [
+      "[ansible.builtin.ssh](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/ssh_connection.html)",
+      "サーバーへ SSH 接続する",
+    ],
+    [
+      "[ansible.builtin.local](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/local_connection.html)",
+      "コントローラーノード上で実行する(デバッグなどの利用用途)",
+    ],
+    [
+      "[ansible.netcommon.network_cli](https://docs.ansible.com/ansible/latest/collections/ansible/netcommon/network_cli_connection.html)",
+      ["ネットワーク機器へ SSH 接続する"].join("<br>"),
+    ],
+  ]}
+/>
+
+### ファイル系
+
+<Table
+  columns={["モジュール", "説明"]}
+  data={[
+    [
+      "[ansible.builtin.env](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/env_lookup.html)",
+      ["環境変数を読み込む"].join("<br>"),
+    ],
+    [
+      "[ansible.builtin.file](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/file_module.html)",
+      ["ファイル、ファイルのプロパティ管理", "例えば、ファイル作成、ディレクトリ作成、シンボリックリンク作成など"].join(
+        "<br>"
+      ),
+    ],
+    [
+      "[ansible.builtin.copy](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html)",
+      "ターゲットノードにファイルをコピーする",
+    ],
+    [
+      "[ansible.builtin.fetch](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/fetch_module.html)",
+      "ターゲットノードからファイルを取得する( copy の逆)",
+    ],
+    [
+      "[ansible.builtin.stat](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/stat_module.html)",
+      "ファイルまたはファイルシステムの状態を取得する。",
+    ],
+    [
+      "[ansible.builtin.template](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/template_lookup.html)",
+      "Jinja2でテンプレート化した後にファイルの内容を取得する",
+    ],
+    [
+      "[ansible.builtin.lineinfile](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/lineinfile_module.html)",
+      "テキストファイルの行を管理する。ファイル中の行を変更する。",
+    ],
+    [
+      "[ansible.builtin.unarchive](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/unarchive_module.html)",
+      "アーカイブをローカルマシンからコピーした後、解凍する。",
+    ],
+  ]}
+/>
+
+### ネットワークツール
+
+<Table
+  columns={["モジュール", "説明"]}
+  data={[
+    [
+      "[ansible.builtin.get_url](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/get_url_module.html)",
+      "HTTP、HTTPS、またはFTPからノードにファイルをダウンロード",
+    ],
+  ]}
+/>
+
+### コールバック
+
+<Table
+  columns={["モジュール", "説明"]}
+  data={[
+    [
+      "[community.general.yaml](https://docs.ansible.com/ansible/latest/collections/community/general/yaml_callback.html)",
+      "プレイブックの実行結果を YAML 形式で表示する。",
+    ],
+    [
+      "[ansible.posix.profile_tasks](https://docs.ansible.com/ansible/latest/collections/ansible/posix/profile_tasks_callback.html)",
+      "プレイブックの実行結果に時刻やタスク実行時間を表示する。",
+    ],
+  ]}
+/>
+
+### パッケージング
+
+<Table
+  columns={["モジュール", "説明"]}
+  data={[
+    [
+      "[ansible.builtin.package](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/package_module.html)",
+      "汎用OSパッケージマネージャ、apt や dnf を使用せずにパッケージ管理を行う。",
+    ],
+    [
+      "[ansible.builtin.dnf](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dnf_module.html)",
+      "dnf パッケージマネージャーを使用してパッケージを管理する。",
+    ],
+    [
+      "[ansible.builtin.apt](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html)",
+      "apt パッケージマネージャーを使用してパッケージ管理を行う。",
+    ],
+  ]}
+/>
+
+### システム系
+
+<Table
+  columns={["モジュール", "説明"]}
+  data={[
+    [
+      "[ansible.builtin.service](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/service_module.html)",
+      "リモートホスト上のサービスを制御する。BSD init、OpenRC、SysV、Solaris SMF、systemd、upstart などをinit システムとしてサポートしている",
+    ],
+    [
+      "[ansible.builtin.user](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/user_module.html)",
+      "ユーザーアカウントの管理を行う。",
+    ],
+    [
+      "[ansible.builtin.group](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/group_module.html)",
+      "グループの追加・削除を行う。",
+    ],
+    [
+      "[ansible.posix.firewalld](https://docs.ansible.com/ansible/latest/collections/ansible/posix/firewalld_module.html)",
+      [
+        "任意のポート/サービスをfirewalldで管理する。",
+        "`ansible.posix`コレクションをインストールされていることで利用できる。",
+        "`ansible-galaxy collection list` で確認する。",
+      ].join("<br>"),
+    ],
+  ]}
+/>
+
+### ユーティリティ
+
+<Table
+  columns={["モジュール", "説明"]}
+  data={[
+    [
+      "[ansible.builtin.import_playbook](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/import_playbook_module.html)",
+      ["プレイブックをインポートする。"].join("<br>"),
+    ],
+    [
+      "[ansible.builtin.import_tasks](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/import_tasks_module.html)",
+      ["タスクリストをインポートする。"].join("<br>"),
+    ],
+    [
+      "[ansible.builtin.include_vars](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/include_vars_module.html)",
+      ["タスク内でファイルから動的に変数をロードします。"].join("<br>"),
+    ],
+    [
+      "[ansible.builtin.debug](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/debug_module.html)",
+      [
+        "実行中にステートメントを出力する。",
+        "プレイブックを停止することなく変数や式をデバッグするのに利用される。",
+      ].join("<br>"),
+    ],
+    [
+      "[ansible.builtin.fail](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/fail_module.html)",
+      ["カスタムメッセージで失敗させる。"].join("<br>"),
+    ],
+  ]}
+/>
+
+### インベントリプラグイン
+
+<Table
+  columns={["モジュール", "説明"]}
+  data={[
+    [
+      "[ansible.builtin.ini](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/ini_inventory.html)",
+      "Ansible INI ファイルをインベントリ ソースとして使用します",
+    ],
+    [
+      "[ansible.builtin.yaml](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/yaml_inventory.html)",
+      "特定の YAML ファイルをインベントリソースとして使用します。",
+    ],
+  ]}
+/>
+
+### モジュールの作成

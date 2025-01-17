@@ -1,0 +1,172 @@
+---
+title: chown
+description: ファイル・ディレクトリの所有者、所有グループの変更を行う
+tags:
+  - "Linux"
+  - "セキュリティ"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: chown
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 2
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+author:
+  - "David MacKenzie"
+  - "Jim Meyering"
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+このマニュアルページは GNU 版の `chown` について説明しています。
+`chown` は、指定された各ファイルのユーザーおよび/またはグループの所有者を変更する。
+所有者（ユーザー名または数値のユーザー ID）のみが指定された場合、そのユーザーが指定された各ファイルの所有者となり、ファイルのグループは変更されない。
+所有者の後にコロンとグループ名（または数値のグループ ID）を空白なしで続けた場合、ファイルのグループ所有権も変更される。
+
+ユーザー名の後にコロンが続き、グループ名がない場合、そのユーザーがファイルの所有者となり、ファイルのグループはそのユーザーのログイン・グループに変更される。
+コロンとグループが与えられ、所有者が省略された場合、ファイルのグループのみが変更される。
+コロンのみが指定された場合、またはオペランド全体が空の場合、所有者もグループも変更されない。
+
+### 構文
+
+```bash frame=none
+chown [OPTION]... [OWNER][:[GROUP]] FILE...
+chown [OPTION]... --reference=RFILE FILE...
+```
+
+- **OWNER**: 新しい所有者のユーザー名または UID。
+- **GROUP**: 新しいグループのグループ名または GID。
+- **FILE**: 所有者またはグループを変更するファイルまたはディレクトリ。
+
+### EXAMPLES
+
+```bash frame=none
+# Change the owner of /u to "root".
+chown root /u
+
+# Likewise, but also change its group to "staff".
+chown root:staff /u
+
+# Change the owner of /u and subfiles to "root".
+chown -hR root /u
+```
+
+### オプション
+
+#### オプション一覧
+
+各 `FILE` の所有者またはグループを `OWNER` または `GROUP` に変更します。
+`--reference` を指定すると、各 `FILE` の所有者とグループを `RFILE` の所有者とグループに変更します。
+
+<Table
+  colWidth={["10.5rem"]}
+  columns={["オプション", "説明"]}
+  data={[
+    [["`-c`", "`--changes`"].join("<br>"), "詳細表示に似ていますが、変更があった場合のみ報告します"],
+    [["`-f`", "`--silent`", "`--quiet`"].join("<br>"), "ほとんどのエラーメッセージを抑制します"],
+    [["`-v`", "`--verbose`"].join("<br>"), "処理された各ファイルについて診断情報を出力します"],
+    [
+      ["`--dereference`"].join("<br>"),
+      "シンボリックリンク自体ではなく、各シンボリックリンクの参照先に影響を与えます（デフォルト）",
+    ],
+    [
+      ["`-h`", "`--no-dereference`"].join("<br>"),
+      "参照先のファイルではなく、シンボリックリンク自体に影響を与えます（シンボリックリンクの所有権を変更できるシステムでのみ有用）",
+    ],
+    [
+      ["`--from=CURRENT_OWNER:CURRENT_GROUP`"].join("<br>"),
+      [
+        "各ファイルの現在の所有者またはグループと、ここで指定された所有者または グループが一致する場合にのみ、所有者またはグループを変更する。",
+        "どちらかを省略することもでき、その場合、省略された属性にマッチする必要はない。"
+      ].join('<br>'),
+    ],
+
+    [["`--no-preserve-root`"].join("<br>"), "'/' を特別扱いしません（デフォルト）"],
+    [["`--preserve-root`"].join("<br>"), "'/' に対して再帰的に操作を実行しようとすると失敗します"],
+    [["`--reference=RFILE`"].join("<br>"), "GROUP 値を指定するのではなく、RFILE のグループを使用します"],
+    [["`-R`", "`--recursive`"].join("<br>"), "ファイルおよびディレクトリに対して再帰的に操作を行います"],
+    [["`--help`"].join("<br>"), "このヘルプを表示して終了します"],
+    [["`--version`"].join("<br>"), "バージョン情報を出力して終了します"],
+
+]}
+/>
+
+所有者が見つからない場合は変更されない。`OWNER` の後に `:` が続く場合、ログイン・グループに変更される。
+`OWNER` と `GROUP` は、記号だけでなく数値でもよい。
+
+以下のオプションは、`-R` オプションも指定した場合の階層の走査方法を変更する。
+複数指定した場合は、最後の 1 つだけが有効になる。
+
+<Table
+  columns={["オプション", "説明"]}
+  data={[
+    [["`-H`"].join("<br>"), "コマンドライン引数がディレクトリへのシンボリックリンクである場合、それを辿ります"],
+    [["`-L`"].join("<br>"), "遭遇したすべてのディレクトリへのシンボリックリンクを辿ります"],
+    [["`-P`"].join("<br>"), "シンボリックリンクを一切辿りません（デフォルト）"],
+  ]}
+/>
+
+### SAMPLE
+
+#### 単一のファイル・ディレクトリの所有者・グループを変更する
+
+```bash frame=none
+# 単一のファイルの所有者を変更する
+chown newowner filename
+
+# 単一のディレクトリの所有者を変更する
+chown newowner directoryname
+
+# 単一のファイルの所有者とグループを変更
+chown newowner:newgroup filename
+
+# 単一のディレクトリの所有者とグループを変更
+chown newowner:newgroup directoryname
+
+# 所有者を変更せずに、単一のファイルのグループのみを変更
+chown :newgroup filename
+```
+
+`chown` コマンドは、通常、スーパーユーザー（root）として実行する必要があります。また、`chown` コマンドには他にも多くのオプションがあります。
+詳細については、`man chown` コマンドを使用してマニュアルページを参照するか、オンラインのマニュアルをチェックしてください。
+
+#### `-R` オプション
+
+##### ディレクトリとその内容の所有者とグループを再帰的に変更する
+
+```bash frame=none
+chown -R newowner:newgroup directoryname
+sudo chown -R ec2-user:ec2-user .git
+```
+
+##### 所有者を変更せずに、ディレクトリとその内容のグループを再帰的に変更する
+
+```bash frame=none
+chown -R :newgroup directoryname
+```
+
+### other info
+
+##### REPORTING BUGS
+
+[GNU coreutils online help](https://www.gnu.org/software/coreutils/)
+[Report any translation bugs to](https://translationproject.org/team/)
+
+##### COPYRIGHT
+
+Copyright © 2020 Free Software Foundation, Inc. License GPLv3+: GNU GPL version 3 or later https://gnu.org/licenses/gpl.html.
+This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
+
+##### SEE ALSO
+
+chown(2)
+
+Full [documentation](https://www.gnu.org/software/coreutils/chgrp) or available locally via: info '(coreutils) chgrp invocation'
+
+GNU coreutils 8.32

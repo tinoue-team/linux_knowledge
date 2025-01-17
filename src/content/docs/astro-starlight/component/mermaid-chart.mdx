@@ -1,0 +1,77 @@
+---
+title: MermaidChart
+description: MermaidChart コンポーネントの紹介
+tags:
+  - "Astro"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: MermaidChart
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 2
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import MermaidChart from "@components/MermaidChart.astro";
+
+## 概要
+
+`<MermaidChart>` コンポーネントはコードブロックの記述を利用した、JavaScript 拡張の Mermaid グラフをレンダリングするコンポーネントです。
+
+### インポート
+
+```mdx
+import Table from "@components/Table.astro";
+
+<MermaidChart
+    chart={`
+    graph TD
+
+    A((A サービス))
+
+    subgraph child
+      B[B サービス]
+      C[C サービス]
+      D[D サービス]
+    end
+
+    A -.-|B から取得 ⬆️| B
+    A ---|C に渡す ⬇️| C
+    A ---|D に渡す ⬇️| D
+
+    `}
+
+/>
+```
+
+#### プロパティ
+
+##### chart
+
+type: `string`
+
+コードブロックに渡すテキスト
+
+### 出力結果
+
+<MermaidChart
+    chart={`
+    graph TD
+
+    A((A サービス))
+
+    subgraph child
+      B[B サービス]
+      C[C サービス]
+      D[D サービス]
+    end
+
+    A -.-|B から取得 ⬆️| B
+    A ---|C に渡す ⬇️| C
+    A ---|D に渡す ⬇️| D
+
+    `}
+
+/>

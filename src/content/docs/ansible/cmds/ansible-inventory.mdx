@@ -1,0 +1,395 @@
+---
+title: ansible-inventory
+description: ansible-inventory について
+tags:
+  - "Ansible"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: ansible-inventory
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 10
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## ansible-inventory コマンドとは
+
+**Ansible** における `ansible-inventory` コマンドは、インベントリデータを操作・表示するための強力なツールです。
+インベントリは、Ansible が管理対象とするホスト（ノード）の集合であり、グループ化や変数の設定などを行うことができます。(デフォルトでは、JSON 形式での表示)
+
+```bash frame="none"
+ansible-inventory [-h]
+                  [--version] [-v] [-i INVENTORY] [-l SUBSET] [--vault-id VAULT_IDS] [-J | --vault-password-file VAULT_PASSWORD_FILES] [--playbook-dir BASEDIR] [-e EXTRA_VARS]
+                  [--list] [--host HOST] [--graph] [-y]
+                  [--toml] [--vars] [--export] [--output OUTPUT_FILE]
+
+                  [group]
+```
+
+```bash frame="none"
+ansible-inventory [option] [group]
+```
+
+- group …インベントリ内のグループ名(--graph を利用した時)
+
+## オプション
+
+### オプション一覧
+
+<Table
+  caption="Ansible コマンドラインオプション"
+  columns={["オプション", "説明"]}
+  data={[
+    [
+      ["--export"].join("<br>"),
+      [
+        "`--list` を実行する場合は、Ansible がどのように処理したかを正確に表すのではなく、エクスポート用に最適化された方法で表します。",
+      ].join("<br>"),
+    ],
+    [
+      ["--output OUTPUT_FILE"].join("<br>"),
+      ["`--list` を実行する場合、インベントリを画面ではなくファイルに送信します。"].join("<br>"),
+    ],
+    [
+      ["--playbook-dir BASEDIR"].join("<br>"),
+      [
+        "このツールはプレイブックを使用しないため、代替のプレイブックディレクトリとしてこれを使用します。これにより、roles/ group_vars/ など多くの機能の相対パスが設定されます。",
+      ].join("<br>"),
+    ],
+    [
+      ["--toml"].join("<br>"),
+      ["デフォルトの JSON ではなく TOML 形式を使用します。--graph では無視されます。"].join("<br>"),
+    ],
+    [
+      ["--vars"].join("<br>"),
+      ["グラフ表示に変数を追加します。--graph と一緒に使用しない場合は無視されます。"].join("<br>"),
+    ],
+    [
+      ["--vault-id VAULT_IDS"].join("<br>"),
+      ["使用するボールト ID を指定します。この引数は複数回指定できます。"].join("<br>"),
+    ],
+    [
+      ["--vault-password-file VAULT_PASSWORD_FILES", "--vault-pass-file VAULT_PASSWORD_FILES"].join("<br>"),
+      ["ボールトパスワードファイル"].join("<br>"),
+    ],
+    [
+      ["--version"].join("<br>"),
+      [
+        "プログラムのバージョン番号、設定ファイルの場所、設定されたモジュール検索パス、モジュールの場所、実行可能ファイルの場所を表示して終了します。",
+      ].join("<br>"),
+    ],
+    [
+      ["-J", "--ask-vault-password", "--ask-vault-pass"].join("<br>"),
+      ["ボールトパスワードを要求します。"].join("<br>"),
+    ],
+    [
+      ["-e EXTRA_VARS", "--extra-vars EXTRA_VARS"].join("<br>"),
+      [
+        "追加の変数を key=value または YAML/JSON 形式で設定します。ファイル名を指定する場合は `@` を前に付けます。この引数は複数回指定できます。",
+      ].join("<br>"),
+    ],
+    [["-h", "--help"].join("<br>"), ["ヘルプメッセージを表示して終了します。"].join("<br>")],
+    [
+      ["-i INVENTORY", "--inventory INVENTORY", "--inventory-file INVENTORY"].join("<br>"),
+      [
+        "インベントリホストのパスまたはカンマ区切りのホストリストを指定します。",
+        "デフォルトでは `/etc/ansible/hosts` が使用されます。",
+        "`--inventory-file` は非推奨です。この引数は複数回指定できます。",
+      ].join("<br>"),
+    ],
+    [
+      ["-l SUBSET", "--limit SUBSET"].join("<br>"),
+      ["選択されたホストを追加のパターンでさらに制限します。"].join("<br>"),
+    ],
+    [
+      ["-v", "--verbose"].join("<br>"),
+      [
+        "Ansible がより多くのデバッグメッセージを表示するようにします。`-v` を複数回追加すると冗長性が増し、組み込みプラグインは現在 `-vvvvvv` まで評価します。開始するには `-vvv` が適切なレベルで、接続デバッグには `-vvvv` が必要な場合があります。この引数は複数回指定できます。",
+      ].join("<br>"),
+    ],
+    [
+      ["-y", "--yaml"].join("<br>"),
+      ["デフォルトの JSON ではなく YAML 形式を使用します。--graph では無視されます。"].join("<br>"),
+    ],
+  ]}
+/>
+
+## Actions
+
+`ansible-inventory` コマンドの「Actions」セクションでは、以下の 3 つのオプションのうち **正確に 1 つ** を使用する必要があります。これらのオプションは、インベントリデータの異なる表示方法や操作を提供します。
+
+#### Actions オプションの利用方法
+
+<Tabs syncKey="Actions">
+
+  <TabItem label="--graph">
+    #### `--graph`
+
+    インベントリのグラフ構造を視覚的に表示します。特定のグループ名を指定することで、そのグループ内のホストやサブグループの関係をグラフィカルに確認できます。
+    パターンとして指定する場合、有効なグループ名でなければなりません。また、`--limit` オプションは無視されます。
+
+    インベントリの全体構造を迅速に把握したい場合。
+    グループ間の親子関係を視覚的に確認することで、設定ミスを防ぎやすくなります。
+
+    <Steps>
+
+      1. インベントリファイル
+
+         ```yaml title="inventory.yaml"
+         all:
+           children:
+             web:
+               hosts:
+                 web01:
+                 web02:
+             db:
+               hosts:
+                 db01:
+                 db02:
+         ```
+
+      1. `--graph` オプションの実行
+
+         ```bash frame=none
+         ansible-inventory -i inventory.yaml --graph
+         ```
+
+         出力結果
+
+         ```bash frame="none"
+         @all: # 全ホストの親グループ
+           |--@db: # データベースサーバーのグループ `db` に属するホスト
+           |  |--db01
+           |  `--db02
+           `--@web: # ウェブサーバーのグループ `web` に属するホスト
+             |--web01
+             `--web02
+         ```
+
+         各ホスト (`db01`, `db02`, `web01`, `web02`) がどのグループに属しているかを視覚的に確認できます。
+
+    </Steps>
+
+  </TabItem>
+  <TabItem label="--host">
+    #### `--host HOST`
+
+    指定したホストの詳細なインベントリ情報を表示します。これにより、特定のホストに関連する変数やグループメンバーシップを確認できます。
+    `--limit` オプションは無視されます。
+
+    特定のホストに設定された変数や接続情報を確認したい場合。Playbook 実行時のデバッグやトラブルシューティング時に役立ちます。
+    <Steps>
+
+    1. インベントリファイル
+
+       ```yaml
+       all:
+         children:
+           web:
+             hosts:
+               web01:
+                 ansible_host: 192.168.1.10
+                 ansible_user: ubuntu
+                 ansible_ssh_private_key_file: ~/.ssh/web01_key.pem
+               web02:
+                 ansible_host: 192.168.1.11
+                 ansible_user: ubuntu
+                 ansible_ssh_private_key_file: ~/.ssh/web02_key.pem
+           db:
+             hosts:
+               db01:
+                 ansible_host: 192.168.1.20
+                 ansible_user: ubuntu
+                 ansible_ssh_private_key_file: ~/.ssh/db01_key.pem
+       ```
+    1. `--host` を指定して実行
+       ```bash frame="none"
+       # `web01` というホストの詳細情報を表示させる
+       ansible-inventory -i inventory.yaml --host web01
+       ```
+       出力結果
+       ```yaml
+       ansible_host: 192.168.1.10
+       ansible_user: ubuntu
+       ansible_ssh_private_key_file: ~/.ssh/web01_key.pem
+       ```
+       `web01` ホストに設定されている変数 (`ansible_host`, `ansible_user`, `ansible_ssh_private_key_file`) が表示されます。
+       ホストが属するグループ（この場合 `web` グループ）に関する情報は含まれていません。グループ情報を確認するには別途調査が必要です。
+    </Steps>
+
+  </TabItem>
+
+  <TabItem label="--list">
+    #### `--list`
+    インベントリ内のすべてのホストとグループの情報を出力します。これは、Ansible が内部でどのようにインベントリを解釈しているかを確認する際に役立ちます。
+    `--limit` オプションは無視されます。
+
+    - インベントリ全体の構造とホスト・グループの関係を確認したい場合。
+    - インベントリが正しく設定されているかを検証するために利用します。
+    - インベントリファイルのデバッグ時に、Ansible がどのようにホストを認識しているかを確認する際に役立ちます。
+
+    <Steps>
+
+    1. インベントリファイル
+       ```yaml
+       all:
+         children:
+           web:
+             hosts:
+               web01:
+                 ansible_host: 192.168.1.10
+                 ansible_user: ubuntu
+               web02:
+                 ansible_host: 192.168.1.11
+                 ansible_user: ubuntu
+           db:
+             hosts:
+               db01:
+                 ansible_host: 192.168.1.20
+                 ansible_user: ubuntu
+       ```
+
+    1. `--list` を実行
+       ```bash frame="none"
+       # インベントリ全体の情報をリスト形式で表示
+       ansible-inventory -i inventory.yaml --list
+       ```
+       実行結果
+       ```yaml
+       all:
+         children:
+           db:
+             hosts:
+               db01:
+                 ansible_host: 192.168.1.20
+                 ansible_user: ubuntu
+           web:
+             hosts:
+               web01:
+                 ansible_host: 192.168.1.10
+                 ansible_user: ubuntu
+               web02:
+                 ansible_host: 192.168.1.11
+                 ansible_user: ubuntu
+       ```
+        - インベントリ内のすべてのグループ (`all`, `db`, `web`) とそのメンバー (`db01`, `web01`, `web02`) の情報が階層的に表示されます。
+        - 各ホストに設定された変数 (`ansible_host`, `ansible_user`) も含まれています。
+
+    </Steps>
+
+  </TabItem>
+</Tabs>
+
+## 各オプションの具体的な利用方法とシナリオ
+
+### 1. `--graph` の利用シナリオ
+
+**シナリオ:**
+開発チームが新しい環境をセットアップする際、インベントリのグループ構造を視覚的に確認し、ホスト間の関係を把握したい。
+
+**具体的な手順:**
+
+1. **インベントリファイルの確認:**
+
+   - グループとホストが正しく定義されていることを確認します。
+
+2. **グラフの生成:**
+
+   ```bash frame="none"
+   ansible-inventory -i inventory.yaml --graph
+   ```
+
+3. **出力の確認:**
+   - グループ間の親子関係やホストの所属を視覚的に確認します。
+
+**利点:**
+
+- 複雑なインベントリ構造を一目で把握できる。
+- グループ間の関係性を理解することで、Playbook の作成や管理が容易になる。
+
+---
+
+### 2. `--host HOST` の利用シナリオ
+
+**シナリオ:**
+特定のホスト (`web01`) に設定された変数や接続情報を確認し、SSH 接続の設定が正しいか検証したい。
+
+**具体的な手順:**
+
+1. **ホストの詳細情報の取得:**
+
+   ```bash frame="none"
+   ansible-inventory -i inventory.yaml --host web01
+   ```
+
+2. **出力の確認:**
+   - `web01` に設定された変数（例: `ansible_host`, `ansible_user`）が正しく設定されているか確認します。
+
+**利点:**
+
+- 個々のホストに対する設定の確認が容易。
+- Playbook 実行時の接続問題のトラブルシューティングに役立つ。
+
+---
+
+### 3. `--list` の利用シナリオ
+
+**シナリオ:**
+インベントリ全体の設定を一度に確認し、誤ったグループやホストの設定を見つけたい。
+
+**具体的な手順:**
+
+1. **インベントリ全体のリスト表示:**
+
+   ```bash frame="none"
+   ansible-inventory -i inventory.yaml --list
+   ```
+
+2. **出力の確認:**
+   - 全てのグループとホスト、およびそれぞれに設定された変数を確認します。
+
+**利点:**
+
+- インベントリ全体の設定状況を網羅的に把握できる。
+- Playbook 実行前にインベントリの整合性を確認し、設定ミスを防止できる。
+
+---
+
+## まとめ
+
+`ansible-inventory` コマンドの「Actions」オプションである `--graph`, `--host HOST`, `--list` は、インベントリデータの可視化や詳細確認に非常に有用です。これらのオプションを効果的に活用することで、インベントリの管理が容易になり、Ansible を用いた自動化作業の精度と効率が向上します。
+
+### **ポイントの再確認**
+
+- **一度に使用できるオプションは 1 つのみ:**
+
+  - `--graph`, `--host HOST`, `--list` は同時に使用できず、1 つのみを指定する必要があります。
+
+- **用途に応じたオプションの選択:**
+
+  - **グラフ表示:** インベントリの構造を視覚的に確認したい場合は `--graph` を使用。
+  - **ホスト詳細:** 特定のホストの設定を確認したい場合は `--host HOST` を使用。
+  - **インベントリ全体:** インベントリ全体の情報を確認したい場合は `--list` を使用。
+
+- **インベントリファイルの指定:**
+  - `-i` オプションでインベントリファイルを指定し、正確なデータを操作・表示します。
+
+### **参考資料**
+
+- [Ansible Inventory Documentation](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html)
+- [Ansible Command-Line Tools](https://docs.ansible.com/ansible/latest/cli/ansible-inventory.html)
+- [Managing Ansible Inventories](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#inventory)
+- [Ansible Playbook Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
+
+これらの知識を活用し、Ansible を用いた効率的なインフラストラクチャの自動化を実現してください。
+
+> インベントリプラグイン
+
+<LinkPreview url="https://docs.ansible.com/ansible/latest/collections/index_inventory.html" />

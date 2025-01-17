@@ -1,0 +1,105 @@
+---
+title: chgrp
+description: ファイルやディレクトリの所属するグループを変更
+tags:
+  - "Linux"
+  - "セキュリティ"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: chgrp
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 2
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+author:
+  - "David MacKenzie"
+  - "Jim Meyering"
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+### 構文
+
+```bash frame=none
+# FILE のグループを GROUP に変更する
+chgrp [OPTION]... GROUP FILE...
+# `--reference` で各 FILE を RFILE のグループに変更する。
+chgrp [OPTION]... --reference=RFILE FILE...
+```
+
+### EXAMPLES
+
+```bash frame=none
+chgrp staff /u
+# Change the group of /u to "staff".
+
+chgrp -hR staff /u
+# Change the group of /u and subfiles to "staff".
+
+```
+
+- <LinkPreview url="https://qiita.com/ntkgcj/items/6450e25c5564ccaa1b95" type="inline" />
+
+### オプション
+
+#### オプション一覧
+
+<Table
+  colWidth={["10.5rem"]}
+  columns={["オプション", "説明"]}
+  data={[
+    [["`-c`", "`--changes`"].join("<br>"), "詳細表示に似ていますが、変更があった場合のみ報告します"],
+    [["`-f`", "`--silent`", "`--quiet`"].join("<br>"), "ほとんどのエラーメッセージを抑制します"],
+    [["`-v`", "`--verbose`"].join("<br>"), "処理された各ファイルについて診断情報を出力します"],
+    [
+      ["`--dereference`"].join("<br>"),
+      "シンボリックリンク自体ではなく、各シンボリックリンクの参照先に影響を与えます（デフォルト）",
+    ],
+    [
+      ["`-h`", "`--no-dereference`"].join("<br>"),
+      "参照先のファイルではなく、シンボリックリンク自体に影響を与えます（シンボリックリンクの所有権を変更できるシステムでのみ有用）",
+    ],
+    [["`--no-preserve-root`"].join("<br>"), "'/' を特別扱いしません（デフォルト）"],
+    [["`--preserve-root`"].join("<br>"), "'/' に対して再帰的に操作を実行しようとすると失敗します"],
+    [["`--reference=RFILE`"].join("<br>"), "GROUP 値を指定するのではなく、RFILE のグループを使用します"],
+    [["`-R`", "`--recursive`"].join("<br>"), "ファイルおよびディレクトリに対して再帰的に操作を行います"],
+    [["`--help`"].join("<br>"), "このヘルプを表示して終了します"],
+    [["`--version`"].join("<br>"), "バージョン情報を出力して終了します"],
+  ]}
+/>
+
+以下のオプションは、`-R` オプションも指定した場合の階層の走査方法を変更する。
+複数指定した場合は、最後の 1 つだけが有効になる。
+
+<Table
+  columns={["オプション", "説明"]}
+  data={[
+    [["`-H`"].join("<br>"), "コマンドライン引数がディレクトリへのシンボリックリンクである場合、それを辿ります"],
+    [["`-L`"].join("<br>"), "遭遇したすべてのディレクトリへのシンボリックリンクを辿ります"],
+    [["`-P`"].join("<br>"), "シンボリックリンクを一切辿りません（デフォルト）"],
+  ]}
+/>
+
+##### REPORTING BUGS
+
+[GNU coreutils online help](https://www.gnu.org/software/coreutils/)
+[Report any translation bugs to](https://translationproject.org/team/)
+
+##### COPYRIGHT
+
+Copyright © 2020 Free Software Foundation, Inc. License GPLv3+: GNU GPL version 3 or later https://gnu.org/licenses/gpl.html.
+This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
+
+##### SEE ALSO
+
+chown(1), chown(2)
+
+Full [documentation](https://www.gnu.org/software/coreutils/chgrp) or available locally via: info '(coreutils) chgrp invocation'
+
+GNU coreutils 8.32

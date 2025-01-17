@@ -1,0 +1,61 @@
+---
+title: umask
+description: アクセス権のデフォルト値を制御する
+tags:
+  - "Linux"
+  - "セキュリティ"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: umask
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 2
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+### 構文
+
+```bash frame=none
+umask [マスク値]
+```
+
+ファイルやディレクトリを作成したときに設定されるアクセス権は、`umask` 値で決定される。ファイルは 666 から ディレクトリは 777 から `umask` 値を引いた値がデフォルトのアクセス権として適用される。
+
+```bash frame=none
+whoami
+root
+umask
+0022
+# 現在、ログイン中のユーザが root です。
+# root のユーザがファイルやディレクトリを作ると
+touch sample-umask.txt
+mkdir sample-umask.d
+ls -la | grep sample-umask
+drwxr-xr-x  2 root root   64 Jun 30 22:45 sample-umask.d
+-rw-r--r--  1 root root    0 Jun 30 22:45 sample-umask.txt
+
+# sample-umask.d のアクセス権は 755
+# sample-umask.txt のアクセス権は 644
+# つまり umask 値 の 0022 を引いた形となっている。
+```
+
+### umask を設定する
+
+```bash frame=none
+umask 027 # umask 値の設定
+umask # umask を確認
+0027
+touch sample-umask2.txt
+mkdir sample-umask2.d
+ls -la | grep sample-umask2
+drwxr-x---  2 root root   64 Jul  1 12:22 sample-umask2.d
+-rw-r-----  1 root root    0 Jul  1 12:22 sample-umask2.txt
+```

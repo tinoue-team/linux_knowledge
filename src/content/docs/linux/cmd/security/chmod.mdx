@@ -1,0 +1,107 @@
+---
+title: chmod
+description: ファイルまたはディレクトリのアクセス権の設定を変更する
+tags:
+  - "Linux"
+  - "セキュリティ"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: chmod
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 2
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import Table from "@components/Table.astro";
+
+## 基本
+
+### 構文
+
+```bash frame=none
+          [ugoa] [+==] または、 [rwx]
+        └────────────┬─────────────┘
+chmod [オプション] アクセス権 ファイル名
+
+#形式
+chmod 権限設定ファイルパス
+#chmod 744 test.txt
+```
+
+- <LinkPreview url="https://qiita.com/ntkgcj/items/6450e25c5564ccaa1b95" type="inline" />
+
+### オプション
+
+#### オプション一覧
+
+<Table
+  columns={["オプション", "説明"]}
+  data={[
+    [["`-R`", "`--recursive`"].join("<br>"), "指定したディレクトリ以下にある全ファイルのアクセス権を変更する"],
+    [["`-v`"].join("<br>"), "コマンド実行結果を表示"],
+    [["`-c`"].join("<br>"), "変更があった場合のみ実行結果を表示"],
+  ]}
+/>
+
+[ファイル権限の運用管理について](/linux/posts/system-manage/file-management/)
+
+### chmod 実行時に使用できる記号文字
+
+<Table
+  columns={["記号", "意味"]}
+  data={[
+    ["`u`", "所有者(user)の権限(権限記号)"],
+    ["`g`", "グループ(group)の権限(権限記号)"],
+    ["`o`", "その他(other)のユーザーの権限(権限記号)"],
+    ["`a`", "すべて(all)の権限(権限記号)"],
+    ["`+`", "後に記述した権限(権限記号)を付加する"],
+    ["`-`", "後に記述した権限(権限記号)を削除する"],
+    ["`=`", "後に記述した権限(権限記号)にする"],
+    ["`r`", "読み込み権限"],
+    ["`w`", "書き込み権限"],
+    ["`x`", "実行権限"],
+    ["`s`", "SUID もしくは SGID"],
+    ["`t`", "スティッキ・ビット"],
+  ]}
+/>
+
+```bash frame=none
+#すべてのユーザーに実行権限を与える
+chmod +x test
+# -rwxr-xr-x      test
+
+#グループに書き込み権限をその他のユーザーにはすべて禁止する
+chmod g+w,o= test
+# -rwxrwx---      test
+
+#数字表記ですべてのユーザーを読み出し権限のみにする
+chmod 444 test
+# -r--r--r--      test
+
+#所有者（管理者）に全権限付与、他ユーザーには 書込＋読込 の権限を付与
+chmod 766 test
+# -rwxrw-rw-      test
+
+
+#ディレクトリとディレクトリ内のファイル全ての権限を（再帰的に）変更する
+chmod -R 766 dir
+
+# vオプションで、実行結果を表示させつつ実行
+chmod -vR 755 dir
+
+# cオプションがあるので、結果が変わらない場合は実行結果の表示なし
+chmod -cR 755 dir
+
+#その他
+
+chmod 700 test
+# -rwx------      test
+
+chmod 600 test
+# -rw-------      test
+```

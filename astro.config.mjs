@@ -106,6 +106,11 @@ export default defineConfig({
                                     autogenerate: { directory: 'linux/cmd/network' },
                                 },
                                 {
+                                    label: '構築',
+                                    collapsed: true,
+                                    autogenerate: { directory: 'linux/cmd/build' },
+                                },
+                                {
                                     label: 'セキュリティ',
                                     collapsed: true,
                                     autogenerate: { directory: 'linux/cmd/security' },
@@ -230,6 +235,10 @@ export default defineConfig({
                             label: 'Ansible コマンド',
                             autogenerate: { directory: 'ansible/cmds' },
                         },
+                        {
+                            label: 'モジュールの使用例',
+                            autogenerate: { directory: 'ansible/modules' },
+                        },
                     ],
                 },
             ],
@@ -251,7 +260,7 @@ export default defineConfig({
         //     },
         // }),
     ],
-    output: 'hybrid',
+    // output: 'static',
     adapter: netlify(),
     // adapter: isProd ? netlify() : '',
     // 特定のパターンのページを事前レンダリング

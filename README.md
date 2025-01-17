@@ -128,3 +128,9 @@ pnpm run dev:remote
 ### TODO
 
 - vscode 拡張機能がない環境での開発を考慮して、[@astrojs/ts-plugin](https://www.npmjs.com/package/@astrojs/ts-plugin) をインストールする
+
+
+## Astro の Update について
+
+- https://docs.astro.build/en/guides/upgrade-to/v5/
+- https://astro.build/blog/astro-510/

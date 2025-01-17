@@ -2,16 +2,16 @@
 title: Ansible の導入
 description: Ansible の基本的な内容を包括
 tags:
-    - "Ansible"
+  - "Ansible"
 sidebar:
-    # このリンクのカスタムラベルを設定します
-    label: Ansible の導入
-    # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
-    order: 1
-    # このリンクにバッジを追加します
-    # badge:
-    #     text: ""
-    #     variant: tip
+  # このリンクのカスタムラベルを設定します
+  label: Ansible の導入
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 10
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
 ---
 
 import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
@@ -23,34 +23,60 @@ import Table from "@components/Table.astro";
 
 > その他参考記事
 >
-> -   <LinkPreview url="https://qiita.com/Brutus/items/1894629105d61f4854bc" type="inline" />
-> -   <LinkPreview url="https://qiita.com/tmurakam99/items/8e609f174f5804308a20" type="inline" />
+> - <LinkPreview url="https://qiita.com/Brutus/items/1894629105d61f4854bc" type="inline" />
+> - <LinkPreview url="https://qiita.com/tmurakam99/items/8e609f174f5804308a20" type="inline" />
+>   <LinkPreview url="https://zenn.dev/y_mrok/books/ansible-no-tsukaikata/viewer/chapter1" />
 
-## インストール
+## インストール・導入
 
 <LinkPreview url="https://docs.ansible.com/" />
 <LinkPreview url="https://formulae.brew.sh/formula/ansible" />
 
 ### インストール方法
 
+コントロールノードとなるホストに Ansible をインストールします。
+
 <Tabs syncKey="ansible">
     <TabItem label="MacOS">
-        ```bash frame=none
-        brew install ansible
+      ```bash frame=none
+      brew install ansible
 
-        # インストール後 ansible コマンドの実行確認
-        ansible --version
-        ansible [core 2.17.4]
-        config file = None
-        configured module search path = ['/Users/t_inoue/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
-        ansible python module location = /opt/homebrew/Cellar/ansible/10.4.0/libexec/lib/python3.12/site-packages/ansible
-        ansible collection location = /Users/t_inoue/.ansible/collections:/usr/share/ansible/collections
-        executable location = /opt/homebrew/bin/ansible
-        python version = 3.12.7 (main, Oct  1 2024, 02:05:46) [Clang 15.0.0 (clang-1500.3.9.4)] (/opt/homebrew/Cellar/ansible/10.4.0/libexec/bin/python)
-        jinja version = 3.1.4
-        libyaml = True
-        ```
-        更新するには、`brew upgrade ansible`
+      # インストール後 ansible コマンドの実行確認
+      ansible --version
+      ansible [core 2.17.4]
+      config file = None
+      configured module search path = ['/Users/t_inoue/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+      ansible python module location = /opt/homebrew/Cellar/ansible/10.4.0/libexec/lib/python3.12/site-packages/ansible
+      ansible collection location = /Users/t_inoue/.ansible/collections:/usr/share/ansible/collections
+      executable location = /opt/homebrew/bin/ansible
+      python version = 3.12.7 (main, Oct  1 2024, 02:05:46) [Clang 15.0.0 (clang-1500.3.9.4)] (/opt/homebrew/Cellar/ansible/10.4.0/libexec/bin/python)
+      jinja version = 3.1.4
+      libyaml = True
+      ```
+      更新するには、`brew upgrade ansible`
+
+    </TabItem>
+
+    <TabItem label="pip">
+      Python の仮想環境である venv で環境を切り分けるメリットを享受できる pip を利用したインストール手順
+
+      ```bash frame=none
+      # Python 3.8 以上のインストール後
+
+      python3 -m venv myvenv
+
+      source myvenv/bin/activate
+      pip install pip --upgrade
+
+      pip install ansible==4.2.0
+
+      # インストール後 ansible コマンドの実行確認(ansible-core としてのバージョンが確認される)
+      ansible --version
+
+      # pip でインストールされたパッケージを確認できる。これで、ansible、ansible-core のチェックができる。
+      pip list
+      ```
+      これにより、ansible、ansible-core、Jinja2 などの依存パッケージがインストールされます。
 
     </TabItem>
 
@@ -74,20 +100,147 @@ import Table from "@components/Table.astro";
 
 </Tabs>
 
+#### ansible-core
+
+Ansible は バージョン 2.9 まで、Ansible の本体と 3000 を超えるモジュールが含まれたパッケージとなっていました。
+しかし、この管理方法はモジュールが増えるにつれ、肥大化し、管理方法などを含めリリースサイクルが遅くなってしまうという課題がありました。
+
+この課題を解決するために、2.10 以降では本体と基本的なモジュールやプラグインをコア部分とし、その他のモジュール・プラグインはコレクションとしてパッケージ管理の方法を分割しました。つまり、コア部分とコレクションはリリースサイクルが別となっている。
+コアのバージョンアップを待たずに、新機能をコレクション経由で素早く利用できるようになりました。
+2.10 の時点では、コア部分を ansible-base と呼び、2.11 以降で、ansible-core と呼ぶようになりました。
+
+##### [コレクション](/ansible/about-ansible/about-collection/)
+
+<MermaidChart
+    chart={`
+    graph LR
+
+    subgraph Ansible2.9
+      A[モジュール<br>プラグイン]
+      1[本体]
+    end
+
+    subgraph ansible-base2.10
+      2[本体<br>基本モジュール]
+    end
+
+    subgraph ansible-core2.11
+      3[本体<br>基本モジュール]
+    end
+
+    B[(コレクション)]
+
+    A -->|管理・配布の変更| B
+    A ~~~ 1
+
+    Ansible2.9 ~~~ B
+
+    1 -->|バージョンアップ<br>コア部分のみに分離| 2
+
+    2 -->|バージョンアップ<br>名前が変更<br>base から core へ| 3
+
+    Ansible2.9 ~~~ ansible-base2.10
+
+    ansible-base2.10 ~~~ ansible-core2.11
+
+
+
+    `}
+
+/>
+
+#### Ansible Community Package
+
+ansible-core のみをインストールした場合、必要なコレクションを別途インストールする必要があります。
+2.9 の時代までのようにさまざまなコレクションをコアと一緒にインストールするようにした便利なものが、Ansible Community Package です。ansible-core と コミュニティが選択したコレクションをセットにしたパッケージのことです。
+
+### VScode 拡張機能
+
+<LinkPreview url="https://marketplace.visualstudio.com/items?itemName=redhat.ansible&ssr=false#overview" />
+この拡張機能は、ansible-language-serverを活用することで、Visual Studio CodeとOpenVSX互換のエディタにAnsibleの言語サポートを追加します。
+また、ドキュメントにansible言語が割り当てられている場合にのみ動作します。 拡張機能によって開かれたドキュメントに ansible
+言語を割り当てるには、以下の方法を使用します：
+
+- ファイルによる検査をしない
+
+  .ansible.yml または .ansible.yaml。
+  site.yml または site.yaml のように、ansible によって認識される顕著な yaml 名。
+  ファイル名に playbook を持つ yaml ファイル: _playbook_.yml または*playbook*.yaml。
+  さらに VS Code では、次のように settings.json ファイルに言語用の永続的なファイルの関連付けを追加できる:
+
+  ```json
+  {
+    ...
+
+    "files.associations": {
+      "*plays.yml": "ansible",
+      "*init.yml": "yaml",
+    }
+  }
+  ```
+
+- ファイル検査つき
+
+  - ansible キーワードのファイル検査
+
+    主な方法は、yaml ファイル内の hosts や import_playbook のようなトップレベルの playbook キーワードの検査です。
+
+  - モデルライン(オプション)
+
+    また、この拡張機能はモデルインの使用もサポートしており、モデルインが使用されると、モデルインが最優先され、モデルインに従って言語が設定されます。
+
+    モデルインの例と構文
+
+    ```
+    # code: language=ansible
+    or
+    # code: language=yaml
+    ```
+
+    .yml ファイルや .yaml ファイルは、ユーザーが明示的に言語を ansible に変更しない限り、デフォルトでは yaml のままです。
+
+#### 特徴
+
+- シンタックスハイライト
+- Ansible スクリプトの検証
+  - ansible-lint の統合
+    ドキュメントを開いて保存すると、ansible-lint がバックグラウンドで実行され、発見された内容はエラーとして表示されます。
+    warn_list (Ansible Lint Documentation 参照) に追加されたルール/タグは、警告として表示されます。
+- スマートな自動補完・サジェストの提示
+  - jinja 式の自動クロージング
+- ドキュメント参照
+  - モジュールコードへのジャンプ
+
 ## Ansible の仕組み
 
 ### 概要
 
-Ansible はリモートシステムの管理を自動化し、システムの望ましい状態を制御するサービス
+Ansible はリモートシステムの管理を自動化し、システムの望ましい状態をコントロールするサービスです。
 
-以下の使用例があります。
+#### Ansible の特徴
 
--   繰り返しをなくし、ワークフローを簡素化
--   システム構成の管理と維持
--   複雑なソフトウェアを継続的に導入する
--   ダウンタイムゼロのローリングアップデートを実行する
+- [エージェントレス](#エージェントレス)
+- [Playbook](/ansible/about-ansible/about-playbook/)
+- サーバー管理以外の管理
+- [冪等性](#冪等性)
 
-Ansible は Playbook と呼ばれる手順書をもとにターゲットとなるノードの望ましい状態を宣言している。
+#### 使用例
+
+以下のような使用例
+
+- 繰り返しをなくし、ワークフローを簡素化
+- システム構成の管理と維持
+- 複雑なソフトウェアを継続的に導入する
+- ダウンタイムゼロのローリングアップデートを実行する
+
+Ansible は Playbook と呼ばれる手順書をもとにターゲットとなるノードの望ましい状態を宣言しています。
+
+### エージェントレス
+
+エージェントレスとは、管理対象のノードでとくに常駐プロブラム(サービス)を用意する必要がないことを言います。
+本来、サーバーなどを例に挙げると、ノード自身が常駐サービスが稼働しています。
+systemd などのデーモンがサーバー内で待ち受けており、イベントをトリガーにして必要な処理が発生しています。
+Ansible はコントロールノードとターゲットノードという関係によって、エージェントレスを実現しています。
 
 {/* ![Ansible の仕組み](src/assets/ansible/about-ansible/2024-09-17_22.26.15.webp) */}
 
@@ -97,87 +250,131 @@ Ansible は Playbook と呼ばれる手順書をもとにターゲットとな�
 
     %% ************************************ 宣言
 
-    subgraph Master Node
+    subgraph コントロールノード
         Inventory[インベントリファイル<br> /etc/ansible/hosts <br> /etc/hosts]
         Playbook[Playbook ファイル <br> yaml]
         ansible((Ansible<br>サービス))
     end
 
-    subgraph Target Host
-        node1[(ターゲットノード<br>①)]
-        node2[(ターゲットノード<br>②)]
-        node3[(ターゲットノード<br>③)]
+    subgraph Target Hosts
+        node1[(ターゲットノード<br>① サーバー)]
+        node2[(ターゲットノード<br>② ネットワーク機器)]
+        node3[(ターゲットノード<br>③ Windows)]
     end
 
     %% ************************************ 関連
     Inventory --- ansible
     Playbook --- ansible
 
-    ansible -.-> node1
-    ansible -.-> node2
-    ansible -.-> node3
+    ansible -.->|Python スクリプト| node1
+    ansible -.->|Python スクリプト| node2
+    ansible -.->|Python スクリプト| node3
 
 
     `}
 
 />
 
+コントロールノードに Ansible がインストールされており、Ansible を使って自動化する対象のノードをターゲットノードと呼びます。
+
+#### Control(制御)ノード
+
+Ansible がインストールされたシステム。Ansible を実行する。
+コントロールノード上で `ansible` や `ansible-inventory` などの Ansible コマンドを実行する。
+Python がインストールされたほぼすべての UNIX 系マシンで使用可
+
+##### 要件
+
+- **OS**: Linux、macOS もしくは BSD ファミリー
+- **Python**: Python 2 (2.7 移行) ~ Python 3
+- **Ansible**
+- Playbook ファイル、Inventory ファイル
+
+#### Managed (管理) ノード ・ ターゲットノード
+
+Ansible が制御するリモート・システム（ホスト）。管理されるホスト
+Ansible がインストールされている必要はないが、Ansible によって生成された Python コードを実行するために Python が必要
+対話型 POSIX シェルを使用してノードに SSH 経由で接続できるユーザーアカウントも必要
+
+##### 要件
+
+- **OS**: Linux、Solaris や AIX などの UNIX 系 OS、Windows、ネットワーク機器など
+- **Python**: Python 2 (2.7 移行) ~ Python 3
+- コントロールノードからの SSH 接続(ファイル転送では SFTP、SCP も必要)
+
 #### Ansible の主要なコンポーネント
 
-<Table
-    caption=""
-    columns={["ノード", "説明"]}
-    data={[
-        [
-            "Control(制御)ノード",
-            [
-                "Ansibleがインストールされたシステム。Ansible を実行する",
-                "コントロールノード上で `ansible` や `ansible-inventory` などの Ansible コマンドを実行する。",
-                "Python がインストールされたほぼすべての UNIX 系マシンで使用可",
-            ].join("<br/>"),
-        ],
-        [
-            "Inventory (在庫)",
-            [
-                "論理的に整理された管理ノードのリスト。",
-                "コントロールノード上にインベントリを作成し、Ansible へのホストのデプロイを記述します。",
-            ].join("<br/>"),
-        ],
-        [
-            "Managed (管理) ノード",
-            [
-                "Ansible が制御するリモート・システム（ホスト）。管理されるホスト",
-                "Ansible がインストールされている必要はないが、Ansible によって生成された Python コードを実行するために Python が必要",
-                "対話型 POSIX シェルを使用してノードに SSH 経由で接続できるユーザーアカウントも必要",
-            ].join("<br/>"),
-        ],
-    ]}
-/>
+<Tabs syncKey="component">
+    <TabItem label="Playbook">
+        ##### Playbook (手順書)
+
+        Playbook は、Ansible における "ターゲットホストに対するオペレーションの設計書兼手順書" のことです。
+        Playbook ファイルの内容をもとに、Inventory などで指定されたノード(ターゲットノード)に設定の変更を行う。
+
+        ターゲットノードは Playbook の内容を Python スクリプトとして受け取り、実行します。
+
+        **[Playbook](/ansible/about-ansible/about-playbook/)を参照**
+
+    </TabItem>
+
+    <TabItem label="Inventory">
+
+        ##### Inventory (目録)
+
+        論理的に整理された管理ノードのリスト。コントロールノード上にインベントリを作成し、Ansible へのホストのデプロイを記述します。
+        グループ化や変数の設定が可能。静的および動的インベントリが存在。
+
+    </TabItem>
+
+    <TabItem label="Module">
+        ##### Module (モジュール)
+
+        Ansible が制御するリモート・システム（ホスト）。管理されるホスト
+        Ansible がインストールされている必要はないが、Ansible によって生成された Python コードを実行するために Python が必要
+        対話型 POSIX シェルを使用してノードに SSH 経由で接続できるユーザーアカウントも必要
+
+    </TabItem>
+
+    <TabItem label="Plugin">
+        ##### Plugin (プラグイン)
+
+        Ansible が制御するリモート・システム（ホスト）。管理されるホスト
+        Ansible がインストールされている必要はないが、Ansible によって生成された Python コードを実行するために Python が必要
+        対話型 POSIX シェルを使用してノードに SSH 経由で接続できるユーザーアカウントも必要
+
+    </TabItem>
+
+</Tabs>
+
+#### Ansible が行うこと
 
 1. **入力ファイル読み込み**
 
-    インベントリを元に、どのターゲットに対してメンテナンスを行うか、情報 (IP アドレスなど)を取得する Playbook を元に、ターゲットに対して行うメンテナンス内容(ソフトウェアの追加/変更/削除など)を取得する
+   インベントリを元に、どのターゲットに対してメンテナンスを行うか、情報 (IP アドレスなど)を取得する Playbook を元に、ターゲットに対して行うメンテナンス内容(ソフトウェアの追加/変更/削除など)を取得する
 
 1. **メンテナンス**
 
-    1 で取得した情報を元に各ターゲットに対してメンテナンスを行う
-    (Ansible でできるのは、既存のターゲットに対するソフトウェアの変更のみで、ハードウェアに対する変更(メモリ使用量の変更など)はサポートしていない。情報取得、例えばメモリ使用量や OS のバージョン確認などは可能)
+   1 で取得した情報を元に各ターゲットに対してメンテナンスを行う
+   (Ansible でできるのは、既存のターゲットに対するソフトウェアの変更のみで、ハードウェアに対する変更(メモリ使用量の変更など)はサポートしていない。情報取得、例えばメモリ使用量や OS のバージョン確認などは可能)
 
-### Ansible 冪等性
+### 冪等性
 
 冪等性とは、Ansible の性質を知る上で重要です。
 
-同じ操作を何度繰り返しても、同じ結果が得られる性質。例えば、マスターからターゲットに対して何かしらの操作を実行した時、実行した結果が必ず期待通りのものになり、実行のたびに結果が変わるべきではない。つまり、Playbook が何度実行されても、システムが同じ状態を維持するため、Ansible は何も変更しないようになっている。
+同じ操作を何度繰り返しても、同じ結果が得られる性質。例えば、マスターからターゲットに対して何かしらの操作を実行した時、実行した結果が必ず期待通りのものになり、
+実行のたびに結果が変わるべきではない。つまり、Playbook が何度実行されても、システムが同じ状態を維持するため、Ansible は何も変更しないようになっている。
+
+例えば、
 
 #### 冪等性を担保する仕組み
 
--   Ansible が同じ結果が得られるように制御をしている
--   Ansible を一度実行してターゲットにファイルがコピー済みの場合、二度目の実行時はファイルがコピーされているかどうかを判断し、コピー済みであれば、コピー処理はスキップする
+- Ansible が同じ結果が得られるように制御をしている
+- Ansible を一度実行してターゲットにファイルがコピー済みの場合、二度目の実行時はファイルがコピーされているかどうかを判断し、コピー済みであれば、コピー処理はスキップする
 
 #### 冪等性を採用する理由
 
--   ターゲットの状態を気にして Playbook を書いたり、実行したりする必要がない(手間がかからない)
--   ターゲットにファイルをコピー済みなら Playbook から、コピー処理を外す、2 回目の実行を控えるなどの記載をする必要がない。
+- ターゲットの状態を気にして Playbook を書いたり、実行したりする必要がない(手間がかからない)
+- ターゲットにファイルをコピー済みなら Playbook から、コピー処理を外す、2 回目の実行を控えるなどの記載をする必要がない。
 
 ### ターゲットホスト(ノード)に `hostname` コマンドを実行する
 
@@ -218,4 +415,197 @@ change the meaning of that path. See https://docs.ansible.com/ansible-core/2.17/
 MacBook-Air.local
 ```
 
-### ansible コマンド
+### インベントリと Playbook
+
+Ansible の 2 つの主要コンポーネントを説明します：
+
+インベントリ:
+
+- ホストやグループを定義する YAML ファイル
+- 管理対象サーバーの接続情報を記述
+- 変数やグループ変数を設定可能
+
+```yaml
+# inventory.yml の例
+all:
+  hosts:
+    web01:
+      ansible_host: 192.168.1.10
+    web02:
+      ansible_host: 192.168.1.11
+  children:
+    webservers:
+      hosts:
+        web01:
+        web02:
+```
+
+Playbook:
+
+- 実行する処理を定義する YAML ファイル
+- タスクの集まりで構成
+- 特定のホストやグループに対して実行
+
+```yaml
+# playbook.yml の例
+- name: Webサーバー設定
+  hosts: webservers
+  tasks:
+    - name: nginxインストール
+      apt:
+        name: nginx
+        state: present
+
+    - name: nginxサービス起動
+      service:
+        name: nginx
+        state: started
+```
+
+実行コマンド:
+
+```bash frame="none"
+ansible-playbook -i inventory.yml playbook.yml
+```
+
+### サーバー管理以外の管理
+
+Ansible は Linux サーバー以外も管理することができます。
+
+- Cisco や Juniper をはじめとするネットワーク機器
+- Windows デスクトップ
+
+環境の違いを意識することなく統一された手法でインフラに対する変更作業が Iac 化できるようになります。
+例えば、社内の Linux 環境を Ansible でコード管理できるようにしたが、ネットワーク機器は SSH クライアントが提供するマクロ機能で自動化し、
+Window サーバーは PowerShell でと、自動化の管理コストが上がってしまう懸念を Ansible で最小限の学習・管理コストを実現することができる。
+
+## ansible コマンド
+
+### ansible-lint
+
+ansible ファイルの構成・リンター機能を行うツール
+
+#### 参照
+
+<LinkPreview url="https://ansible.readthedocs.io/projects/lint/" />
+
+#### インストール
+
+```bash frame=none
+pip3 install ansible-dev-tools
+```
+
+#### 設定ファイルの作成
+
+参考:
+
+<LinkPreview url="https://ansible.readthedocs.io/projects/lint/configuring/" type="inline" />
+
+現在の作業ディレクトリの
+
+- .ansible-lint
+- .ansible-lint.yml
+- .config/ansible-lint.yml
+- .config/ansible-lint.yaml
+
+のいずれかに、Ansible-lint 構成を指定します。
+
+:::note
+
+Ansible-lint が現在のディレクトリに設定ファイルを見つけられない場合、親ディレクトリにある設定ファイルを探そうとします。 しかし、Ansible-lint は git リポジトリの外にある設定を読み込もうとしません。
+
+:::
+
+##### リンター構成設定ファイルの例
+
+<LinkPreview url="https://ansible.readthedocs.io/projects/lint/configuring/#ansible-lint-configuration" />
+
+設定ファイルを指定して実行するには、
+
+```bash frame=none
+ansible-lint -c path/to/ansible-lint-dev.yml
+```
+
+リンターの対象にしない場合ファイルがある場合は、
+.ansible-lint-ignore または .config/ansible-lint-ignore.txt ファイルで指定する
+
+```ini title=".ansible-lint-ignore | .config/ansible-lint-ignore.txt"
+# this is just a comment
+playbook.yml package-latest # disable package-latest rule for playbook.yml
+playbook.yml deprecated-module
+```
+
+##### pre-commit でリント
+
+コミット時にリンターを実行するには、.pre-commit-config.yaml に設定を追加する
+
+```yaml title=".pre-commit-hooks.yaml"
+---
+ci:
+  # This section is specific to pre-commit.ci, telling it to create a pull request
+  # to update the linter version tag every month.
+  autoupdate_schedule: monthly
+  # If you have other Ansible collection dependencies (requirements.yml)
+  # `pre-commit.ci` will not be able to install them because it runs in offline mode,
+  # and you will need to tell it to skip the hook.
+  # skip:
+  #   - ansible-lint
+repos:
+  - repo: https://github.com/ansible/ansible-lint
+    rev: ... # put latest release tag from https://github.com/ansible/ansible-lint/releases/
+    hooks:
+      - id: ansible-lint
+        # Uncomment if you need the full Ansible community bundle instead of ansible-core:
+        # additional_dependencies:
+        #   - ansible
+```
+
+#### ansible-lint の実行
+
+リンターの実行を行うには、
+
+```bash frame=none
+ansible-lint nginx_install.yaml
+WARNING: PATH altered to expand ~ in it. Read https://stackoverflow.com/a/44704799/99834 and correct your system configuration.
+
+Passed: 0 failure(s), 0 warning(s) on 1 files. Last profile that met the validation criteria was 'production'.
+```
+
+リンターの規則に沿わない場合は、指定の行に規則違反の内容が表示される。
+
+## ansible.cfg
+
+ansible.cfg は Ansible 自体の動作を設定するファイルです。ファイルは INI 形式で定義される。
+
+> ansible.cfg の設定例
+
+```ini
+[defaults]
+host_key_checking=false
+interpreter_python=/home/ansible/myvenv/bin/python
+```
+
+- host_key_checking:
+  ターゲットノードへの SSH 接続時に、公開鍵のフィンガープリントをチェックするかどうか。デフォルトは true
+- interpreter_python:
+  ターゲットノード上で実行する Python インタープリターのパス。または自動的に探索するモードの名前を指定する。
+  デフォルトは 'auto_legacy' モード
+
+### 優先順位
+
+ansible.cfg が配置される場所と読み込まれる優先順位
+
+1. 環境変数 `ANSIBLE_CONFIG` で指定したパスのファイル
+1. カレントディレクトリの `ansible.cfg`
+1. `~/.ansible.cfg` (ユーザーホームディレクトリ直下の隠しファイルとしての設定ファイル `.` を先頭につけて隠しファイルにしていください。)
+1. `/etc/ansible/ansible.cfg`
+
+### 設定確認コマンド `ansible-config`
+
+```bash frame=none
+# ansible.cfg を読み込んで、その設定値を出力
+ansible-config dump
+
+# デフォルトからの変更値差分のみを表示するには
+ansible-config dump --only-changed
+```

@@ -1,0 +1,564 @@
+---
+title: Adhoc コマンド
+description: Adhoc コマンドについて
+tags:
+  - "Ansible"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: Adhoc コマンド
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 30
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## Adhoc コマンドの実行
+
+### ansible コマンド
+
+[ansible](/ansible/cmds/ansible/)
+
+Playbook がなくても、シンプルな Ansible の実行を確認するには、
+コントロールノードから利用できる Adhoc コマンドで ターゲットノードに対して実行できる。
+
+```bash frame=none
+ansible 対象ホスト名 オプション 引数
+
+ansible localhost -m ping
+```
+
+#### 検証として、local （コントロールノードをターゲットにする）に実行する
+
+Ansible エージェントに localhost に対して実行する内容を指定。
+
+```ini title="/etc/ansible/hosts"
+[localhost]
+127.0.0.1 ansible_connection=local
+```
+
+`-m ping` で、ping モジュールを実行する
+
+:::note[ping モジュール]
+
+ping コマンドと同様。ターゲットホストに対して接続が可能かどうかを確認し、基本的な通信が正常に行われていることを検証。  
+成功すると pong というレスポンスが返される。
+
+:::
+
+:::caution[Python interpreter の警告文について]
+
+インベントリファイルや、ansible.cfg に明示的に Python interpreter の設定が行われていないと以下のようなメッセージが出てくる。
+
+```
+future installation of another Python interpreter could change the meaning of that path. See
+https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html for more information.
+```
+
+設定ファイルの位置を確認
+
+```
+ansible --version
+ansible [core 2.18.1]
+  config file = None
+  configured module search path = ['/Users/t_inoue/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /opt/homebrew/Cellar/ansible/11.1.0/libexec/lib/python3.13/site-packages/ansible
+  ansible collection location = /Users/t_inoue/.ansible/collections:/usr/share/ansible/collections
+  executable location = /opt/homebrew/bin/ansible
+  python version = 3.13.1 (main, Dec  3 2024, 17:59:52) [Clang 16.0.0 (clang-1600.0.26.4)] (/opt/homebrew/Cellar/ansible/11.1.0/libexec/bin/python)
+  jinja version = 3.1.4
+  libyaml = True
+```
+
+```ini
+[webservers]
+web1.example.com ansible_python_interpreter=/usr/bin/python3
+```
+
+:::
+
+実行結果
+
+```json
+127.0.0.1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/opt/homebrew/bin/python3.13"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+#### リモートのターゲットノードに実行する
+
+ローカルホストではなく、作成済みの EC2 インスタンスの IP に実行する
+
+<Steps>
+1. ping が現在通らないインスタンスです。
+    ```bash frame=none
+    ping 13.231.227.98
+    PING 13.231.227.98 (13.231.227.98): 56 data bytes
+    Request timeout for icmp_seq 0
+    Request timeout for icmp_seq 1
+    Request timeout for icmp_seq 2
+    ```
+1. Terraform で管理しているセキュリティグループリソースに ICMP の通信許可を与える
+
+    ```tf
+    resource "aws_security_group" "sg-ec2" {
+      name        = "tf-sample-module-sg-http"
+      description = "Allow HTTP inbound traffic"
+      vpc_id      = var.vpc_id
+
+      # ~~ 各所の設定は省略されている。
+      ingress {
+        from_port   = -1
+        to_port     = -1
+        protocol    = "icmp"
+        cidr_blocks = ["0.0.0.0/0"]
+      }
+    }
+
+    ```
+
+1. ping で確認
+
+   ```bash frame=none
+   ping 13.231.227.98
+   PING 13.231.227.98 (13.231.227.98): 56 data bytes
+   64 bytes from 13.231.227.98: icmp_seq=0 ttl=243 time=23.345 ms
+   64 bytes from 13.231.227.98: icmp_seq=1 ttl=243 time=25.261 ms
+   64 bytes from 13.231.227.98: icmp_seq=2 ttl=243 time=42.492 ms
+   ```
+
+1. インベントリファイルを編集
+
+   ```ini title="/etc/ansible/hosts"
+   [localhost]
+   127.0.0.1 ansible_connection=local
+
+   [ec2]
+   13.231.227.98
+   ```
+
+1. ターゲットノード に ansible コマンドの実行
+
+   ```bash frame=none
+   ansible ec2 -m ping -u $USER_NAME --private-key="$EC2_KEY_PAIR_PATH"
+   ```
+
+   :::caution[インタープリターのバージョン不一致]
+
+   ```bash frame=none
+   ansible ec2 -m ping -u $USER_NAME --private-key="$EC2_KEY_PAIR_PATH"
+   [WARNING]: Platform linux on host 13.231.227.98 is using the discovered Python interpreter at /usr/bin/python3, but future installation of another Python interpreter could change the meaning of that path. See
+   https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html for more information.
+   13.231.227.98 | FAILED! => {
+       "ansible_facts": {
+           "discovered_interpreter_python": "/usr/bin/python3"
+       },
+       "changed": false,
+       "msg": "ansible-core requires a minimum of Python version 3.8. Current version: 3.7.16 (default, Oct 30 2024, 20:44:12) [GCC 7.3.1 20180712 (Red Hat 7.3.1-17)]"
+   }
+   ```
+
+   ターゲットノード内に SSH ログインして、python のアップデートを行う
+
+   ```bash frame=none
+    #!/bin/bash
+    # パッケージインデックスの更新
+    sudo yum update -y
+
+    # インタープリターの Python を3.8 にする
+    sudo amazon-linux-extras enable python3.8
+    sudo yum clean metadata
+    sudo yum install -y python3.8
+
+    # Python 3.8 を alternatives に登録（優先度 1）
+    sudo alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
+
+    python3 --version
+   ```
+
+   :::
+
+   ```bash frame=none
+    ansible ec2 -m ping -u $USER_NAME --private-key="$EC2_KEY_PAIR_PATH"
+    [WARNING]: Platform linux on host 13.231.227.98 is using the discovered Python interpreter at /usr/bin/python3.8, but future installation of another Python interpreter could change the meaning of that path. See
+    https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html for more information.
+    13.231.227.98 | SUCCESS => {
+        "ansible_facts": {
+            "discovered_interpreter_python": "/usr/bin/python3.8"
+        },
+        "changed": false,
+        "ping": "pong"
+    }
+   ```
+
+</Steps>
+
+#### shell モジュールの実行
+
+```bash frame=none
+ansible localhost -m shell -a hostname
+```
+
+- `-m shell`: シェルコマンドを引数にとる
+- `-a hostname`: 引数として hostname をとり、shell モジュールと合わせて、`hostname` を実行する
+
+シェルコマンドで `hostname` を実行するという内容です。
+
+```
+127.0.0.1 | CHANGED | rc=0 >>
+MacBook-Air.local
+```
+
+Adhoc コマンドは特定の目的を達成させるため、正常に動作できるのかを検証するのに役立ちます。  
+通常は、ターゲットノードへの操作内容は Playbook に記述するので、Adhoc コマンドでの操作確認をもとに、Playbook を修正・更新して記述していきます。
+
+### ansible-playbook コマンド
+
+yum モジュールを使って、nginx のインストールを行う Playbook の作成およびその実行手順を説明します。
+
+#### 設定ファイルの解説
+
+##### hosts
+
+```ini
+[ec2]
+13.231.227.98 ansible_user=ec2-user ansible_ssh_private_key_file=/home/user/.ssh/my_ec2_key.pem ansible_python_interpreter=/usr/bin/python3
+```
+
+##### nginx をインストールする Playbook
+
+```yaml
+---
+- name: Install and Configure Nginx on EC2 Instances
+  hosts: ec2
+  vars:
+    ansible_become: true
+    ansible_become_method: sudo
+  tasks:
+    - name: Ensure nginx is installed
+      ansible.builtin.command: amazon-linux-extras install nginx1 -y
+      changed_when: false
+
+    - name: Start nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: started
+
+    - name: Enable nginx service
+      ansible.builtin.service:
+        name: nginx
+        enabled: true
+
+    - name: Get nginx Installed version
+      ansible.builtin.command: nginx -v
+      changed_when: false
+
+    - name: Get status of nginx service
+      ansible.builtin.command: systemctl status nginx
+      changed_when: false
+```
+
+<Table
+  caption="yum モジュール、state のパラメータ"
+  columns={["パラメータ", "説明"]}
+  data={[
+    [
+      "present / installed",
+      ["対象のパッケージがインストールされている状態", "ターゲットノードに存在しなければインストール"].join("<br>"),
+    ],
+    [
+      "latest",
+      [
+        "対象のパッケージが最新の状態",
+        "ターゲットノードに存在しなければインストールし、最新でなければ最新の状態にアップデートする",
+      ].join("<br>"),
+    ],
+    [
+      "absent / removed",
+      ["対象のパッケージが存在しない状態", "ターゲットノードにインストールされている場合は、削除する"].join("<br>"),
+    ],
+  ]}
+/>
+
+yum モジュールの冪等性を保つために実行時にターゲットノードの状態をチェックしています。
+指定したパッケージがすでにインストールされていて、かつ最新版であった場合はスキップされます。
+最新版でなかった場合は、最新版がインストールされます。
+
+##### 権限昇格
+
+パッケージのインストールは、一般ユーザでなく root ユーザーで実行します。
+Playbook の実行時に root であることはセキュリティ上問題があるので、必要最低限で権限を付与して become パラメータ、become_method を指定して、権限昇格を行います。
+また、ansible-playbook コマンドで Playbook コマンドの実行時にオプションとして指定することもできる。
+
+become_method で `su` や `sudo` など、権限昇格の方法を変更できます。権限昇格は 1 ホストにつき、1 メソッドのみが利用可能です。
+そのため `sudo su -` のように、sudo コマンドで su を実行するといった二重の権限昇格はできません。
+
+<Table
+  columns={["パラメータ", "説明"]}
+  data={[
+    [
+      "sudo",
+      [
+        "`sudo` を利用し、権限昇格を行う。",
+        "指定したユーザーが `/etc/sudoers` で sudo が実行可能になっている必要がある。",
+      ].join("<br>"),
+    ],
+    ["su", ["Linux / Unix で標準的に利用される su コマンドを利用し、権限昇格を行う。"].join("<br>")],
+    [
+      "pburn",
+      ["商用のアクセス管理・ログ取得ツール「PowerBroker」の pburn コマンドを利用し、権限昇格を行う"].join("<br>"),
+    ],
+    [
+      "pfexec",
+      [
+        "Solaris などで利用される pfexec コマンドを利用し、権限昇格を行う。",
+        "pfexec は sudo と同様に、一般ユーザーのまま特権ユーザーの権限を利用する仕組み。",
+      ].join("<br>"),
+    ],
+    ["doas", ["BSD 系 OS などでよく利用される doas コマンドを利用し、権限昇格を行う。"].join("<br>")],
+    ["dzdo", ["Active Directory のゾーン内に保管されている権限情報を利用し、権限昇格を行う。"].join("<br>")],
+    ["ksu", ["Kerberos による認証が可能な ksu コマンドを利用し権限昇格を行う。"].join("<br>")],
+    ["runas", ["Windows 上で利用可能な runas コマンドを利用し権限昇格を行う。"].join("<br>")],
+    ["machinectl", ["コンテナ管理などに利用する machinectl コマンドを利用し権限昇格を行う。"].join("<br>")],
+  ]}
+/>
+
+#### Ansible プレイブックの実行
+
+```bash frame=none
+ansible-playbook -i /etc/ansible/hosts nginx_install.yaml
+
+PLAY [Install and Configure Nginx on EC2 Instances] *********************************************************************************************************************************
+
+TASK [Gathering Facts] **************************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Ensure nginx is installed] ****************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Start nginx service] **********************************************************************************************************************************************************
+changed: [52.194.192.120]
+
+TASK [Enable nginx service] *********************************************************************************************************************************************************
+changed: [52.194.192.120]
+
+TASK [Get nginx Installed version] **************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Get status of nginx service] **************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+PLAY RECAP **************************************************************************************************************************************************************************
+52.194.192.120             : ok=6    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+再度実行するとログの項目が変更していることを確認できる。
+
+```bash frame=none
+ansible-playbook -i /etc/ansible/hosts nginx_install.yaml
+
+PLAY [Install and Configure Nginx on EC2 Instances] *********************************************************************************************************************************
+
+TASK [Gathering Facts] **************************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Ensure nginx is installed] ****************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Start nginx service] **********************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Enable nginx service] *********************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Get nginx Installed version] **************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Get status of nginx service] **************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+PLAY RECAP **************************************************************************************************************************************************************************
+52.194.192.120             : ok=6    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+最後の PLAY RECAP を確認すると初回の実行成功時には、changed が 2 つでした。その後の実行は changed は 0 となっており、
+"Start nginx service" と "Enable nginx service" はすでに期待するステータスのため、changed ではなく ok となります。
+また、このステータス管理もリンターの構成によって適切なモジュールを利用してあげることが必要です。実行内容に問題がなくても変更を検知する changed のステータスとして実行されてしまうため。
+
+#### PLAY RECAP のステータス
+
+<Table
+  columns={["ステータス", "概要"]}
+  data={[
+    ["ok", "タスクが成功した"],
+    ["changed", "ファイルの変更やパッケージのインストールなど、ターゲットノードに変更が加えられた。"],
+    ["unreachable", "ターゲットノードに接続できなかった。"],
+    ["failed", "ターゲットノード上のタスクの実行に失敗した"],
+    ["skipped", "タスクをスキップした。条件分岐にマッチしなかった場合など、タスクをスキップした場合にカウントされる。"],
+    [
+      "rescued",
+      [
+        "block 内のエラー発生時に、rescue ブロックで処理を継続した。rescue された処理は、failed としてカウントされない。",
+        "[rescue ブロック](/ansible/about-ansible/about-playbook/#rescue-ブロック)",
+      ].join("<br>"),
+    ],
+    [
+      "ignored",
+      "タスクの実行で failed となったが、エラーが無視された。`ignore_errors: yes`と指定すると、エラーが発生しても後続の処理が継続して実行される。",
+    ],
+  ]}
+/>
+
+#### エラーを読み解く
+
+##### 接続エラー(unreachable)
+
+ネットワークや DNS の名前解決などの問題で、インベントリで指定したホストに到達できない場合、unreachable ステータスとしてカウントされます。
+もし実行中に到達できないホストが存在した場合、そのホストに対する後続タスクの実行を中断します。
+
+```ini
+[ec2]
+18.183.181.181 ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/t_admin_key.pem ansible_python_interpreter=/usr/bin/python3
+# unreachable のホスト
+notexist
+```
+
+```bash frame="none"
+ansible-playbook -i /etc/ansible/hosts nginx_install.yaml
+
+PLAY [ec2] **************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] **************************************************************************************************************************************************************
+fatal: [notexist]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: ssh: Could not resolve hostname notexist: nodename nor servname provided, or not known", "unreachable": true}
+ok: [18.183.181.181]
+
+TASK [Install the latest version of nginx] ******************************************************************************************************************************************
+changed: [18.183.181.181]
+
+TASK [Start nginx service] **********************************************************************************************************************************************************
+ok: [18.183.181.181]
+
+TASK [Enable nginx service] *********************************************************************************************************************************************************
+ok: [18.183.181.181]
+
+TASK [Get nginx Installed version] **************************************************************************************************************************************************
+changed: [18.183.181.181]
+
+TASK [Get status of nginx service] **************************************************************************************************************************************************
+changed: [18.183.181.181]
+
+PLAY RECAP **************************************************************************************************************************************************************************
+18.183.181.181             : ok=6    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+notexist                   : ok=0    changed=0    unreachable=1    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+Gathering Facts 実行時にエラーが出ています。ホストの名前解決ができず、SSH 経由での接続ができたかったときこのようなエラーとなる。
+
+##### 文法エラー(Syntax Error)
+
+yaml などのプレイブックのインデントミスなどを故意におこしてみる。
+
+```bash frame="none"
+ansible-playbook -i /etc/ansible/hosts nginx_install.yaml
+ERROR! We were unable to read either as JSON nor YAML, these are the errors we got from each:
+JSON: Expecting value: line 1 column 1 (char 0)
+
+Syntax Error while loading YAML.
+  mapping values are not allowed in this context. mapping values are not allowed in this context
+  in "<unicode string>", line 18, column 16
+
+The error appears to be in '/Users/t_inoue/Documents/01_ProjectsApp/11_Practices/10_AWS/udemy/terraform-practice/ansible-project/nginx_install.yaml': line 18, column 16, but may
+be elsewhere in the file depending on the exact syntax problem.
+
+The offending line appears to be:
+
+      name: nginx
+        enabled: yes
+               ^ here
+```
+
+文法エラーが発生すると、Ansible がエラーになったポイントを表示してくれる。
+
+##### エラーを回避する
+
+文法チェック `--syntax-check` オプションを指定すると、実際に実行する前にプレイブックの文法的なエラーを発見できます。
+構文のエラーがあると先ほどと同様にプレイブックの構文エラーが出力される。
+
+**構文に問題がない場合**
+
+```bash frame=none
+ansible-playbook -i /etc/ansible/hosts nginx_install.yaml --syntax-check
+
+playbook: nginx_install.yaml
+```
+
+#### Check モードでの実行
+
+`--check` ターゲットノードに直接変更をしないが、ansible-playbook コマンドのテスト実行をしたい場合(ドライラン)に利用するオプション
+
+```bash frame=none
+ansible-playbook -i /etc/ansible/hosts nginx_install.yaml --check
+
+PLAY [Install and Configure Nginx on EC2 Instances] *********************************************************************************************************************************
+
+TASK [Gathering Facts] **************************************************************************************************************************************************************
+
+TASK [Ensure nginx is installed] ****************************************************************************************************************************************************
+skipping: [52.194.192.120]
+
+TASK [Start nginx service] **********************************************************************************************************************************************************
+fatal: [52.194.192.120]: FAILED! => {"changed": false, "msg": "Could not find the requested service nginx: host"}
+
+PLAY RECAP **************************************************************************************************************************************************************************
+52.194.192.120             : ok=1    changed=0    unreachable=0    failed=1    skipped=1    rescued=0    ignored=0
+```
+
+まだ、nginx のインストールがインスタンス内で実行されていないため、"Start nginx service" は failed となる。
+Check モードはドライランのため変更はしないが、必要なツールがない状態での確認シェルは失敗する。
+
+```bash frame=none
+ansible-playbook -i /etc/ansible/hosts nginx_install.yaml --check
+
+PLAY [Install and Configure Nginx on EC2 Instances] *********************************************************************************************************************************
+
+TASK [Gathering Facts] **************************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Ensure nginx is installed] ****************************************************************************************************************************************************
+skipping: [52.194.192.120]
+
+TASK [Start nginx service] **********************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Enable nginx service] *********************************************************************************************************************************************************
+ok: [52.194.192.120]
+
+TASK [Get nginx Installed version] **************************************************************************************************************************************************
+skipping: [52.194.192.120]
+
+TASK [Get status of nginx service] **************************************************************************************************************************************************
+skipping: [52.194.192.120]
+
+PLAY RECAP **************************************************************************************************************************************************************************
+52.194.192.120             : ok=3    changed=0    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
+```
+
+通常実行時には、changed となる "Ensure nginx is installed"、"Get nginx Installed version"、"Get status of nginx service" のタスクが skipping される。
+
+:::caution[`shell` モジュールはチェックできない]
+`shell` モジュールや `command` モジュールなどの「ターゲットホスト上でコマンドを実行する」モジュールは Check モードでは、ok として表示される。
+モジュールとしては、コマンド実行するという処理のみを担っている。指定されたコマンドの実行結果を確認できない。
+`shell` モジュール、state を多用するプレイブックをテストする際は、その実行結果がどうなっているのかなどの注意が必要となってくる。
+:::
+
+そもそもの Playbook ファイルの規則チェックを入れるには、[ansible-linter](/ansible/about-ansible/start-ansible/#ansible-lint) を利用しましょう。

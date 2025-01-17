@@ -25,6 +25,7 @@
         "tsconfigs",
         "turso",
         "UEFI",
-        "Usacloud"
+        "Usacloud",
+        "frontmatter"
     ]
 }

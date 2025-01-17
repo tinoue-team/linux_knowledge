@@ -1,0 +1,205 @@
+---
+title: タスクとロールの管理
+description: import_tasks, include_tasks, import_role, include_role それぞれの違いについて
+tags:
+  - "Ansible"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: タスクとロールの管理
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 30
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps, FileTree } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## 切り出したタスクとロールの違い
+
+### タスクの切り出し
+
+実行するプレイブックの内容が 1 ファイルのみですと肥大化していき、可読性などの点で管理が難しくなってくる。
+例えば、サーバー構成を実行していく中で、
+
+- アカウントの作成
+- web サーバーの設定
+- 監視サーバーの設定
+- os による実行内容の違い
+
+などタスクも系統で分けることができる。
+その時に、タスクを別ファイルで管理してメインとなるプレイブックで呼び出すような構成でファイルを管理することで、管理しやすくなります。
+
+<FileTree>
+
+- ansible/
+  - playbook/
+    - main.yaml
+    - role/
+      - rhel/
+        - create_account.yaml
+        - set_web_server.yaml
+        - set_zabbix.yaml
+      - ubuntu
+        - create_account.yaml
+        - set_web_server.yaml
+        - set_zabbix.yaml
+
+</FileTree>
+おおよそ、このようなファイル構成で切り分けることで、どこで、どのような管理が行われているかをファイル名で理解することができる。
+ここから実際にどのようにファイルを切り出し、main.yaml で読み込むかの手順を実行していく。
+
+> rhel と ubuntu の実行内容が when 条件で分岐することで、管理をまとめることもできる。
+
+## import_tasks と include_tasks
+
+### `import_tasks` とは
+
+`import_tasks` は、タスクを別ファイルで管理して、メインのプレイブックで呼び出すことができます。
+タスクを複数のファイルに分割し、プレイブックの可読性と管理性を向上させることができます。
+
+```yaml
+---
+- name: サーバーのセットアップ
+  hosts: all
+  become: true
+  vars:
+    users:
+      - name: taro
+        shell: /bin/bash
+      - name: jiro
+        shell: /bin/zsh
+
+  tasks:
+    - name: ユーザーアカウントの作成
+      ansible.builtin.user:
+        name: "{{ item.name }}"
+        shell: "{{ item.shell }}"
+      loop: "{{ users }}"
+
+    - name: 必要なパッケージのインストール
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - git
+        - vim
+        - curl
+
+    - name: Nginx のインストールと起動
+      ansible.builtin.apt:
+        name: nginx
+        state: latest
+      notify:
+        - Nginx を起動
+
+  handlers:
+    - name: Nginx を起動
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+```
+
+このプレイブックでは、ユーザーアカウントの作成、パッケージのインストール、インストール状態の確認・サービスの起動といったそれぞれの役割が存在している。これらを別ファイルで管理して、メインのプレイブックで呼び出すような構成を行うことで、管理しやすくなる。
+
+まず、タスク別で、ファイルを切り出していく。
+
+- ユーザーアカウントの作成 => `create_account.yaml`
+- 必要なパッケージのインストール => `install_packages.yaml`
+- Nginx のインストールと起動 => `start_nginx.yaml`
+
+```yaml title="create_account.yaml"
+- name: ユーザーアカウントの作成
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    shell: "{{ item.shell }}"
+  loop: "{{ users }}"
+```
+
+```yaml title="install_packages.yaml"
+- name: 必要なパッケージのインストール
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - git
+    - vim
+    - curl
+```
+
+```yaml title="start_nginx.yaml"
+- name: Nginx のインストールと起動
+  ansible.builtin.apt:
+    name: nginx
+    state: latest
+  notify:
+    - Nginx を起動
+```
+
+これらのファイルを以下のように構成する
+
+<FileTree>
+
+- ansible/
+  - playbook/
+    - main.yaml
+    - tasks/
+      - create_account.yaml
+      - install_packages.yaml
+      - start_nginx.yaml
+
+</FileTree>
+
+main.yaml で各タスクファイルを `import_tasks` で取り込む
+
+```yaml title=main.yaml showLineNumbers ins={13-15}
+---
+- name: サーバーのセットアップ
+  hosts: all
+  become: true
+  vars:
+    users:
+      - name: taro
+        shell: /bin/bash
+      - name: jiro
+        shell: /bin/zsh
+
+  tasks:
+    - import_tasks: tasks/create_users.yaml
+    - import_tasks: tasks/install_packages.yaml
+    - import_tasks: tasks/setup_nginx.yaml
+
+  handlers:
+    - name: Nginx を起動
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+```
+
+これで、main.yaml がシンプルになり、その名前でどのようなタスクが行われているかなどを理解することができるようになります。タスクをファイルで切り出すことで、可読性、再利用性の向上を図ることができる。
+
+### `include_tasks` とは
+
+`include_tasks` も、タスクを別ファイルで管理して、メインのプレイブックで呼び出すことができます。
+タスクを複数のファイルに分割し、プレイブックの可読性と管理性を向上させることができます。
+
+<Table
+  colWidth={["14rem", "", ""]}
+  columns={["", "`import_tasks`", "`include_tasks`"]}
+  data={[
+    ["取り込むファイルを<br/>チェックするタイミング", "プレイブックを実行する前", "タスクを実行するとき"],
+    [
+      "指定したディレクティブ<br/>の適用箇所",
+      "取り込むファイル内の各タスクに継承 ( 適用 ) される",
+      "`ansible.builtin.include_tasks` モジュールを使用したタスク自体に適用される",
+    ],
+    ["become<br/>ディレクティブ", "設定できる", "設定できない"],
+    ["loop<br/>ディレクティブ", "設定できない", "設定できる"],
+  ]}
+/>

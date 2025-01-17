@@ -1,36 +1,10 @@
 ---
-import { Command, Scenario, db } from 'astro:db';
-import Greeting from '@components/client/Greeting';
-import BaseLayout from '@layouts/BaseLayout.astro';
-
-const pageTitle = 'Home Page';
-const commands = await db.select().from(Command);
-const scenarios = await db.select().from(Scenario);
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+// import CustomComponent from './CustomComponent.astro';
 ---
 
-<BaseLayout pageTitle={pageTitle}>
-    <!-- slot in -->
-    <h2>私の素晴らしいブログのサブタイトル</h2>
-    <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
-    {
-        commands.map(({command, description, create_author, update_author, created_at, updated_at}) => (
-            <p>{command}</p>
-            <p>{description}</p>
-            <p>{create_author}</p>
-            <p>{update_author}</p>
-            <p>{created_at}</p>
-            <p>{updated_at}</p>
-        ))
-    }
-    {
-        scenarios.map(({title, scenario, description, create_author, update_author, created_at, updated_at}) => (
-            <p>{title}</p>
-            <p>{scenario}</p>
-            <p>{description}</p>
-            <p>{create_author}</p>
-            <p>{update_author}</p>
-            <p>{created_at}</p>
-            <p>{updated_at}</p>
-        ))
-    }
-</BaseLayout>
+<StarlightPage frontmatter={{ title: '私のカスタムページ' }}>
+  <p>これはカスタムコンポーネントを用いたカスタムページです:</p>
+    <!-- ここに src/content/docs のトップページのパスを表示する。 -->
+  <!-- <CustomComponent /> -->
+</StarlightPage>

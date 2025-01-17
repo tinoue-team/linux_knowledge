@@ -1,0 +1,140 @@
+---
+title: Zabbix サーバーの構築
+description: Ansible で Zabbix サーバーの構築を行います。
+tags:
+  - "Ansible"
+sidebar:
+  # このリンクのカスタムラベルを設定します
+  label: Zabbix サーバーの構築
+  # このリンクの順番をカスタマイズします（数字が小さいほど上に表示されます）
+  order: 100
+  # このリンクにバッジを追加します
+  # badge:
+  #     text: ""
+  #     variant: tip
+---
+
+import { LinkCard, Tabs, TabItem, Steps } from "@astrojs/starlight/components";
+import LinkPreview from "@components/LinkPreview.astro";
+import MermaidChart from "@components/MermaidChart.astro";
+import Table from "@components/Table.astro";
+
+## 演習の概要
+
+ubuntu の Web サーバーを構築し、それを監視するサーバーを用意する。基本的な Zabbix の利用方法と、ロールを利用した構成を作る。
+
+### 必要なノードと構成
+
+- コントロールノード (Mac)
+- Web サーバー (EC2 インスタンス)
+- Zabbix サーバー (EC2 インスタンス)
+
+<MermaidChart
+    chart={`
+    graph LR
+
+    C_node[(作業用ノード<br>Ansible)]
+
+    web[(Web サーバー<br>Nginx)]
+    zabbix[(監視 サーバー<br>Zabbix)]
+
+    C_node --> web
+    C_node --> zabbix
+
+    `}
+
+/>
+
+プレイブックを作成する上で重要なのは、「何を自動化するかを明確化にする」ことです。
+作業手順書を作成する際には、あらかじめ運用で必要となる作業を洗い出していきます。
+今回は、Web サーバーと Zabbix サーバーを構築し、それぞれの初期構築と Zabbix で Web サーバーを監視する設定までを自動化します。
+
+作業用ノードからターゲットノードに Playbook を実行できる準備を行う。
+
+### インフラストラクチャの用意
+
+今回は、それぞれのサーバーを AWS で作成したいと思います。EC2 でインスタンスを作成するところまでを行う。
+
+## インベントリの作成
+
+Web サーバーと、Zabbix サーバーのホストに接続するためのインベントリを宣言します。
+
+```yaml
+all:
+  children:
+    web:
+      hosts:
+        web_01:
+          ansible_host: 192.168.1.10
+          ansible_user: ubuntu
+    zabbix:
+      hosts:
+        monitor_01:
+          ansible_host: 192.168.1.20
+          ansible_user: ubuntu
+```
+
+## ロールに分割
+
+ロールは、プレイブックを役割別でファイル分割することで以下のメリットを享受できるようになります。
+
+- 大きくなっていくプレイブックをロールに分割することで、他のプレイブックでの再利用ができる。
+- 肥大化したプレイブックの可読性が上がる
+- チーム開発時に作業分担ができるようになる
+
+### web サーバーを構築するプレイブックをロールで分割してみる
+
+まだ未分割のプレイブックが以下のようになっている。
+
+```yaml
+---
+- name: Install and Configure Nginx on EC2 Instances
+  hosts: ec2
+  vars:
+    ansible_become: true
+    ansible_become_method: sudo
+  tasks:
+    - name: Configure set hostname
+      ansible.builtin.hostname:
+        name: web01
+        use: systemd
+
+    - name: Ensure nginx is installed
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Copy content
+      ansible.builtin.copy:
+        src: ../../content/index.nginx-debian.html
+        dest: /var/www/html
+        owner: root
+        mode: "0644"
+
+    - name: Start nginx service
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+
+    - name: Enable nginx service
+      ansible.builtin.systemd:
+        name: nginx
+        enabled: true
+
+    - name: Get nginx Installed version
+      ansible.builtin.command: nginx -v
+      changed_when: false
+
+    - name: Get status of nginx service
+      ansible.builtin.command: systemctl status nginx
+      changed_when: false
+```
+
+こちらを以下の役割で分割していく
+
+- ホスト名変更
+- Nginx インストール
+- コンテンツの転送
+- Nginx の起動
+
+ファイルとしては
